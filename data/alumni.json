@@ -1,0 +1,272 @@
+[
+  {
+    "id": 1,
+    "name": "陈志强",
+    "englishName": "Chen Zhiqiang",
+    "class": "6A",
+    "graduationYear": 2006,
+    "intakeYear": 2001,
+    "currentLocation": "Kuala Lumpur"
+  },
+  {
+    "id": 2,
+    "name": "林美玲",
+    "englishName": "Lim Meiling",
+    "class": "6B",
+    "graduationYear": 2006,
+    "intakeYear": 2001,
+    "currentLocation": "Petaling Jaya"
+  },
+  {
+    "id": 3,
+    "name": "王伟杰",
+    "englishName": "Wong Weijie",
+    "class": "6C",
+    "graduationYear": 2006,
+    "intakeYear": 2001,
+    "currentLocation": "Penang"
+  },
+  {
+    "id": 4,
+    "name": "张淑芬",
+    "englishName": "Teoh Shu Fen",
+    "class": "6A",
+    "graduationYear": 2006,
+    "intakeYear": 2001,
+    "currentLocation": "Ipoh"
+  },
+  {
+    "id": 5,
+    "name": "刘建文",
+    "englishName": "Low Jianwen",
+    "class": "6B",
+    "graduationYear": 2006,
+    "intakeYear": 2001,
+    "currentLocation": "Johor Bahru"
+  },
+  {
+    "id": 6,
+    "name": "黄雅诗",
+    "englishName": "Wong Yashi",
+    "class": "6D",
+    "graduationYear": 2006,
+    "intakeYear": 2001,
+    "currentLocation": "Kuala Lumpur"
+  },
+  {
+    "id": 7,
+    "name": "李志明",
+    "englishName": "Lee Zhiming",
+    "class": "6A",
+    "graduationYear": 2006,
+    "intakeYear": 2001,
+    "currentLocation": "Selangor"
+  },
+  {
+    "id": 8,
+    "name": "陈思敏",
+    "englishName": "Tan Simin",
+    "class": "6C",
+    "graduationYear": 2006,
+    "intakeYear": 2001,
+    "currentLocation": "Melaka"
+  },
+  {
+    "id": 9,
+    "name": "周国豪",
+    "englishName": "Zhou Guohao",
+    "class": "6B",
+    "graduationYear": 2006,
+    "intakeYear": 2001,
+    "currentLocation": "Kuala Lumpur"
+  },
+  {
+    "id": 10,
+    "name": "吴慧玲",
+    "englishName": "Ng Huiling",
+    "class": "6A",
+    "graduationYear": 2006,
+    "intakeYear": 2001,
+    "currentLocation": "Sabah"
+  },
+  {
+    "id": 11,
+    "name": "曾志祥",
+    "englishName": "Zeng Zhixiang",
+    "class": "5A",
+    "graduationYear": 2005,
+    "intakeYear": 2001,
+    "currentLocation": "Sarawak"
+  },
+  {
+    "id": 12,
+    "name": "林静怡",
+    "englishName": "Lin Jingyi",
+    "class": "5B",
+    "graduationYear": 2005,
+    "intakeYear": 2001,
+    "currentLocation": "Kuala Lumpur"
+  },
+  {
+    "id": 13,
+    "name": "陈伟健",
+    "englishName": "Chen Weijian",
+    "class": "5C",
+    "graduationYear": 2005,
+    "intakeYear": 2001,
+    "currentLocation": "Perak"
+  },
+  {
+    "id": 14,
+    "name": "张美琪",
+    "englishName": "Cheah Meiqi",
+    "class": "5A",
+    "graduationYear": 2005,
+    "intakeYear": 2001,
+    "currentLocation": "Selangor"
+  },
+  {
+    "id": 15,
+    "name": "刘志远",
+    "englishName": "Liu Zhiyuan",
+    "class": "5B",
+    "graduationYear": 2005,
+    "intakeYear": 2001,
+    "currentLocation": "Kuala Lumpur"
+  },
+  {
+    "id": 16,
+    "name": "黄志鸿",
+    "englishName": "Wong Zhihong",
+    "class": "5C",
+    "graduationYear": 2005,
+    "intakeYear": 2001,
+    "currentLocation": "Penang"
+  },
+  {
+    "id": 17,
+    "name": "李晓燕",
+    "englishName": "Li Xiaoyan",
+    "class": "5A",
+    "graduationYear": 2005,
+    "intakeYear": 2001,
+    "currentLocation": "Johor"
+  },
+  {
+    "id": 18,
+    "name": "陈国荣",
+    "englishName": "Tan Guorong",
+    "class": "5B",
+    "graduationYear": 2005,
+    "intakeYear": 2001,
+    "currentLocation": "Kuala Lumpur"
+  },
+  {
+    "id": 19,
+    "name": "王淑君",
+    "englishName": "Wang Shujun",
+    "class": "5C",
+    "graduationYear": 2005,
+    "intakeYear": 2001,
+    "currentLocation": "Sabah"
+  },
+  {
+    "id": 20,
+    "name": "许志平",
+    "englishName": "Koh Zhiping",
+    "class": "5A",
+    "graduationYear": 2005,
+    "intakeYear": 2001,
+    "currentLocation": "Selangor"
+  },
+  {
+    "id": 21,
+    "name": "郑文杰",
+    "englishName": "Zheng Wenjie",
+    "class": "6A",
+    "graduationYear": 2006,
+    "intakeYear": 2001,
+    "currentLocation": "Kuala Lumpur"
+  },
+  {
+    "id": 22,
+    "name": "杨秀英",
+    "englishName": "Yang Xiuying",
+    "class": "6B",
+    "graduationYear": 2006,
+    "intakeYear": 2001,
+    "currentLocation": "Perak"
+  },
+  {
+    "id": 23,
+    "name": "罗志明",
+    "englishName": "Loh Zhiming",
+    "class": "6C",
+    "graduationYear": 2006,
+    "intakeYear": 2001,
+    "currentLocation": "Kuala Lumpur"
+  },
+  {
+    "id": 24,
+    "name": "叶淑芬",
+    "englishName": "Yap Shufen",
+    "class": "6A",
+    "graduationYear": 2006,
+    "intakeYear": 2001,
+    "currentLocation": "Johor"
+  },
+  {
+    "id": 25,
+    "name": "谢志伟",
+    "englishName": "Cheah Zhiwei",
+    "class": "6B",
+    "graduationYear": 2006,
+    "intakeYear": 2001,
+    "currentLocation": "Penang"
+  },
+  {
+    "id": 26,
+    "name": "钟美婷",
+    "englishName": "Zhong Meiting",
+    "class": "5A",
+    "graduationYear": 2005,
+    "intakeYear": 2001,
+    "currentLocation": "Selangor"
+  },
+  {
+    "id": 27,
+    "name": "江志雄",
+    "englishName": "Jiang Zhixiong",
+    "class": "5B",
+    "graduationYear": 2005,
+    "intakeYear": 2001,
+    "currentLocation": "Kuala Lumpur"
+  },
+  {
+    "id": 28,
+    "name": "孙晓琳",
+    "englishName": "Sun Xiaolin",
+    "class": "5C",
+    "graduationYear": 2005,
+    "intakeYear": 2001,
+    "currentLocation": "Ipoh"
+  },
+  {
+    "id": 29,
+    "name": "马志杰",
+    "englishName": "Ma Zhijie",
+    "class": "6A",
+    "graduationYear": 2006,
+    "intakeYear": 2001,
+    "currentLocation": "Kuala Lumpur"
+  },
+  {
+    "id": 30,
+    "name": "邓秀兰",
+    "englishName": "Deng Xiulan",
+    "class": "6B",
+    "graduationYear": 2006,
+    "intakeYear": 2001,
+    "currentLocation": "Melaka"
+  }
+]
