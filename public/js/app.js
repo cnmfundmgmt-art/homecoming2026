@@ -32,6 +32,7 @@ function initMain() {
   initModal();
   initPaymentModal();
   initScrollAnimations();
+  initTableSeating();
 }
 
 function initCountdown() {
@@ -209,6 +210,9 @@ function initRegistrationForm() {
 
     if (hasError) return;
 
+    // Store form data for seating step after payment
+    window._pendingRegistrationData = data;
+
     // Step 1: Create payment
     try {
       const paymentRes = await fetch(`${API_BASE}/create-payment`, {
@@ -315,7 +319,16 @@ function showPaymentStatus(status) {
     icon.className = 'payment-status-icon success';
     icon.textContent = '✓';
     title.textContent = '支付成功！Payment Successful!';
-    message.innerHTML = `感谢您报名参加 Homecoming 2026！<br>您的报名已确认。<br><br>确认邮件已发送至您的邮箱。`;
+    message.innerHTML = `感谢您报名参加 Homecoming 2026！<br>您的报名已确认。<br><br>现在可以选择您的桌位！`;
+
+    // Store registration in localStorage for seating
+    const regData = window._pendingRegistration;
+    if (regData) {
+      localStorage.setItem('homecoming_registration', JSON.stringify(regData));
+      localStorage.setItem('homecoming_reg_id', regData.id);
+      window._pendingRegistration = null;
+    }
+
     doneBtn.onclick = () => {
       overlay.classList.remove('active');
       registrationForm.reset();
@@ -324,6 +337,9 @@ function showPaymentStatus(status) {
       document.getElementById('selectedTicket').value = 'early-bird';
       document.getElementById('selectedAmount').value = '150';
       document.getElementById('totalAmount').textContent = 'RM 150';
+      // Redirect to seating section
+      scrollToSection('seating');
+      loadTables();
     };
   } else if (status === 'expired') {
     spinner.style.display = 'none';
@@ -359,6 +375,11 @@ function initPaymentModal() {
       if (result.success) {
         clearInterval(activeCountdownInterval);
         clearInterval(activePollInterval);
+        if (result.registration) {
+          window._pendingRegistration = result.registration;
+          localStorage.setItem('homecoming_registration', JSON.stringify(result.registration));
+          localStorage.setItem('homecoming_reg_id', result.registration.id);
+        }
         showPaymentStatus('paid');
       } else {
         btn.textContent = '✅ 模拟完成支付 (Demo Only)';
@@ -378,6 +399,196 @@ function initPaymentModal() {
     document.getElementById('paymentModalOverlay').classList.remove('active');
     showModal('info', '报名已取消', '您的报名表已重置，请重新填写。<br>Registration cancelled. Please fill the form again.');
   });
+}
+
+// ========== Table Seating ==========
+let selectedTableForSeat = null;
+
+function initTableSeating() {
+  // Check if user has a registration when seating section is visible
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        loadTables();
+      }
+    });
+  }, { threshold: 0.3 });
+
+  const seatingSection = document.getElementById('seating');
+  if (seatingSection) {
+    observer.observe(seatingSection);
+  }
+}
+
+async function loadTables() {
+  const infoBar = document.getElementById('seatingInfoBar');
+  const grid = document.getElementById('tableGrid');
+  const loginPrompt = document.getElementById('seatingLoginPrompt');
+  const successPanel = document.getElementById('seatingSuccess');
+  const selectionPanel = document.getElementById('seatingSelectionPanel');
+
+  // Hide all states first
+  [infoBar, grid, loginPrompt, successPanel, selectionPanel].forEach(el => el.style.display = 'none');
+
+  const regId = localStorage.getItem('homecoming_reg_id');
+  const regData = JSON.parse(localStorage.getItem('homecoming_registration') || 'null');
+
+  // If no registration, show login prompt
+  if (!regId || !regData) {
+    loginPrompt.style.display = 'block';
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/tables`);
+    const result = await res.json();
+
+    if (!result.success) return;
+
+    const { tables, stats } = result;
+    const myRegId = parseInt(regId);
+
+    // Check if this user already has a table
+    const myTable = tables.find(t => t.registration_id === myRegId);
+
+    if (myTable) {
+      // User already has a table - show success
+      showSeatingSuccess(myTable.table_number);
+      return;
+    }
+
+    // Show seating grid
+    infoBar.style.display = 'flex';
+    grid.style.display = 'grid';
+    selectionPanel.style.display = 'none';
+
+    // Update stats
+    document.getElementById('seatingStats').innerHTML =
+      `已预订 <span>${stats.reserved}</span> / ${stats.total_tables} 桌 | <span>${stats.available}</span> 桌可选`;
+
+    // Build table grid (5 cols x 8 rows = 40 tables)
+    grid.innerHTML = tables.map(table => {
+      const isReserved = table.status === 'reserved';
+      const isSelected = selectedTableForSeat === table.table_number;
+      const isDisabled = isReserved && !isSelected;
+
+      return `
+        <div class="seating-table ${isReserved ? 'reserved' : ''} ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}"
+             data-table="${table.table_number}"
+             onclick="handleTableClick(${table.table_number}, ${isReserved}, ${myRegId}, '${escapeHtml(regData.name || 'Guest')}')">
+          <div class="table-status-dot"></div>
+          <div class="table-number">${table.table_number}</div>
+          <div class="table-label">${isReserved ? '已满' : '可选'}</div>
+        </div>
+      `;
+    }).join('');
+
+    // Add stage indicator
+    const wrapper = grid.parentElement;
+    const existingStage = wrapper.querySelector('.stage-indicator');
+    if (!existingStage) {
+      const stage = document.createElement('div');
+      stage.className = 'stage-indicator';
+      stage.textContent = '🏟️ 舞台 STAGE';
+      wrapper.insertBefore(stage, grid);
+    }
+
+  } catch (error) {
+    console.error('Load tables error:', error);
+  }
+}
+
+function handleTableClick(tableNumber, isReserved, registrationId, name) {
+  if (isReserved) return;
+
+  const selectionPanel = document.getElementById('seatingSelectionPanel');
+  const grid = document.getElementById('tableGrid');
+
+  // Update visual selection
+  document.querySelectorAll('.seating-table').forEach(el => {
+    el.classList.remove('selected');
+  });
+  const selectedEl = document.querySelector(`[data-table="${tableNumber}"]`);
+  if (selectedEl) selectedEl.classList.add('selected');
+
+  selectedTableForSeat = tableNumber;
+
+  document.getElementById('selectedTableNumber').textContent = tableNumber;
+  document.getElementById('selectedTableName').textContent = `第 ${tableNumber} 桌`;
+
+  selectionPanel.style.display = 'block';
+  selectionPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+async function confirmTableSelection() {
+  const regId = localStorage.getItem('homecoming_reg_id');
+  const regData = JSON.parse(localStorage.getItem('homecoming_registration') || '{}');
+
+  if (!selectedTableForSeat || !regId) return;
+
+  const btn = document.getElementById('confirmTableBtn');
+  btn.textContent = '处理中... Processing...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`${API_BASE}/reserve-table`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tableNumber: selectedTableForSeat,
+        registrationId: parseInt(regId),
+        name: regData.name || 'Guest'
+      })
+    });
+
+    const result = await res.json();
+
+    if (result.success) {
+      // Store table number in localStorage
+      localStorage.setItem('homecoming_table', selectedTableForSeat);
+      showSeatingSuccess(selectedTableForSeat);
+    } else {
+      btn.textContent = '✅ 确认此桌位 Confirm Table';
+      btn.disabled = false;
+      showModal('error', '预订失败 Booking Failed', result.message);
+      selectedTableForSeat = null;
+      loadTables();
+    }
+  } catch (error) {
+    btn.textContent = '✅ 确认此桌位 Confirm Table';
+    btn.disabled = false;
+    showModal('error', '预订失败', '网络错误，请重试 Network error.');
+  }
+}
+
+function cancelTableSelection() {
+  selectedTableForSeat = null;
+  document.getElementById('seatingSelectionPanel').style.display = 'none';
+  document.querySelectorAll('.seating-table').forEach(el => el.classList.remove('selected'));
+}
+
+function showSeatingSuccess(tableNumber) {
+  const infoBar = document.getElementById('seatingInfoBar');
+  const grid = document.getElementById('tableGrid');
+  const loginPrompt = document.getElementById('seatingLoginPrompt');
+  const selectionPanel = document.getElementById('seatingSelectionPanel');
+  const successPanel = document.getElementById('seatingSuccess');
+
+  [infoBar, grid, loginPrompt, selectionPanel].forEach(el => el.style.display = 'none');
+  successPanel.style.display = 'block';
+
+  document.getElementById('successTableNum').textContent = tableNumber;
+  successPanel.scrollIntoView({ behavior: 'smooth' });
+}
+
+function goHomeFromSeating() {
+  scrollToSection('home');
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML.replace(/'/g, "\\'").replace(/"/g, '\\"');
 }
 
 function showFieldError(selector, message) {

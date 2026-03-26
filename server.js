@@ -315,7 +315,54 @@ app.get('/api/admin/export', (req, res) => {
   }
 });
 
-// ========== PAGE ROUTES ==========
+// ========== TABLE SEATING ROUTES ==========
+
+// Initialize 40 tables on startup
+queries.initializeTables();
+
+// Get all tables with availability
+app.get('/api/tables', (req, res) => {
+  try {
+    const tables = queries.getAllTables();
+    const stats = queries.getTableStats();
+    res.json({ success: true, tables, stats });
+  } catch (error) {
+    console.error('Get tables error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch tables' });
+  }
+});
+
+// Reserve a table
+app.post('/api/reserve-table', (req, res) => {
+  const { tableNumber, registrationId, name } = req.body;
+
+  if (!tableNumber || !registrationId) {
+    return res.status(400).json({ success: false, message: 'Missing table number or registration ID' });
+  }
+
+  try {
+    const table = queries.getTableByNumber(tableNumber);
+
+    if (!table) {
+      return res.status(404).json({ success: false, message: 'Table not found' });
+    }
+
+    if (table.status !== 'available') {
+      return res.status(400).json({ success: false, message: `Table ${tableNumber} is already reserved` });
+    }
+
+    const success = queries.reserveTable(registrationId, name || 'Guest', tableNumber);
+
+    if (success) {
+      res.json({ success: true, message: `Table ${tableNumber} reserved successfully!` });
+    } else {
+      res.status(400).json({ success: false, message: 'Failed to reserve table. It may have been taken.' });
+    }
+  } catch (error) {
+    console.error('Reserve table error:', error);
+    res.status(500).json({ success: false, message: 'Failed to reserve table' });
+  }
+});
 
 // Main SPA
 app.get('/', (req, res) => {

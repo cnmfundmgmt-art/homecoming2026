@@ -35,6 +35,17 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     expires_at DATETIME NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS tables (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    table_number INTEGER UNIQUE NOT NULL,
+    capacity INTEGER NOT NULL DEFAULT 10,
+    status TEXT DEFAULT 'available',
+    registration_id INTEGER,
+    reserved_by_name TEXT,
+    reserved_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (registration_id) REFERENCES registrations(id)
+  );
 `);
 
 // Prepared statements for performance
@@ -90,6 +101,34 @@ const statements = {
 
   getExpiredPayments: db.prepare(`
     SELECT * FROM payments WHERE status = 'pending' AND expires_at < datetime('now')
+  `),
+
+  getAllTables: db.prepare(`
+    SELECT t.*, r.name as registered_name, r.attendees
+    FROM tables t
+    LEFT JOIN registrations r ON t.registration_id = r.id
+    ORDER BY t.table_number ASC
+  `),
+
+  getTableByNumber: db.prepare(`
+    SELECT * FROM tables WHERE table_number = ?
+  `),
+
+  reserveTable: db.prepare(`
+    UPDATE tables SET status = 'reserved', registration_id = ?, reserved_by_name = ?, reserved_at = CURRENT_TIMESTAMP
+    WHERE table_number = ? AND status = 'available'
+  `),
+
+  getTableStats: db.prepare(`
+    SELECT
+      COUNT(*) as total_tables,
+      SUM(CASE WHEN status = 'available' THEN 1 ELSE 0 END) as available,
+      SUM(CASE WHEN status = 'reserved' THEN 1 ELSE 0 END) as reserved
+    FROM tables
+  `),
+
+  initializeTables: db.prepare(`
+    INSERT OR IGNORE INTO tables (table_number, capacity) VALUES (?, ?)
   `)
 };
 
@@ -153,6 +192,34 @@ const queries = {
   // Update payment status
   updatePaymentStatus(refCode, status) {
     return statements.updatePaymentStatus.run(status, refCode);
+  },
+
+  // Initialize 40 tables
+  initializeTables() {
+    for (let i = 1; i <= 40; i++) {
+      statements.initializeTables.run(i, 10);
+    }
+  },
+
+  // Get all tables
+  getAllTables() {
+    return statements.getAllTables.all();
+  },
+
+  // Get table by number
+  getTableByNumber(tableNumber) {
+    return statements.getTableByNumber.get(tableNumber);
+  },
+
+  // Reserve a table
+  reserveTable(registrationId, reservedByName, tableNumber) {
+    const result = statements.reserveTable.run(registrationId, reservedByName, tableNumber);
+    return result.changes > 0;
+  },
+
+  // Get table stats
+  getTableStats() {
+    return statements.getTableStats.get();
   }
 };
 
