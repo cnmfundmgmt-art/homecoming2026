@@ -30,6 +30,7 @@ function initMain() {
   initAlumniDirectory();
   initFundraising();
   initModal();
+  initPaymentModal();
   initScrollAnimations();
 }
 
@@ -208,33 +209,174 @@ function initRegistrationForm() {
 
     if (hasError) return;
 
-    // Submit
+    // Step 1: Create payment
     try {
-      const response = await fetch(`${API_BASE}/register`, {
+      const paymentRes = await fetch(`${API_BASE}/create-payment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify({ registrationData: data, amount: parseFloat(data.amountPaid) })
       });
 
-      const result = await response.json();
+      const paymentResult = await paymentRes.json();
+
+      if (!paymentResult.success) {
+        showModal('error', '支付创建失败 Payment Creation Failed', paymentResult.message);
+        return;
+      }
+
+      // Step 2: Show payment modal with countdown
+      showPaymentModal(paymentResult);
+    } catch (error) {
+      console.error('Payment creation error:', error);
+      showModal('error', '支付创建失败 Payment Error', '网络错误，请稍后重试 Network error, please try again.');
+    }
+  });
+}
+
+// ========== Payment Flow ==========
+let activePaymentRef = null;
+let activeCountdownInterval = null;
+let activePollInterval = null;
+
+function showPaymentModal(paymentData) {
+  activePaymentRef = paymentData.refCode;
+
+  document.getElementById('paymentAmount').textContent = `RM ${paymentData.amount}`;
+  document.getElementById('paymentRefCode').textContent = paymentData.refCode;
+  document.getElementById('paymentQRCode').src = paymentData.qrDataUrl;
+  document.getElementById('paymentBankName').textContent = paymentData.bankInfo.bankName;
+  document.getElementById('paymentAccountName').textContent = paymentData.bankInfo.accountName;
+  document.getElementById('paymentAccountNumber').textContent = paymentData.bankInfo.accountNumber;
+
+  const countdownEl = document.getElementById('paymentCountdown');
+  countdownEl.textContent = paymentData.expiresIn;
+  countdownEl.className = 'countdown-seconds';
+
+  document.getElementById('paymentModalOverlay').classList.add('active');
+
+  // Parse expires_at from ISO string
+  const expiresAt = new Date(paymentData.expiresAt).getTime();
+
+  // Start countdown
+  clearInterval(activeCountdownInterval);
+  activeCountdownInterval = setInterval(() => {
+    const now = Date.now();
+    const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000));
+    countdownEl.textContent = remaining;
+
+    if (remaining <= 20) {
+      countdownEl.className = 'countdown-seconds danger';
+    } else if (remaining <= 50) {
+      countdownEl.className = 'countdown-seconds warning';
+    }
+
+    if (remaining <= 0) {
+      clearInterval(activeCountdownInterval);
+      clearInterval(activePollInterval);
+      showPaymentStatus('expired');
+    }
+  }, 1000);
+
+  // Start polling status
+  clearInterval(activePollInterval);
+  activePollInterval = setInterval(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/payment/${activePaymentRef}/status`);
+      const result = await res.json();
+
+      if (result.status === 'paid') {
+        clearInterval(activeCountdownInterval);
+        clearInterval(activePollInterval);
+        showPaymentStatus('paid');
+      } else if (result.status === 'expired') {
+        clearInterval(activeCountdownInterval);
+        clearInterval(activePollInterval);
+        showPaymentStatus('expired');
+      }
+    } catch (e) {
+      // Silently ignore poll errors
+    }
+  }, 2000);
+}
+
+function showPaymentStatus(status) {
+  const overlay = document.getElementById('paymentStatusOverlay');
+  const spinner = document.getElementById('paymentStatusSpinner');
+  const icon = document.getElementById('paymentStatusIcon');
+  const title = document.getElementById('paymentStatusTitle');
+  const message = document.getElementById('paymentStatusMessage');
+  const doneBtn = document.getElementById('paymentDoneBtn');
+
+  document.getElementById('paymentModalOverlay').classList.remove('active');
+
+  if (status === 'paid') {
+    spinner.style.display = 'none';
+    icon.style.display = 'flex';
+    icon.className = 'payment-status-icon success';
+    icon.textContent = '✓';
+    title.textContent = '支付成功！Payment Successful!';
+    message.innerHTML = `感谢您报名参加 Homecoming 2026！<br>您的报名已确认。<br><br>确认邮件已发送至您的邮箱。`;
+    doneBtn.onclick = () => {
+      overlay.classList.remove('active');
+      registrationForm.reset();
+      document.querySelectorAll('.ticket-card').forEach(c => c.classList.remove('selected'));
+      document.querySelector('[data-ticket="early-bird"]').classList.add('selected');
+      document.getElementById('selectedTicket').value = 'early-bird';
+      document.getElementById('selectedAmount').value = '150';
+      document.getElementById('totalAmount').textContent = 'RM 150';
+    };
+  } else if (status === 'expired') {
+    spinner.style.display = 'none';
+    icon.style.display = 'flex';
+    icon.className = 'payment-status-icon expired';
+    icon.textContent = '⏰';
+    title.textContent = '支付已过期 Payment Expired';
+    message.innerHTML = `您的 100 秒支付时限已结束。<br>请重新提交报名表格。<br><br>Your 100-second payment window has ended.<br>Please submit the form again.`;
+    doneBtn.onclick = () => overlay.classList.remove('active');
+  }
+
+  overlay.classList.add('active');
+}
+
+// Init payment modal controls
+function initPaymentModal() {
+  document.getElementById('simulatePayBtn').addEventListener('click', async () => {
+    if (!activePaymentRef) return;
+
+    const btn = document.getElementById('simulatePayBtn');
+    btn.textContent = '处理中... Processing...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`${API_BASE}/simulate-payment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refCode: activePaymentRef })
+      });
+
+      const result = await res.json();
 
       if (result.success) {
-        showModal('success', '报名成功！Registration Successful!', 
-          `感谢您报名参加Homecoming 2026！我们已发送确认邮件到 ${data.email}`);
-        registrationForm.reset();
-        // Reset ticket selection
-        document.querySelectorAll('.ticket-card').forEach(c => c.classList.remove('selected'));
-        document.querySelector('[data-ticket="early-bird"]').classList.add('selected');
-        document.getElementById('selectedTicket').value = 'early-bird';
-        document.getElementById('selectedAmount').value = '150';
-        document.getElementById('totalAmount').textContent = 'RM 150';
+        clearInterval(activeCountdownInterval);
+        clearInterval(activePollInterval);
+        showPaymentStatus('paid');
       } else {
-        showModal('error', '报名失败 Registration Failed', result.message);
+        btn.textContent = '✅ 模拟完成支付 (Demo Only)';
+        btn.disabled = false;
+        showModal('error', '操作失败', result.message);
       }
-    } catch (error) {
-      console.error('Registration error:', error);
-      showModal('error', '报名失败 Registration Failed', '网络错误，请稍后重试 Network error, please try again.');
+    } catch (e) {
+      btn.textContent = '✅ 模拟完成支付 (Demo Only)';
+      btn.disabled = false;
     }
+  });
+
+  document.getElementById('cancelPaymentBtn').addEventListener('click', () => {
+    clearInterval(activeCountdownInterval);
+    clearInterval(activePollInterval);
+    activePaymentRef = null;
+    document.getElementById('paymentModalOverlay').classList.remove('active');
+    showModal('info', '报名已取消', '您的报名表已重置，请重新填写。<br>Registration cancelled. Please fill the form again.');
   });
 }
 

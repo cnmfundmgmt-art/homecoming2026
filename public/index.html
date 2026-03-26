@@ -743,6 +743,74 @@
     </div>
   </div>
 
+  <!-- Payment Modal -->
+  <div class="modal-overlay payment-modal" id="paymentModalOverlay">
+    <div class="modal" id="paymentModal">
+      <div class="payment-modal-header">
+        <h3>🏦 银行转账 Bank Transfer</h3>
+        <p>请在限时内完成转账</p>
+        <div class="payment-amount" id="paymentAmount">RM 0</div>
+        <div class="payment-amount-label">应付金额 Amount Due</div>
+      </div>
+
+      <div class="payment-qr-section">
+        <img class="payment-qr-code" id="paymentQRCode" src="" alt="QR Code">
+        <div class="payment-ref">
+          参考码 Reference: <strong id="paymentRefCode">---</strong>
+        </div>
+      </div>
+
+      <div class="payment-countdown-bar">
+        <div class="countdown-timer">
+          <span class="countdown-icon">⏱️</span>
+          <div class="countdown-text">
+            <div class="countdown-label-text">剩余时间 Time Remaining</div>
+            <div class="countdown-seconds" id="paymentCountdown">100</div>
+          </div>
+        </div>
+
+        <div class="bank-details">
+          <div class="bank-details-title">收款账户 Recipient Account</div>
+          <div class="bank-detail-row">
+            <span class="bank-detail-label">银行 Bank</span>
+            <span class="bank-detail-value" id="paymentBankName">Bank Islam</span>
+          </div>
+          <div class="bank-detail-row">
+            <span class="bank-detail-label">账户名 Account Name</span>
+            <span class="bank-detail-value" id="paymentAccountName">PERSATUAN BEKAS MURID CHONG HWA KL</span>
+          </div>
+          <div class="bank-detail-row">
+            <span class="bank-detail-label">账号 Account Number</span>
+            <span class="bank-detail-value account-num" id="paymentAccountNumber">1018 2120 1456</span>
+          </div>
+        </div>
+
+        <button class="simulate-pay-btn" id="simulatePayBtn">
+          ✅ 模拟完成支付 (Demo Only) Simulate Payment
+        </button>
+      </div>
+
+      <p class="payment-note">
+        请使用手机银行或网上银行转账到以上账户<br>
+        完成转账后，系统将自动确认您的报名<br>
+        Please transfer to the account above via your bank app or online banking
+      </p>
+
+      <div class="payment-modal-footer">
+        <button class="btn btn-ghost" id="cancelPaymentBtn">取消报名 Cancel Registration</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Status Overlay (full screen) -->
+  <div class="payment-status-overlay" id="paymentStatusOverlay">
+    <div class="payment-status-spinner" id="paymentStatusSpinner"></div>
+    <div class="payment-status-icon" id="paymentStatusIcon"></div>
+    <h3 class="payment-status-title" id="paymentStatusTitle">处理中...</h3>
+    <p class="payment-status-message" id="paymentStatusMessage"></p>
+    <button class="payment-status-done-btn" id="paymentDoneBtn">确定 Done</button>
+  </div>
+
   <script src="/js/app.js"></script>
 </body>
 </html>

@@ -25,6 +25,16 @@ db.exec(`
     amount REAL NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS payments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ref_code TEXT UNIQUE NOT NULL,
+    registration_data TEXT NOT NULL,
+    amount REAL NOT NULL,
+    status TEXT DEFAULT 'pending',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    expires_at DATETIME NOT NULL
+  );
 `);
 
 // Prepared statements for performance
@@ -63,6 +73,23 @@ const statements = {
 
   getTotalDonations: db.prepare(`
     SELECT COALESCE(SUM(amount), 0) as total FROM donations
+  `),
+
+  insertPayment: db.prepare(`
+    INSERT INTO payments (ref_code, registration_data, amount, status, expires_at)
+    VALUES (?, ?, ?, ?, ?)
+  `),
+
+  getPaymentByRef: db.prepare(`
+    SELECT * FROM payments WHERE ref_code = ?
+  `),
+
+  updatePaymentStatus: db.prepare(`
+    UPDATE payments SET status = ? WHERE ref_code = ?
+  `),
+
+  getExpiredPayments: db.prepare(`
+    SELECT * FROM payments WHERE status = 'pending' AND expires_at < datetime('now')
   `)
 };
 
@@ -107,6 +134,25 @@ const queries = {
   // Get total donations
   getTotalDonations() {
     return statements.getTotalDonations.get().total;
+  },
+
+  // Create a payment record
+  createPayment(refCode, registrationData, amount) {
+    const expiresAt = new Date(Date.now() + 100 * 1000).toISOString(); // 100 seconds
+    const result = statements.insertPayment.run(
+      refCode, JSON.stringify(registrationData), amount, 'pending', expiresAt
+    );
+    return { id: result.lastInsertRowid, ref_code: refCode, amount, status: 'pending', expires_at: expiresAt };
+  },
+
+  // Get payment by ref code
+  getPaymentByRef(refCode) {
+    return statements.getPaymentByRef.get(refCode);
+  },
+
+  // Update payment status
+  updatePaymentStatus(refCode, status) {
+    return statements.updatePaymentStatus.run(status, refCode);
   }
 };
 
