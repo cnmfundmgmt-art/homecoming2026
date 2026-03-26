@@ -90,9 +90,21 @@ h3 { font-size: clamp(1.2rem, 3vw, 1.5rem); }
   font-size: 1.2rem;
 }
 
+.nav-logo-img {
+  height: 40px;
+  width: auto;
+}
+
 .nav-logo-text {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
+  line-height: 1.2;
+}
+
+.nav-logo-text small {
+  font-size: 0.65rem;
+  font-weight: 400;
+  color: var(--warm-gray);
 }
 
 .nav-links {
