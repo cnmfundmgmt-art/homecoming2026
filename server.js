@@ -1,390 +1,419 @@
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
-const { queries } = require('./database');
 const fs = require('fs');
+const multer = require('multer');
+const { queries } = require('./database');
 const QRCode = require('qrcode');
+
+// Receipt upload config
+const receiptDir = path.join(__dirname, 'public', 'uploads', 'receipts');
+if (!fs.existsSync(receiptDir)) fs.mkdirSync(receiptDir, { recursive: true });
+const upload = multer({
+  dest: receiptDir,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') cb(null, true);
+    else cb(new Error('Only image or PDF allowed'));
+  }
+});
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Session configuration
 app.use(session({
-  secret: 'homecoming-2026-secret-key',
+  secret: 'homecoming-2026-secret',
   resave: false,
   saveUninitialized: false,
-  cookie: { 
-    secure: false,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
+  cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-// ========== PAYMENT ROUTES ==========
-
-const BANK_INFO = {
+// ========== BANK INFO ==========
+const BANK = {
   bankName: 'Bank Islam Malaysia Berhad',
   bankNameShort: 'Bank Islam',
   accountName: 'PERSATUAN BEKAS MURID CHONG HWA KL',
   accountNumber: '1018 2120 1456',
-  swiftCode: 'BIMBMYKL',
-  accountType: 'Islamic Banking Current Account'
+  swiftCode: 'BIMBMYKL'
 };
 
-const PAYMENT_TIMEOUT_SECONDS = 100;
+// ========== TICKET PRICES ==========
+const TICKET_PRICES = {
+  single: { name: '个人票 Single', price: 150, seats: 1 },
+  family: { name: '家庭票 Family', price: 500, seats: 4 },
+  table: { name: '包桌 Whole Table', price: 1500, seats: 10 }
+};
 
-function generateRefCode() {
+const MERCHANDISE = {
+  tshirt: { name: 'T-Shirt', price: 50, sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'] }
+};
+
+const DONATION_PRESETS = [100, 200, 500, 1000];
+
+// ========== REF CODE ==========
+function generateRefCode(studentId) {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = 'HC26';
-  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
-  return code;
+  let suffix = '';
+  for (let i = 0; i < 6; i++) suffix += chars[Math.floor(Math.random() * chars.length)];
+  return studentId ? `${studentId}-${suffix}` : `HC26-${suffix}`;
 }
 
-// Create a payment (called after form submit, before registration)
-app.post('/api/create-payment', async (req, res) => {
-  const { registrationData, amount } = req.body;
+// ========== PUBLIC APIs ==========
 
-  if (!registrationData || !amount) {
-    return res.status(400).json({ success: false, message: 'Missing payment data' });
-  }
-
-  try {
-    const refCode = generateRefCode();
-    const payment = queries.createPayment(refCode, registrationData, amount);
-
-    // Build QR string (simple format for demo)
-    const qrString = JSON.stringify({
-      ref: refCode,
-      bank: BANK_INFO.bankNameShort,
-      acc: BANK_INFO.accountNumber,
-      name: BANK_INFO.accountName,
-      amount: amount,
-      currency: 'MYR',
-      edued: 'HOMEComing2026'
-    });
-
-    const qrDataUrl = await QRCode.toDataURL(qrString, {
-      width: 280,
-      margin: 2,
-      color: { dark: '#2D2A26', light: '#FFFFFF' }
-    });
-
-    res.json({
-      success: true,
-      refCode,
-      qrDataUrl,
-      amount,
-      expiresIn: PAYMENT_TIMEOUT_SECONDS,
-      expiresAt: payment.expires_at,
-      bankInfo: BANK_INFO
-    });
-  } catch (error) {
-    console.error('Payment creation error:', error);
-    res.status(500).json({ success: false, message: 'Failed to create payment' });
-  }
+// Config for frontend
+app.get('/api/config', (req, res) => {
+  res.json({
+    ticketPrices: TICKET_PRICES,
+    merchandise: MERCHANDISE,
+    donationPresets: DONATION_PRESETS,
+    bank: BANK
+  });
 });
 
-// Get payment status (polled by frontend)
-app.get('/api/payment/:ref/status', (req, res) => {
-  const { ref } = req.params;
-
-  try {
-    const payment = queries.getPaymentByRef(ref);
-
-    if (!payment) {
-      return res.status(404).json({ success: false, message: 'Payment not found' });
-    }
-
-    // Check if expired
-    if (payment.status === 'pending' && new Date(payment.expires_at) < new Date()) {
-      queries.updatePaymentStatus(ref, 'expired');
-      return res.json({ success: true, status: 'expired', refCode: ref });
-    }
-
-    res.json({ success: true, status: payment.status, refCode: ref });
-  } catch (error) {
-    console.error('Payment status error:', error);
-    res.status(500).json({ success: false, message: 'Failed to get payment status' });
+// Student lookup
+app.get('/api/student/:studentId', (req, res) => {
+  const { studentId } = req.params;
+  const student = queries.getStudent(studentId);
+  
+  if (!student) {
+    return res.json({ found: false, studentId });
   }
+
+  // Get latest registration for this student
+  const registration = queries.getRegistrationByStudent(studentId);
+  
+  res.json({
+    found: true,
+    studentId: student.student_id,
+    chineseName: student.chinese_name,
+    registration: registration ? {
+      id: registration.id,
+      status: registration.status,
+      ticketType: registration.ticket_type,
+      attendees: registration.attendees
+    } : null
+  });
 });
 
-// Simulate payment (for demo/testing - marks payment as paid)
-app.post('/api/simulate-payment', (req, res) => {
-  const { refCode } = req.body;
-
-  if (!refCode) {
-    return res.status(400).json({ success: false, message: 'Missing ref code' });
-  }
-
-  try {
-    const payment = queries.getPaymentByRef(refCode);
-
-    if (!payment) {
-      return res.status(404).json({ success: false, message: 'Payment not found' });
-    }
-
-    if (payment.status !== 'pending') {
-      return res.status(400).json({ success: false, message: `Payment already ${payment.status}` });
-    }
-
-    // Check expiry
-    if (new Date(payment.expires_at) < new Date()) {
-      queries.updatePaymentStatus(refCode, 'expired');
-      return res.json({ success: false, status: 'expired' });
-    }
-
-    queries.updatePaymentStatus(refCode, 'paid');
-
-    // Now create the actual registration
-    const regData = JSON.parse(payment.registration_data);
-    const registration = queries.createRegistration({
-      ...regData,
-      amountPaid: payment.amount
-    });
-
-    res.json({ success: true, status: 'paid', registration });
-  } catch (error) {
-    console.error('Simulate payment error:', error);
-    res.status(500).json({ success: false, message: 'Failed to process payment' });
-  }
+// List all students
+app.get('/api/students', (req, res) => {
+  const students = queries.getAllStudents();
+  res.json({ success: true, students });
 });
 
-// Get bank info (public)
-app.get('/api/bank-info', (req, res) => {
-  res.json(BANK_INFO);
-});
-const alumniData = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'alumni.json'), 'utf8'));
-
-// ========== API ROUTES ==========
-
-// Get alumni list
-app.get('/api/alumni', (req, res) => {
-  const { search, year } = req.query;
-  let results = alumniData;
-
-  if (search) {
-    const searchLower = search.toLowerCase();
-    results = results.filter(alumni => 
-      alumni.name.toLowerCase().includes(searchLower) ||
-      alumni.class.includes(searchLower)
-    );
-  }
-
-  if (year) {
-    results = results.filter(alumni => alumni.graduationYear === parseInt(year));
-  }
-
-  res.json(results);
-});
-
-// Submit registration
+// Create new registration
 app.post('/api/register', (req, res) => {
-  const { name, email, phone, intakeYear, attendees, mealPreference, ticketType, amountPaid } = req.body;
+  const { studentId, name, email, phone, intakeYear, ticketType, attendees } = req.body;
 
-  // Validation
-  if (!name || !email || !phone || !intakeYear || !ticketType) {
+  if (!name || !ticketType) {
     return res.status(400).json({ success: false, message: 'Missing required fields' });
   }
 
-  // Validate email format
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    return res.status(400).json({ success: false, message: 'Invalid email format' });
+  const ticket = TICKET_PRICES[ticketType];
+  if (!ticket) {
+    return res.status(400).json({ success: false, message: 'Invalid ticket type' });
   }
 
-  // Validate phone format (basic)
-  const phoneRegex = /^[\d\s\-\+]{8,}$/;
-  if (!phoneRegex.test(phone)) {
-    return res.status(400).json({ success: false, message: 'Invalid phone format' });
+  // Auto-add student to students table if provided
+  if (studentId && name) {
+    const existing = queries.getStudent(studentId);
+    if (!existing) {
+      queries.insertStudent(studentId, name);
+    }
   }
 
-  try {
-    const registration = queries.createRegistration({
-      name, email, phone, intakeYear, attendees: parseInt(attendees) || 1,
-      mealPreference: mealPreference || 'no_preference',
-      ticketType, amountPaid: parseFloat(amountPaid) || 0
-    });
+  const seats = ticket.seats;
+  const registration = queries.createRegistration({
+    studentId, name, email, phone, intakeYear,
+    ticketType, attendees: seats
+  });
 
-    res.json({ success: true, message: 'Registration successful!', data: registration });
-  } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ success: false, message: 'Registration failed. Please try again.' });
-  }
+  // Create seats (unassigned to table initially)
+  queries.createSeats(registration.id, studentId, seats);
+
+  res.json({
+    success: true,
+    registration,
+    ticket,
+    bank: BANK
+  });
 });
 
-// Get all registrations (admin only)
-app.get('/api/registrations', (req, res) => {
-  if (!req.session.isAdmin) {
-    return res.status(401).json({ success: false, message: 'Unauthorized' });
-  }
+// Add donation to registration
+app.post('/api/registration/:id/donation', (req, res) => {
+  const { id } = req.params;
+  const { amount } = req.body;
 
-  const { search } = req.query;
+  const reg = queries.getRegistration(id);
+  if (!reg) return res.status(404).json({ success: false, message: 'Registration not found' });
+
+  const donation = queries.addDonation(parseInt(id), parseFloat(amount));
+  const newTotal = (reg.amount_paid || 0) + parseFloat(amount);
+  queries.updateAmount(parseInt(id), newTotal);
+
+  res.json({ success: true, donation, newTotal });
+});
+
+// Add merchandise
+app.post('/api/registration/:id/merchandise', (req, res) => {
+  const { id } = req.params;
+  const { itemType, size, quantity } = req.body;
+
+  const reg = queries.getRegistration(id);
+  if (!reg) return res.status(404).json({ success: false, message: 'Registration not found' });
+
+  const price = MERCHANDISE[itemType]?.price || 0;
+  const merch = queries.addMerchandise(parseInt(id), itemType, size, parseInt(quantity), price);
   
-  try {
-    const registrations = search 
-      ? queries.searchRegistrations(search)
-      : queries.getAllRegistrations();
-    res.json(registrations);
-  } catch (error) {
-    console.error('Error fetching registrations:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch registrations' });
-  }
+  const newTotal = (reg.amount_paid || 0) + (price * quantity);
+  queries.updateAmount(parseInt(id), newTotal);
+
+  res.json({ success: true, merchandise: merch, newTotal });
 });
 
-// Get statistics (admin only)
-app.get('/api/stats', (req, res) => {
-  if (!req.session.isAdmin) {
-    return res.status(401).json({ success: false, message: 'Unauthorized' });
-  }
+// Get registration details
+app.get('/api/registration/:id', (req, res) => {
+  const { id } = req.params;
+  const reg = queries.getRegistration(parseInt(id));
+  if (!reg) return res.status(404).json({ success: false, message: 'Not found' });
 
-  try {
-    const stats = queries.getStats();
-    const totalDonations = queries.getTotalDonations();
-    res.json({
-      ...stats,
-      totalDonations,
-      fundraisingGoal: 500000
+  const seats = queries.getSeatsByRegistration(parseInt(id));
+  const donations = queries.getDonationsByRegistration(parseInt(id));
+  const merchandise = queries.getMerchandiseByRegistration(parseInt(id));
+
+  res.json({
+    success: true,
+    registration: reg,
+    seats,
+    donations,
+    merchandise,
+    ticketInfo: TICKET_PRICES[reg.ticket_type]
+  });
+});
+
+// Get QR code for payment (just bank info display, no real payment gateway)
+app.get('/api/registration/:id/payment', (req, res) => {
+  const { id } = req.params;
+  const reg = queries.getRegistration(parseInt(id));
+  if (!reg) return res.status(404).json({ success: false, message: 'Not found' });
+
+  const total = reg.amount_paid || TICKET_PRICES[reg.ticket_type].price;
+  const refCode = generateRefCode(reg.student_id);
+
+  const qrString = JSON.stringify({
+    ref: refCode,
+    bank: BANK.bankNameShort,
+    acc: BANK.accountNumber,
+    name: BANK.accountName,
+    amount: total,
+    currency: 'MYR'
+  });
+
+  QRCode.toDataURL(qrString, { width: 280, margin: 2 })
+    .then(qrDataUrl => {
+      res.json({
+        success: true,
+        refCode,
+        qrDataUrl,
+        total,
+        bank: BANK,
+        registration: {
+          id: reg.id,
+          name: reg.name,
+          ticketType: reg.ticket_type
+        }
+      });
     });
-  } catch (error) {
-    console.error('Error fetching stats:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch statistics' });
-  }
 });
 
-// Admin login
+// ========== ADMIN APIs ==========
+
 app.post('/api/admin/login', (req, res) => {
   const { username, password } = req.body;
-
   if (username === 'admin' && password === 'homecoming2026') {
     req.session.isAdmin = true;
-    res.json({ success: true, message: 'Login successful' });
+    res.json({ success: true });
   } else {
     res.status(401).json({ success: false, message: 'Invalid credentials' });
   }
 });
 
-// Admin logout
 app.post('/api/admin/logout', (req, res) => {
   req.session.destroy();
-  res.json({ success: true, message: 'Logged out successfully' });
+  res.json({ success: true });
 });
 
-// Check admin auth status
 app.get('/api/admin/status', (req, res) => {
   res.json({ isAdmin: req.session.isAdmin || false });
 });
 
-// Export registrations to CSV (admin only)
-app.get('/api/admin/export', (req, res) => {
+function requireAdmin(req, res, next) {
   if (!req.session.isAdmin) {
     return res.status(401).json({ success: false, message: 'Unauthorized' });
   }
+  next();
+}
 
+// Get all registrations (admin)
+app.get('/api/admin/registrations', requireAdmin, (req, res) => {
+  const { status } = req.query;
+  const registrations = status 
+    ? queries.getRegistrationsByStatus(status)
+    : queries.getAllRegistrations();
+  res.json({ success: true, registrations });
+});
+
+// Update registration status (admin: confirm/cancel)
+app.post('/api/admin/registration/:id/status', requireAdmin, (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  if (!['pending', 'completed', 'cancelled'].includes(status)) {
+    return res.status(400).json({ success: false, message: 'Invalid status' });
+  }
+
+  const reg = queries.getRegistration(parseInt(id));
+  if (!reg) return res.status(404).json({ success: false, message: 'Not found' });
+
+  queries.updateStatus(parseInt(id), status);
+
+  // If cancelled, free up seats
+  if (status === 'cancelled') {
+    queries.assignSeatsToTable(parseInt(id), null);
+  }
+
+  res.json({ success: true, message: `Status updated to ${status}` });
+});
+
+// Public stats (no auth needed)
+app.get('/api/public/stats', (req, res) => {
   try {
-    const registrations = queries.getAllRegistrations();
-    
-    // CSV header
-    const headers = ['ID', 'Name', 'Email', 'Phone', 'Intake Year', 'Attendees', 'Meal Preference', 'Ticket Type', 'Amount Paid', 'Date'];
-    
-    // CSV rows
-    const rows = registrations.map(r => [
-      r.id,
-      `"${r.name}"`,
-      r.email,
-      r.phone,
-      r.intake_year,
-      r.attendees,
-      r.meal_preference,
-      r.ticket_type,
-      r.amount_paid,
-      r.created_at
-    ].join(','));
-
-    const csv = [headers.join(','), ...rows].join('\n');
-
-    res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', 'attachment; filename=registrations.csv');
-    res.send(csv);
+    const stats = queries.getStats();
+    res.json({ success: true, stats: { ...stats, fundraisingGoal: 500000 } });
   } catch (error) {
-    console.error('Export error:', error);
-    res.status(500).json({ success: false, message: 'Export failed' });
+    res.status(500).json({ success: false });
   }
 });
 
-// ========== TABLE SEATING ROUTES ==========
-
-// Initialize 40 tables on startup
-queries.initializeTables();
-
-// Get all tables with availability
-app.get('/api/tables', (req, res) => {
-  try {
-    const tables = queries.getAllTables();
-    const stats = queries.getTableStats();
-    res.json({ success: true, tables, stats });
-  } catch (error) {
-    console.error('Get tables error:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch tables' });
-  }
+// Get stats (admin)
+app.get('/api/admin/stats', requireAdmin, (req, res) => {
+  res.json({ success: true, stats: queries.getStats() });
 });
 
-// Reserve a table
-app.post('/api/reserve-table', (req, res) => {
-  const { tableNumber, registrationId, name } = req.body;
+// Get all tables with seat info (admin)
+app.get('/api/admin/tables', requireAdmin, (req, res) => {
+  const tables = queries.getAllTablesWithSeats();
+  res.json({ success: true, tables });
+});
 
-  if (!tableNumber || !registrationId) {
-    return res.status(400).json({ success: false, message: 'Missing table number or registration ID' });
+// Get single table details (admin)
+app.get('/api/admin/table/:tableNumber', requireAdmin, (req, res) => {
+  const { tableNumber } = req.params;
+  const table = queries.getTableWithSeats(parseInt(tableNumber));
+  if (!table) return res.status(404).json({ success: false, message: 'Table not found' });
+
+  const seats = queries.getSeatsByTable(parseInt(tableNumber));
+  res.json({ success: true, table, seats });
+});
+
+// Assign seats to table (admin or student after paid)
+app.post('/api/assign-table', (req, res) => {
+  const { registrationId, tableNumber } = req.body;
+
+  const reg = queries.getRegistration(parseInt(registrationId));
+  if (!reg) return res.status(404).json({ success: false, message: 'Registration not found' });
+
+  if (reg.status !== 'completed') {
+    return res.status(400).json({ success: false, message: 'Payment not completed yet' });
   }
 
-  try {
-    const table = queries.getTableByNumber(tableNumber);
+  // Check table capacity
+  const seats = queries.getSeatsByRegistration(parseInt(registrationId));
+  const seatCount = seats.length;
+  const currentBooked = queries.getAvailableSeatsInTable(parseInt(tableNumber));
+  
+  const table = queries.getTable(parseInt(tableNumber));
+  if (currentBooked.count + seatCount > table.capacity) {
+    return res.status(400).json({ 
+      success: false, 
+      message: `Table ${tableNumber} only has ${table.capacity - currentBooked.count} seats available`
+    });
+  }
 
-    if (!table) {
-      return res.status(404).json({ success: false, message: 'Table not found' });
+  queries.assignSeatsToTable(parseInt(registrationId), parseInt(tableNumber));
+
+  res.json({ success: true, message: `Assigned ${seatCount} seats to Table ${tableNumber}` });
+});
+
+// Get available tables (for student booking)
+app.get('/api/available-tables', (req, res) => {
+  const allTables = queries.getAllTablesWithSeats();
+  const available = allTables.map(t => ({
+    tableNumber: t.table_number,
+    capacity: t.capacity,
+    bookedSeats: t.booked_seats || 0,
+    availableSeats: t.capacity - (t.booked_seats || 0),
+    seatInfo: t.seat_info || null
+  })).filter(t => t.availableSeats > 0);
+
+  res.json({ success: true, tables: available });
+});
+
+// Bulk import students
+app.post('/api/admin/students/bulk', requireAdmin, (req, res) => {
+  const { students } = req.body;
+  if (!Array.isArray(students)) {
+    return res.status(400).json({ success: false, message: 'Expected students array' });
+  }
+
+  let inserted = 0;
+  for (const { studentId, chineseName } of students) {
+    if (studentId && chineseName) {
+      queries.insertStudent(studentId, chineseName);
+      inserted++;
     }
-
-    if (table.status !== 'available') {
-      return res.status(400).json({ success: false, message: `Table ${tableNumber} is already reserved` });
-    }
-
-    const success = queries.reserveTable(registrationId, name || 'Guest', tableNumber);
-
-    if (success) {
-      res.json({ success: true, message: `Table ${tableNumber} reserved successfully!` });
-    } else {
-      res.status(400).json({ success: false, message: 'Failed to reserve table. It may have been taken.' });
-    }
-  } catch (error) {
-    console.error('Reserve table error:', error);
-    res.status(500).json({ success: false, message: 'Failed to reserve table' });
   }
+  res.json({ success: true, inserted });
 });
 
-// Main SPA
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// Export CSV
+app.get('/api/admin/export', requireAdmin, (req, res) => {
+  const regs = queries.getAllRegistrations();
+  const headers = ['ID', 'Student ID', 'Name', 'Email', 'Phone', 'Intake Year', 'Ticket Type', 'Seats', 'Amount', 'Status', 'Date'];
+  const rows = regs.map(r => [
+    r.id, r.student_id || '', `"${r.name}"`, r.email || '', r.phone || '', 
+    r.intake_year || '', r.ticket_type, r.attendees, r.amount_paid, r.status, r.created_at
+  ].join(','));
+  
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename=registrations.csv');
+  res.send([headers.join(','), ...rows].join('\n'));
 });
 
-// Admin panel
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// ========== RECEIPT UPLOAD ==========
+app.post('/api/upload-receipt', upload.single('receipt'), (req, res) => {
+  if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
+  const regId = parseInt(req.body.registrationId) || 0;
+  const ext = path.extname(req.file.originalname) || '.jpg';
+  const savedName = `receipt_${regId}_${Date.now()}${ext}`;
+  const savedPath = path.join(receiptDir, savedName);
+  fs.renameSync(req.file.path, savedPath);
+  const url = `/uploads/receipts/${savedName}`;
+  console.log(`Receipt uploaded for reg ${regId}: ${url}`);
+  res.json({ success: true, url, filename: savedName });
 });
 
-// Start server
+// ========== STATIC PAGES ==========
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
+app.get('/book', (req, res) => res.sendFile(path.join(__dirname, 'public', 'book.html')));
+
 app.listen(PORT, () => {
-  console.log(`
-╔══════════════════════════════════════════════════════════╗
-║                                                          ║
-║     🏠 Homecoming 2026 - 回家吃饭                        ║
-║     20th Anniversary Alumni Reunion                      ║
-║                                                          ║
-║     Server running at: http://localhost:${PORT}            ║
-║     Admin panel at:    http://localhost:${PORT}/admin      ║
-║                                                          ║
-╚══════════════════════════════════════════════════════════╝
-  `);
+  console.log(`\n🏠 Homecoming 2026 running on http://localhost:${PORT}`);
+  console.log(`   Admin: http://localhost:${PORT}/admin`);
+  console.log(`   Book:  http://localhost:${PORT}/book\n`);
 });

@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Homecoming 2026 - Book Table | 回家吃饭</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; }
+    
+    .topbar {
+      background: linear-gradient(135deg, #8B1A1A, #C62828);
+      color: white;
+      padding: 1rem 2rem;
+      text-align: center;
+    }
+    .topbar h1 { font-size: 1.3rem; }
+    .topbar a { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem; }
+    
+    .container { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+    
+    /* Student Lookup */
+    .lookup-box {
+      background: white;
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    .lookup-box h2 { color: #8B1A1A; margin-bottom: 0.5rem; }
+    .lookup-box p { color: #666; font-size: 0.9rem; margin-bottom: 1rem; }
+    .lookup-row {
+      display: flex;
+      gap: 0.5rem;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    .lookup-row input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border: 2px solid #ddd;
+      border-radius: 25px;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .lookup-btn {
+      padding: 0.75rem 1.5rem;
+      background: #8B1A1A;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    
+    /* Status Display */
+    .status-display {
+      display: none;
+      background: white;
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    .status-display.show { display: block; }
+    .status-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+    .status-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .status-msg { color: #666; font-size: 0.9rem; }
+    .status-msg.pending { color: #856404; background: #FFF3CD; padding: 0.75rem; border-radius: 8px; display: inline-block; }
+    .status-msg.completed { color: #155724; background: #D4EDDA; padding: 0.75rem; border-radius: 8px; display: inline-block; }
+    
+    /* Info Box */
+    .info-box {
+      background: #f8f8f8;
+      border-radius: 12px;
+      padding: 1rem;
+      margin: 1rem 0;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+    .info-box p { margin: 0.3rem 0; }
+    .info-box strong { color: #8B1A1A; }
+    
+    /* Table Selection */
+    .table-selection { display: none; }
+    .table-selection.show { display: block; }
+    
+    .table-legend {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      margin-bottom: 1rem;
+      font-size: 0.85rem;
+    }
+    .legend-item { display: flex; align-items: center; gap: 0.3rem; }
+    .legend-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+    }
+    .legend-dot.available { background: #e0e0e0; border: 2px solid #ccc; }
+    .legend-dot.partial { background: #FFF3CD; border: 2px solid #ffc107; }
+    .legend-dot.full { background: #D4EDDA; border: 2px solid #28a745; }
+    
+    .tables-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .table-card {
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 0.75rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .table-card:hover:not(.disabled) { border-color: #8B1A1A; transform: translateY(-2px); }
+    .table-card.selected { border-color: #8B1A1A; background: #FFF5F5; }
+    .table-card.disabled { opacity: 0.5; cursor: not-allowed; }
+    .table-card.available { border-color: #ccc; }
+    .table-card.partial { border-color: #ffc107; background: #FFFEF0; }
+    .table-card.full { border-color: #28a745; background: #f0fff4; }
+    
+    .table-num { font-size: 1.3rem; font-weight: 800; color: #333; }
+    .table-avail { font-size: 0.75rem; color: #666; }
+    
+    /* Confirm Button */
+    .confirm-bar {
+      display: none;
+      background: white;
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-align: center;
+      position: sticky;
+      bottom: 1rem;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+    }
+    .confirm-bar.show { display: block; }
+    .confirm-bar p { margin-bottom: 1rem; font-size: 0.9rem; color: #666; }
+    .confirm-btn {
+      padding: 1rem 3rem;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    
+    /* Success */
+    .success-display {
+      display: none;
+      text-align: center;
+      padding: 2rem;
+    }
+    .success-display.show { display: block; }
+    .success-icon { font-size: 5rem; }
+    .success-title { font-size: 1.8rem; font-weight: 800; color: #28a745; margin: 1rem 0; }
+    .success-table {
+      font-size: 3rem;
+      font-weight: 800;
+      color: #8B1A1A;
+      margin: 1rem 0;
+    }
+    
+    .seat-info-list {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 1rem 0;
+    }
+    .seat-chip {
+      background: #f0f0f0;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>🪑 订座 Book Table</h1>
+    <a href="/">← 返回首页 Back to Home</a>
+  </div>
+  
+  <div class="container">
+    <!-- Step 1: Student Lookup -->
+    <div class="lookup-box" id="lookupBox">
+      <h2>🔍 输入学号 Enter Your Student ID</h2>
+      <p>付款确认后，您可以预订桌位<br>After payment confirmed, you can book your table</p>
+      <div class="lookup-row">
+        <input type="text" id="studentIdInput" placeholder="学号 Student ID" maxlength="10" autofocus>
+        <button class="lookup-btn" onclick="doLookup()">查找</button>
+      </div>
+    </div>
+    
+    <!-- Status Display -->
+    <div class="status-display" id="statusDisplay">
+      <div class="status-icon" id="statusIcon">⏳</div>
+      <div class="status-title" id="statusTitle">处理中...</div>
+      <div class="status-msg" id="statusMsg"></div>
+      <div class="info-box" id="infoBox" style="display:none;">
+        <p>学号: <strong id="infoSid"></strong></p>
+        <p>姓名: <strong id="infoName"></strong></p>
+        <p>票种: <strong id="infoTicket"></strong></p>
+        <p>位数: <strong id="infoSeats"></strong></p>
+      </div>
+    </div>
+    
+    <!-- Table Selection -->
+    <div class="table-selection" id="tableSelection">
+      <div style="text-align:center;margin-bottom:1rem;">
+        <h2 style="color:#8B1A1A;">🪑 选择桌位 Select Your Table</h2>
+        <p style="color:#666;font-size:0.9rem;margin-top:0.5rem;">您需要 <strong id="neededSeats">0</strong> 位 / You need <strong id="neededSeatsEn">0</strong> seats</p>
+      </div>
+      
+      <div class="table-legend">
+        <div class="legend-item"><div class="legend-dot available"></div> 可选 Available</div>
+        <div class="legend-item"><div class="legend-dot partial"></div> 部分满 Partial</div>
+        <div class="legend-item"><div class="legend-dot full"></div> 已满 Full</div>
+      </div>
+      
+      <div class="tables-grid" id="tablesGrid"></div>
+      
+      <div class="confirm-bar" id="confirmBar">
+        <p>已选择: 第 <strong id="selectedTableNum">0</strong> 桌 (剩余 <strong id="tableRemaining">0</strong> 位)</p>
+        <button class="confirm-btn" onclick="confirmBooking()">✅ 确认订座 Confirm Booking</button>
+      </div>
+    </div>
+    
+    <!-- Success -->
+    <div class="success-display" id="successDisplay">
+      <div class="success-icon">🎉</div>
+      <div class="success-title">订座成功！Booking Confirmed!</div>
+      <div>您的桌位 Your Table:</div>
+      <div class="success-table" id="successTableNum">第 0 桌</div>
+      <div class="seat-info-list" id="successSeatList"></div>
+      <p style="color:#666;font-size:0.9rem;margin-top:1rem;">请在活动当天到达您的桌位<br>Please proceed to your table on event day</p>
+      <a href="/" style="display:inline-block;margin-top:1rem;padding:0.75rem 2rem;background:#8B1A1A;color:white;text-decoration:none;border-radius:25px;">返回首页</a>
+    </div>
+  </div>
+
+  <script>
+    const API = '/api';
+    let currentStudent = null;
+    let currentReg = null;
+    let selectedTable = null;
+    let availableTables = [];
+    let neededSeats = 0;
+
+    // Check URL for sid param
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlSid = urlParams.get('sid');
+    if (urlSid) {
+      document.getElementById('studentIdInput').value = urlSid;
+      setTimeout(doLookup, 500);
+    }
+
+    async function doLookup() {
+      const sid = document.getElementById('studentIdInput').value.trim().toUpperCase();
+      if (!sid) return;
+      
+      const res = await fetch(`${API}/student/${sid}`);
+      const data = await res.json();
+      
+      document.getElementById('lookupBox').style.display = 'none';
+      document.getElementById('statusDisplay').classList.add('show');
+      
+      if (!data.found) {
+        document.getElementById('statusIcon').textContent = '❌';
+        document.getElementById('statusTitle').textContent = '学号未找到 / Not Found';
+        document.getElementById('statusMsg').textContent = '请检查学号是否正确 / Please check your Student ID';
+        document.getElementById('statusMsg').className = 'status-msg';
+        return;
+      }
+      
+      currentStudent = data;
+      
+      if (!data.registration) {
+        document.getElementById('statusIcon').textContent = '📝';
+        document.getElementById('statusTitle').textContent = data.chineseName;
+        document.getElementById('statusMsg').textContent = '您尚未报名，请先报名 / Not registered yet. Please register first.';
+        document.getElementById('statusMsg').className = 'status-msg';
+        document.getElementById('statusMsg').style.display = 'inline-block';
+        return;
+      }
+      
+      currentReg = data.registration;
+      
+      if (currentReg.status === 'pending') {
+        document.getElementById('statusIcon').textContent = '⏳';
+        document.getElementById('statusTitle').textContent = data.chineseName;
+        document.getElementById('statusMsg').textContent = '付款待确认 / Payment pending confirmation. Please send screenshot to committee.';
+        document.getElementById('statusMsg').className = 'status-msg pending';
+        document.getElementById('infoBox').style.display = 'block';
+        document.getElementById('infoSid').textContent = data.studentId;
+        document.getElementById('infoName').textContent = data.chineseName;
+        document.getElementById('infoTicket').textContent = currentReg.ticketType;
+        document.getElementById('infoSeats').textContent = currentReg.attendees;
+        return;
+      }
+      
+      if (currentReg.status === 'cancelled') {
+        document.getElementById('statusIcon').textContent = '❌';
+        document.getElementById('statusTitle').textContent = data.chineseName;
+        document.getElementById('statusMsg').textContent = '报名已取消 / Registration cancelled. Please contact committee.';
+        document.getElementById('statusMsg').className = 'status-msg';
+        return;
+      }
+      
+      // Status = completed! Show table booking
+      if (currentReg.status === 'completed') {
+        // Check if already has a table
+        const regDetail = await fetch(`${API}/registration/${currentReg.id}`).then(r => r.json());
+        const seats = regDetail.seats || [];
+        const bookedTable = seats.find(s => s.table_number);
+        
+        if (bookedTable) {
+          showSuccess(bookedTable.table_number, seats);
+          return;
+        }
+        
+        neededSeats = currentReg.attendees || 1;
+        document.getElementById('statusIcon').textContent = '✅';
+        document.getElementById('statusTitle').textContent = `${data.chineseName} - 已确认！`;
+        document.getElementById('statusMsg').textContent = '您可以订座了！/ You can now book your table!';
+        document.getElementById('statusMsg').className = 'status-msg completed';
+        document.getElementById('infoBox').style.display = 'block';
+        document.getElementById('infoSid').textContent = data.studentId;
+        document.getElementById('infoName').textContent = data.chineseName;
+        document.getElementById('infoTicket').textContent = currentReg.ticketType;
+        document.getElementById('infoSeats').textContent = neededSeats;
+        
+        document.getElementById('neededSeats').textContent = neededSeats;
+        document.getElementById('neededSeatsEn').textContent = neededSeats;
+        
+        await loadAvailableTables();
+        document.getElementById('tableSelection').classList.add('show');
+      }
+    }
+
+    async function loadAvailableTables() {
+      const res = await fetch(`${API}/available-tables`);
+      const data = await res.json();
+      availableTables = data.tables || [];
+      
+      document.getElementById('tablesGrid').innerHTML = [];
+      for (let i = 1; i <= 40; i++) {
+        const t = availableTables.find(x => x.tableNumber === i) || { tableNumber: i, availableSeats: 10, bookedSeats: 0 };
+        const avail = t.availableSeats;
+        const cls = avail === 0 ? 'full disabled' : avail < 10 ? 'partial' : 'available';
+        
+        const card = document.createElement('div');
+        card.className = `table-card ${cls}`;
+        card.dataset.table = i;
+        card.dataset.avail = avail;
+        card.innerHTML = `
+          <div class="table-num">${i}</div>
+          <div class="table-avail">${avail} 位可选</div>
+        `;
+        card.onclick = () => selectTable(i, avail);
+        document.getElementById('tablesGrid').appendChild(card);
+      }
+    }
+
+    function selectTable(num, avail) {
+      if (avail < neededSeats) {
+        alert(`此桌剩余 ${avail} 位，不够您需要的 ${neededSeats} 位\nThis table only has ${avail} seats available, you need ${neededSeats}`);
+        return;
+      }
+      
+      document.querySelectorAll('.table-card').forEach(c => c.classList.remove('selected'));
+      document.querySelector(`[data-table="${num}"]`).classList.add('selected');
+      selectedTable = num;
+      
+      document.getElementById('selectedTableNum').textContent = num;
+      document.getElementById('tableRemaining').textContent = avail - neededSeats;
+      document.getElementById('confirmBar').classList.add('show');
+    }
+
+    async function confirmBooking() {
+      if (!selectedTable || !currentReg) return;
+      
+      const res = await fetch(`${API}/assign-table`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ registrationId: currentReg.id, tableNumber: selectedTable })
+      });
+      const data = await res.json();
+      
+      if (!data.success) {
+        alert(data.message || '订座失败 / Booking failed');
+        return;
+      }
+      
+      const seatsRes = await fetch(`${API}/registration/${currentReg.id}`);
+      const seatsData = await seatsRes.json();
+      showSuccess(selectedTable, seatsData.seats || []);
+    }
+
+    function showSuccess(tableNum, seats) {
+      document.getElementById('tableSelection').classList.remove('show');
+      document.getElementById('confirmBar').classList.remove('show');
+      document.getElementById('statusDisplay').classList.remove('show');
+      document.getElementById('successDisplay').classList.add('show');
+      document.getElementById('successTableNum').textContent = `第 ${tableNum} 桌`;
+      document.getElementById('successSeatList').innerHTML = seats.map(s => 
+        `<div class="seat-chip">${s.student_id || currentStudent?.studentId} - 座位 ${s.seat_number}</div>`
+      ).join('');
+    }
+
+    // Enter key
+    document.getElementById('studentIdInput').addEventListener('keypress', e => {
+      if (e.key === 'Enter') doLookup();
+    });
+  </script>
+</body>
+</html>

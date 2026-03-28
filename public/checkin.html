@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Homecoming 2026 - Check In | 回家吃饭</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, var(--primary-red) 0%, var(--secondary-red) 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Noto Sans SC', sans-serif;
+    }
+    
+    .checkin-container {
+      background: white;
+      border-radius: 24px;
+      padding: 3rem;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    
+    .checkin-logo {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    
+    .checkin-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--dark-text);
+      margin-bottom: 0.5rem;
+    }
+    
+    .checkin-subtitle {
+      color: var(--warm-gray);
+      margin-bottom: 2rem;
+    }
+    
+    .checkin-form {
+      margin-bottom: 2rem;
+    }
+    
+    .checkin-input {
+      width: 100%;
+      padding: 1rem 1.5rem;
+      font-size: 1.25rem;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 600;
+      transition: border-color 0.3s;
+      box-sizing: border-box;
+    }
+    
+    .checkin-input:focus {
+      outline: none;
+      border-color: var(--primary-red);
+    }
+    
+    .checkin-input::placeholder {
+      text-transform: none;
+      letter-spacing: normal;
+      font-weight: 400;
+      color: #999;
+    }
+    
+    .checkin-btn {
+      width: 100%;
+      padding: 1rem;
+      font-size: 1.1rem;
+      margin-top: 1rem;
+    }
+    
+    .checkin-result {
+      padding: 2rem;
+      border-radius: 16px;
+      margin-top: 1.5rem;
+      display: none;
+    }
+    
+    .checkin-result.success {
+      background: #e8f5e9;
+      border: 2px solid #4caf50;
+      display: block;
+    }
+    
+    .checkin-result.error {
+      background: #ffebee;
+      border: 2px solid #f44336;
+      display: block;
+    }
+    
+    .checkin-result-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+    
+    .checkin-result-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    
+    .checkin-result.success .checkin-result-title { color: #2e7d32; }
+    .checkin-result.error .checkin-result-title { color: #c62828; }
+    
+    .checkin-result-text {
+      color: var(--dark-text);
+      margin-bottom: 0.5rem;
+    }
+    
+    .checkin-result-ref {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary-red);
+      letter-spacing: 2px;
+    }
+    
+    .back-link {
+      display: inline-block;
+      margin-top: 2rem;
+      color: var(--warm-gray);
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    
+    .back-link:hover {
+      color: var(--primary-red);
+    }
+    
+    .table-info {
+      background: #fff3e0;
+      border-radius: 12px;
+      padding: 1rem;
+      margin-top: 1rem;
+      border: 2px solid #ff9800;
+    }
+    
+    .table-info-title {
+      font-weight: 700;
+      color: #e65100;
+      margin-bottom: 0.5rem;
+    }
+    
+    .table-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary-red);
+    }
+  </style>
+</head>
+<body>
+  <div class="checkin-container">
+    <div class="checkin-logo">🏠</div>
+    <h1 class="checkin-title">Homecoming 2026</h1>
+    <p class="checkin-subtitle">回家吃饭 · 20周年校友回校日</p>
+    
+    <div class="checkin-form" id="checkinForm">
+      <input 
+        type="text" 
+        class="checkin-input" 
+        id="refCodeInput" 
+        placeholder="输入您的参考码 Enter Your Reference Code"
+        maxlength="15"
+        autofocus
+      >
+      <button class="btn btn-primary checkin-btn" onclick="submitCheckin()">
+        ✅ 签到 Check In
+      </button>
+    </div>
+    
+    <div class="checkin-result" id="checkinResult"></div>
+    
+    <a href="/" class="back-link">← 返回首页 Back to Home</a>
+  </div>
+
+  <script>
+    const API_BASE = '/api';
+    
+    async function submitCheckin() {
+      const refCode = document.getElementById('refCodeInput').value.trim().toUpperCase();
+      const resultDiv = document.getElementById('checkinResult');
+      
+      if (!refCode) {
+        showResult('error', '❌', '请输入参考码', 'Please enter your reference code');
+        return;
+      }
+      
+      try {
+        const res = await fetch(`${API_BASE}/seats/checkin`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refCode })
+        });
+        
+        const result = await res.json();
+        
+        if (result.success) {
+          let tableInfo = '';
+          if (result.seat && result.seat.table_number) {
+            tableInfo = `
+              <div class="table-info">
+                <div class="table-info-title">您的桌位 Your Table</div>
+                <div class="table-number">第 ${result.seat.table_number} 桌</div>
+              </div>
+            `;
+          }
+          showResult('success', '🎉', '签到成功!', `Welcome! 欢迎回来!`, result.refCode || refCode, tableInfo);
+        } else {
+          showResult('error', '❌', result.message || '签到失败', 'Please try again or seek assistance from our volunteers.');
+        }
+      } catch (error) {
+        console.error('Check-in error:', error);
+        showResult('error', '❌', '网络错误', 'Network error. Please try again.');
+      }
+    }
+    
+    function showResult(type, icon, title, text, refCode = '', extra = '') {
+      const resultDiv = document.getElementById('checkinResult');
+      resultDiv.className = `checkin-result ${type}`;
+      resultDiv.innerHTML = `
+        <div class="checkin-result-icon">${icon}</div>
+        <div class="checkin-result-title">${title}</div>
+        <div class="checkin-result-text">${text}</div>
+        ${refCode ? `<div class="checkin-result-ref">${refCode}</div>` : ''}
+        ${extra}
+      `;
+    }
+    
+    // Enter key submits
+    document.getElementById('refCodeInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        submitCheckin();
+      }
+    });
+  </script>
+</body>
+</html>

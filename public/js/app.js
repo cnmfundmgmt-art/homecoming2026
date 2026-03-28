@@ -13,13 +13,22 @@ const modal = document.getElementById('modal');
 
 // ========== Initialize App ==========
 document.addEventListener('DOMContentLoaded', () => {
-  // Check if we're on admin route
-  if (window.location.pathname === '/admin') {
+  const path = window.location.pathname;
+  if (path === '/admin') {
     initAdmin();
+  } else if (path === '/checkin') {
+    initCheckin();
   } else {
     initMain();
   }
 });
+
+function initCheckin() {
+  // Check-in page is self-contained in checkin.html
+  // Just focus the input
+  const input = document.getElementById('refCodeInput');
+  if (input) input.focus();
+}
 
 // ========== Main Site Functions ==========
 function initMain() {
@@ -164,6 +173,65 @@ function initTicketSelection() {
   });
 }
 
+// ========== Student Lookup ==========
+let window._verifiedStudent = null;
+
+async function lookupStudent() {
+  const studentIdInput = document.getElementById('studentIdInput');
+  const studentId = studentIdInput.value.trim();
+  const nameInput = document.getElementById('nameInput');
+  const nameDisplay = document.getElementById('studentNameDisplay');
+  const nameText = document.getElementById('studentNameText');
+  const errorEl = document.getElementById('studentIdError');
+
+  if (!studentId) {
+    errorEl.classList.add('visible');
+    return;
+  }
+
+  errorEl.classList.remove('visible');
+
+  try {
+    const res = await fetch(`${API_BASE}/student/${studentId}`);
+    const result = await res.json();
+
+    if (result.found) {
+      window._verifiedStudent = result;
+      nameText.textContent = result.chineseName;
+      nameDisplay.style.display = 'block';
+      nameInput.value = result.chineseName;
+      nameInput.placeholder = result.chineseName;
+      nameInput.readOnly = true;
+      nameInput.style.backgroundColor = '#f5f5dc';
+    } else {
+      window._verifiedStudent = null;
+      nameDisplay.style.display = 'none';
+      nameInput.value = '';
+      nameInput.placeholder = '请输入您的姓名';
+      nameInput.readOnly = false;
+      nameInput.style.backgroundColor = '';
+      // Allow manual entry if not found
+      showModal('info', '学号未找到 Student ID Not Found', '您可以手动填写姓名。You may enter name manually.');
+    }
+  } catch (error) {
+    console.error('Student lookup error:', error);
+    showModal('error', '查询失败 Lookup Failed', '网络错误，请稍后重试。');
+  }
+}
+
+// Enter key triggers lookup
+document.addEventListener('DOMContentLoaded', () => {
+  const studentIdInput = document.getElementById('studentIdInput');
+  if (studentIdInput) {
+    studentIdInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        lookupStudent();
+      }
+    });
+  }
+});
+
 function initRegistrationForm() {
   registrationForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -175,6 +243,7 @@ function initRegistrationForm() {
     // Get form data
     const formData = new FormData(registrationForm);
     const data = {
+      studentId: formData.get('studentId') || (window._verifiedStudent?.studentId || ''),
       name: formData.get('name'),
       email: formData.get('email'),
       phone: formData.get('phone'),
@@ -356,39 +425,64 @@ function showPaymentStatus(status) {
 
 // Init payment modal controls
 function initPaymentModal() {
+  // Receipt upload preview
+  const receiptInput = document.getElementById('receiptInput');
+  if (receiptInput) {
+    receiptInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      const preview = document.getElementById('receiptPreview');
+      if (!file || !preview) return;
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        preview.innerHTML = '<img src="' + ev.target.result + '" alt="Receipt preview">';
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
   document.getElementById('simulatePayBtn').addEventListener('click', async () => {
+    const receiptInput = document.getElementById('receiptInput');
+    const file = receiptInput?.files[0];
+    if (!file) {
+      showModal('info', '请上传付款凭证', '请先上传付款截图或收据 / Please upload payment receipt first');
+      return;
+    }
     if (!activePaymentRef) return;
 
     const btn = document.getElementById('simulatePayBtn');
-    btn.textContent = '处理中... Processing...';
+    btn.textContent = '上传中... Uploading...';
     btn.disabled = true;
 
     try {
-      const res = await fetch(`${API_BASE}/simulate-payment`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refCode: activePaymentRef })
-      });
+      const formData = new FormData();
+      formData.append('receipt', file);
+      formData.append('refCode', activePaymentRef);
 
-      const result = await res.json();
+      const res = await fetch(`${API_BASE}/upload-receipt`, { method: 'POST', body: formData });
 
-      if (result.success) {
+      if (res.ok) {
         clearInterval(activeCountdownInterval);
         clearInterval(activePollInterval);
-        if (result.registration) {
-          window._pendingRegistration = result.registration;
-          localStorage.setItem('homecoming_registration', JSON.stringify(result.registration));
-          localStorage.setItem('homecoming_reg_id', result.registration.id);
-        }
-        showPaymentStatus('paid');
+        document.getElementById('paymentModalOverlay').classList.remove('active');
+        showModal('✅', '提交成功！', '付款凭证已收到，筹委会将尽快确认您的报名。<br>Receipt received. Committee will confirm your registration shortly.');
+        registrationForm.reset();
+        document.querySelectorAll('.ticket-card').forEach(c => c.classList.remove('selected'));
+        const earlyBird = document.querySelector('[data-ticket="early-bird"]');
+        if (earlyBird) earlyBird.classList.add('selected');
+        document.getElementById('selectedTicket').value = 'early-bird';
+        document.getElementById('selectedAmount').value = '150';
+        document.getElementById('totalAmount').textContent = 'RM 150';
+        receiptInput.value = '';
+        document.getElementById('receiptPreview').innerHTML = '';
       } else {
-        btn.textContent = '✅ 模拟完成支付 (Demo Only)';
+        btn.textContent = '✅ 确认已付款 Confirm Payment';
         btn.disabled = false;
-        showModal('error', '操作失败', result.message);
+        showModal('error', '上传失败', '请重试 / Please try again');
       }
     } catch (e) {
-      btn.textContent = '✅ 模拟完成支付 (Demo Only)';
+      btn.textContent = '✅ 确认已付款 Confirm Payment';
       btn.disabled = false;
+      showModal('error', '网络错误', '请重试 / Network error, please try again');
     }
   });
 
