@@ -1,808 +1,768 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Homecoming 2026 | 回家吃饭 - 20th Anniversary Alumni Reunion</title>
-  <meta name="description" content="Join us for Chong Hwa Independent High School's 20th Anniversary Alumni Reunion - Homecoming 回家吃饭. October 10, 2026.">
-  <link rel="stylesheet" href="/css/style.css">
+  <title>Homecoming 2026 — 吉隆坡中华独立中学校友回校日</title>
+  <link rel="stylesheet" href="/css/style.css?v=v1774779401529">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── Booking form embedded styles ── */
+    .steps-bar { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 2rem; }
+    .step-item { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; position: relative; }
+    .step-num { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; background: #ddd; color: #fff; transition: all 0.3s; }
+    .step-label { font-size: 0.72rem; color: #aaa; white-space: nowrap; font-weight: 500; transition: all 0.3s; text-align: center; }
+    .step-connector { width: 60px; height: 3px; background: #ddd; margin-bottom: 22px; transition: all 0.3s; }
+    .step-item.active .step-num { background: #8B1A1A; box-shadow: 0 0 0 4px rgba(139,26,26,0.15); }
+    .step-item.active .step-label { color: #8B1A1A; font-weight: 600; }
+    .step-item.done .step-num { background: #28a745; }
+    .step-item.done + .step-connector { background: #28a745; }
+    .step-item.done .step-label { color: #28a745; }
+    .book-card { background: white; border-radius: 16px; box-shadow: 0 2px 16px rgba(0,0,0,0.08); padding: 1.75rem; margin-bottom: 1.5rem; }
+    .card-title { font-size: 1.05rem; font-weight: 700; color: #8B1A1A; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .form-group { margin-bottom: 1.1rem; }
+    .form-label { display: block; font-weight: 600; font-size: 0.88rem; color: #444; margin-bottom: 0.35rem; }
+    .form-label .hint { font-weight: 400; color: #999; font-size: 0.78rem; }
+    .form-input, .form-select { width: 100%; padding: 0.7rem 1rem; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; background: #fff; color: #333; box-sizing: border-box; }
+    .form-input:focus, .form-select:focus { outline: none; border-color: #8B1A1A; }
+    .form-input.error { border-color: #e53e3e; }
+    .form-input[readonly] { background: #f9f9f9; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-error { color: #e53e3e; font-size: 0.78rem; margin-top: 0.25rem; display: none; }
+    .form-error.visible { display: block; }
+    .student-lookup { display: flex; gap: 0.5rem; align-items: flex-end; }
+    .student-lookup .form-group { flex: 1; margin-bottom: 0; }
+    .btn-lookup { height: 44px; padding: 0 1.2rem; background: #8B1A1A; color: #fff; border: none; border-radius: 10px; font-size: 0.88rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background 0.2s; }
+    .btn-lookup:hover { background: #6B1010; }
+    .btn-lookup:disabled { background: #ccc; cursor: not-allowed; }
+    .lookup-result { margin-top: 0.4rem; font-size: 0.82rem; }
+    .lookup-result.ok { color: #28a745; }
+    .lookup-result.fail { color: #e53e3e; }
+    .ticket-grid { display: flex; flex-direction: column; gap: 0.7rem; }
+    .ticket-card { border: 2px solid #e0e0e0; border-radius: 12px; padding: 0.9rem 1.2rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.9rem; }
+    .ticket-card:hover { border-color: #c0a060; }
+    .ticket-card.selected { border-color: #8B1A1A; background: rgba(139,26,26,0.04); }
+    .ticket-radio { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #ccc; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .ticket-card.selected .ticket-radio { border-color: #8B1A1A; background: #8B1A1A; }
+    .ticket-card.selected .ticket-radio::after { content: '✓'; color: white; font-size: 0.7rem; }
+    .ticket-info { flex: 1; }
+    .ticket-name { font-weight: 700; font-size: 0.95rem; color: #333; }
+    .ticket-desc { font-size: 0.78rem; color: #888; margin-top: 0.1rem; }
+    .ticket-price { font-weight: 800; font-size: 1.05rem; color: #8B1A1A; }
+    .ticket-seats { font-size: 0.72rem; color: #28a745; font-weight: 600; margin-top: 0.15rem; }
+    .qty-stepper { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.4rem; }
+    .qty-btn { width: 26px; height: 26px; border-radius: 6px; border: 2px solid #ddd; background: #fff; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; user-select: none; }
+    .qty-btn:hover { border-color: #8B1A1A; color: #8B1A1A; }
+    .qty-display { font-weight: 700; font-size: 0.95rem; min-width: 18px; text-align: center; }
+    .merch-grid { display: flex; flex-direction: column; gap: 0.7rem; }
+    .merch-item { border: 2px solid #e0e0e0; border-radius: 12px; padding: 0.9rem; transition: all 0.2s; }
+    .merch-item.checked { border-color: #D4A853; background: rgba(212,168,83,0.04); }
+    .merch-header { display: flex; align-items: center; gap: 0.7rem; cursor: pointer; }
+    .merch-checkbox { width: 20px; height: 20px; border-radius: 6px; border: 2px solid #ccc; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: 0.75rem; }
+    .merch-item.checked .merch-checkbox { border-color: #D4A853; background: #D4A853; color: #fff; }
+    .merch-info { flex: 1; }
+    .merch-name { font-weight: 700; font-size: 0.92rem; }
+    .merch-price { font-size: 0.88rem; color: #8B1A1A; font-weight: 600; }
+    .merch-options { margin-top: 0.7rem; padding-top: 0.7rem; border-top: 1px dashed #eee; display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
+    .merch-options.hidden { display: none; }
+    .size-btn { padding: 0.25rem 0.65rem; border-radius: 6px; border: 2px solid #ddd; background: #fff; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .size-btn:hover { border-color: #D4A853; }
+    .size-btn.selected { border-color: #8B1A1A; background: #8B1A1A; color: #fff; }
+    .merch-qty { display: flex; align-items: center; gap: 0.35rem; margin-left: auto; }
+    .summary-box { background: #f9f9f9; border-radius: 12px; padding: 0.9rem 1.2rem; margin-top: 1rem; border: 1px solid #eee; }
+    .summary-row { display: flex; justify-content: space-between; align-items: center; padding: 0.3rem 0; font-size: 0.88rem; }
+    .summary-row.total { border-top: 2px solid #ddd; margin-top: 0.4rem; padding-top: 0.7rem; font-weight: 700; font-size: 1.05rem; color: #8B1A1A; }
+    .book-nav { display: flex; gap: 1rem; justify-content: space-between; margin-top: 1.25rem; }
+    .btn-prev, .btn-next { padding: 0.8rem 1.8rem; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+    .btn-prev { background: #e0e0e0; color: #555; }
+    .btn-prev:hover { background: #d0d0d0; }
+    .btn-next { background: #8B1A1A; color: #fff; flex: 1; max-width: 300px; }
+    .btn-next:hover { background: #6B1010; }
+    .btn-next:disabled { background: #ccc; cursor: not-allowed; }
+    .payment-ref-box { background: linear-gradient(135deg, #8B1A1A, #c0352a); color: white; border-radius: 16px; padding: 1.4rem; text-align: center; margin-bottom: 1.25rem; }
+    .payment-ref-code { font-size: 1.45rem; font-weight: 800; letter-spacing: 2px; margin: 0.4rem 0; }
+    .payment-amount { font-size: 2.1rem; font-weight: 800; color: #D4A853; }
+    .qr-wrap { text-align: center; margin: 1.25rem 0; }
+    .receipt-area { border: 2px dashed #ccc; border-radius: 12px; padding: 1.25rem; text-align: center; margin-top: 0.9rem; }
+    .receipt-upload-label { display: block; font-weight: 600; font-size: 0.92rem; margin-bottom: 0.65rem; cursor: pointer; }
+    .receipt-input { width: 100%; padding: 0.45rem; border-radius: 8px; font-size: 0.82rem; cursor: pointer; box-sizing: border-box; }
+    .receipt-preview { margin-top: 0.65rem; }
+    .receipt-preview img { max-width: 190px; border-radius: 8px; border: 2px solid #ddd; }
+    .success-screen { text-align: center; padding: 2.5rem 2rem; }
+    .success-icon { font-size: 3.5rem; margin-bottom: 0.9rem; }
+    .success-title { font-size: 1.4rem; font-weight: 700; color: #8B1A1A; margin-bottom: 0.4rem; }
+    .success-ref { font-size: 1.05rem; color: #555; margin: 0.4rem 0; }
+    .success-msg { color: #888; font-size: 0.88rem; line-height: 1.65; margin-top: 0.9rem; }
+    .error-msg { background: #fff3f3; border: 1px solid #fc8181; border-radius: 8px; padding: 0.7rem 1rem; color: #c53030; font-size: 0.88rem; margin-bottom: 1rem; display: none; }
+    .error-msg.visible { display: block; }
+    .spinner { display: inline-block; width: 18px; height: 18px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .booking-form-mark { position: fixed; bottom: 10px; right: 10px; background: #8B1A1A; color: white; padding: 3px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; z-index: 9999; pointer-events: none; }
+    @media (max-width: 600px) {
+      .form-row { grid-template-columns: 1fr; }
+      .steps-bar { gap: 0; }
+      .step-connector { width: 28px; }
+      .book-nav { flex-direction: column-reverse; }
+      .btn-next { max-width: 100%; }
+    }
+  </style>
+
+  <style>
+    /* ── Hero, Countdown & Programme Timeline ── */
+/* ========== Hero Section ========== */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: linear-gradient(135deg, var(--dark-red) 0%, var(--primary-red) 50%, var(--dark-red) 100%);
+  overflow: hidden;
+  padding: 6rem 2rem 4rem;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23D4A853' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  opacity: 0.5;
+}
+
+.hero-content {
+  text-align: left;
+  color: white;
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+}
+
+.hero-badge {
+  display: inline-block;
+  background: var(--gold);
+  color: var(--dark-red);
+  padding: 0.5rem 1.5rem;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  animation: fadeInDown 0.8s ease;
+}
+
+.hero-title {
+  font-size: clamp(3rem, 8vw, 5rem);
+  margin-bottom: 0.5rem;
+  animation: fadeInUp 0.8s ease 0.2s both;
+  text-shadow: 2px 4px 8px rgba(0,0,0,0.3);
+}
+
+.hero-subtitle {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  color: var(--bright-gold);
+  margin-bottom: 1rem;
+  animation: fadeInUp 0.8s ease 0.4s both;
+}
+
+.hero-theme {
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  color: rgba(255,255,255,0.9);
+  font-style: italic;
+  margin-bottom: 2rem;
+  animation: fadeInUp 0.8s ease 0.5s both;
+}
+
+.hero-date {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  margin-bottom: 2rem;
+  animation: fadeInUp 0.8s ease 0.6s both;
+}
+
+.hero-date-icon {
+  font-size: 1.5rem;
+}
+
+/* ========== Countdown Timer ========== */
+.countdown {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+  animation: fadeInUp 0.8s ease 0.7s both;
+}
+
+.countdown-item {
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 16px;
+  padding: 1rem 1.5rem;
+  min-width: 90px;
+  text-align: center;
+}
+
+.countdown-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--bright-gold);
+  line-height: 1;
+}
+
+.countdown-label {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.8);
+  margin-top: 0.25rem;
+}
+
+.hero-cta {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  animation: fadeInUp 0.8s ease 0.8s both;
+}
+
+.hero-details {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  margin-top: 2rem;
+  animation: fadeInUp 0.8s ease 0.9s both;
+}
+
+.hero-detail-item {
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 12px;
+  padding: 0.875rem 1rem;
+  text-align: center;
+  color: white;
+}
+
+.hero-detail-item .detail-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+.hero-detail-item .detail-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255,255,255,0.6);
+  display: block;
+  margin-bottom: 0.15rem;
+}
+
+.hero-detail-item .detail-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+@media (max-width: 700px) {
+  .hero-details { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 400px) {
+  .hero-details { grid-template-columns: 1fr 1fr; }
+}
+
+
+/* ========== Programme Timeline ========== */
+.programme-timeline {
+  max-width: 600px;
+  margin: 0 auto;
+  position: relative;
+  padding-left: 140px;
+}
+
+.programme-timeline::before {
+  content: '';
+  position: absolute;
+  left: 115px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--gold), var(--primary-red));
+  border-radius: 2px;
+}
+
+.programme-item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+}
+
+.programme-item:last-child { margin-bottom: 0; }
+
+.programme-time {
+  position: absolute;
+  left: -140px;
+  top: 4px;
+  width: 100px;
+  text-align: right;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--primary-red);
+  line-height: 1.3;
+}
+
+.programme-dot {
+  position: absolute;
+  left: -22px;
+  top: 8px;
+  width: 14px;
+  height: 14px;
+  background: var(--gold);
+  border: 3px solid white;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--gold);
+  flex-shrink: 0;
+}
+
+.programme-content {
+  background: white;
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  border-left: 4px solid var(--gold);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: box-shadow 0.2s;
+}
+
+.programme-item:nth-child(even) .programme-content { border-left-color: var(--primary-red); }
+.programme-item:nth-child(even) .programme-dot { background: var(--primary-red); box-shadow: 0 0 0 2px var(--primary-red); }
+
+.programme-icon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.programme-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #333;
+  line-height: 1.3;
+}
+
+.programme-desc {
+  font-size: 0.82rem;
+  color: #888;
+  margin-top: 0.15rem;
+}
+
+@media (max-width: 700px) {
+  .programme-timeline { padding-left: 0; }
+  .programme-timeline::before { display: none; }
+  .programme-time { position: static; text-align: left; margin-bottom: 0.25rem; width: auto; }
+  .programme-dot { display: none; }
+  .programme-item { flex-direction: column; margin-bottom: 1rem; }
+  .programme-content { width: 100%; }
+}
+
+  </style>
+
 </head>
 <body>
-  <!-- Navigation -->
+  <!-- Navbar -->
   <nav class="navbar">
     <div class="nav-container">
-      <a href="#home" class="nav-logo">
-        <img src="/images/chonghwa_kl/logo_main.png" alt="吉隆坡中华独中" class="nav-logo-img">
-        <span class="nav-logo-text">Homecoming 2026<br><small>吉隆坡中华独立中学</small></span>
-      </a>
-      <ul class="nav-links" id="navLinks">
-        <li><a href="#home" class="active">首页 Home</a></li>
-        <li><a href="#event">活动 Event</a></li>
+      <a href="/" class="nav-logo">🏠 Homecoming 2026</a>
+      <ul class="nav-links">
+        <li><a href="#home">首页 Home</a></li>
+        <li><a href="#activities">活动 Activities</a></li>
+        <li><a href="#committee">筹委会 Committee</a></li>
         <li><a href="#register">报名 Register</a></li>
-        <li><a href="#committee">筹委 Committee</a></li>
-        <li><a href="#fundraising">募款 Fundraise</a></li>
-        <li><a href="#gallery">相册 Gallery</a></li>
-        <li><a href="#alumni">校友 Alumni</a></li>
+        <li><a href="/admin">管理 Admin</a></li>
       </ul>
-      <div class="nav-toggle" id="navToggle">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
     </div>
   </nav>
 
-  <!-- Main Content -->
-  <div class="main-content">
-    <!-- Hero Section -->
-    <section id="home" class="hero">
-      <div class="hero-content">
-        <div class="hero-badge">🎉 吉隆坡中华独立中学 · 20周年校友回校日 20th Anniversary</div>
-        <h1 class="hero-title">Homecoming</h1>
-        <p class="hero-subtitle">回家吃饭</p>
-        <p class="hero-theme">从零到一，始终如一 | From Zero to One, Always Consistent</p>
-        
-        <div class="hero-date">
-          <span class="hero-date-icon">📅</span>
-          <span>2026年10月10日 (星期六) | October 10, 2026 (Saturday)</span>
+  <!-- Hero -->
+  <section id="home" class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+      <div class="hero-badge">🎉 20周年校友回校日 20th Alumni Homecoming</div>
+      <h1 class="hero-title">Homecoming 2026</h1>
+      <p class="hero-subtitle">吉隆坡中华独立中学 · Kuala Lumpur</p>
+      <div class="hero-details">
+        <div class="hero-detail-item">
+          <span class="detail-icon">📅</span>
+          <span class="detail-label">Date</span>
+          <span class="detail-value">2026年10月10日</span>
         </div>
-        
-        <div class="countdown" id="countdown">
-          <div class="countdown-item">
-            <div class="countdown-number" id="days">000</div>
-            <div class="countdown-label">天 Days</div>
-          </div>
-          <div class="countdown-item">
-            <div class="countdown-number" id="hours">00</div>
-            <div class="countdown-label">时 Hours</div>
-          </div>
-          <div class="countdown-item">
-            <div class="countdown-number" id="minutes">00</div>
-            <div class="countdown-label">分 Minutes</div>
-          </div>
-          <div class="countdown-item">
-            <div class="countdown-number" id="seconds">00</div>
-            <div class="countdown-label">秒 Seconds</div>
-          </div>
+        <div class="hero-detail-item">
+          <span class="detail-icon">🕐</span>
+          <span class="detail-label">Start</span>
+          <span class="detail-value">3:00 PM</span>
         </div>
-        
-        <div class="hero-cta">
-          <a href="#register" class="btn btn-primary">立即报名 Register Now 🡢</a>
-          <a href="#event" class="btn btn-secondary">了解更多 Learn More</a>
+        <div class="hero-detail-item">
+          <span class="detail-icon">📍</span>
+          <span class="detail-label">Venue</span>
+          <span class="detail-value">吉隆坡中华独中</span>
+        </div>
+        <div class="hero-detail-item">
+          <span class="detail-icon">👔</span>
+          <span class="detail-label">Dress</span>
+          <span class="detail-value">Smart Casual</span>
         </div>
       </div>
-    </section>
-
-    <!-- Event Information Section -->
-    <section id="event" class="section event-info-section">
-      <div class="section-container">
-        <div class="section-header">
-          <h2 class="section-title">活动详情 Event Details</h2>
-          <p class="section-subtitle">隆中华光前堂 Hall of Chong Hwa Independent High School</p>
-        </div>
-        
-        <div class="event-grid">
-          <div class="event-details">
-            <h3>📋 活动信息 Event Information</h3>
-            
-            <div class="detail-item">
-              <div class="detail-icon">📅</div>
-              <div class="detail-content">
-                <h4>日期 Date</h4>
-                <p>2026年10月10日 (星期六)<br>October 10, 2026 (Saturday)</p>
-              </div>
-            </div>
-            
-            <div class="detail-item">
-              <div class="detail-icon">⏰</div>
-              <div class="detail-content">
-                <h4>时间 Time</h4>
-                <p>上午 10:00 - 下午 6:00<br>10:00 AM - 6:00 PM</p>
-              </div>
-            </div>
-            
-            <div class="detail-item">
-              <div class="detail-icon">📍</div>
-              <div class="detail-content">
-                <h4>地点 Venue</h4>
-                <p>吉隆坡中华独立中学 光前堂<br>Hall of Chong Hwa Independent High School,<br>Jalan Ipoh, Kuala Lumpur</p>
-              </div>
-            </div>
-            
-            <div class="detail-item">
-              <div class="detail-icon">👥</div>
-              <div class="detail-content">
-                <h4>对象 Target</h4>
-                <p>2006年毕业班 & 2001年入学校友<br>2006 Graduating Class & 2001 Intake</p>
-              </div>
-            </div>
-          </div>
-          
-          <div class="map-container">
-            <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3983.5336!2d101.6865818!3d3.1899123!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31cc48753045c3a7%3A0xb2cdc18d05d5e95b!2sChong%20Hwa%20Private%20High%20School!5e0!3m2!1sen!2smy!4v1700000000000!5m2!1sen!2smy&hl=en"
-              loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade"
-              title="Chong Hwa Independent High School KL Location">
-            </iframe>
-          </div>
-        </div>
+      <div class="countdown" id="countdown">
+        <div class="countdown-item"><span class="countdown-number" id="days">000</span><span class="countdown-label">天 Days</span></div>
+        <div class="countdown-item"><span class="countdown-number" id="hours">00</span><span class="countdown-label">时 Hours</span></div>
+        <div class="countdown-item"><span class="countdown-number" id="minutes">00</span><span class="countdown-label">分 Minutes</span></div>
+        <div class="countdown-item"><span class="countdown-number" id="seconds">00</span><span class="countdown-label">秒 Seconds</span></div>
       </div>
-    </section>
-
-    <!-- Activities Section -->
-    <section class="section activities-section">
-      <div class="section-container">
-        <div class="section-header">
-          <h2 class="section-title">活动项目 Activities</h2>
-          <p class="section-subtitle">精彩活动，丰富体验 Memorable Activities & Experiences</p>
-        </div>
-        
-        <div class="activities-grid">
-          <div class="activity-card">
-            <div class="activity-icon">⚽</div>
-            <h4>校友足球赛</h4>
-            <p> Alumni Football Match</p>
-            <p style="margin-top:0.5rem; color: var(--warm-gray);">与老同学组队，重温绿茵激情</p>
-          </div>
-          
-          <div class="activity-card">
-            <div class="activity-icon">🏫</div>
-            <h4>校园导览</h4>
-            <p>Campus Tour</p>
-            <p style="margin-top:0.5rem; color: var(--warm-gray);">重游校园，回忆青春岁月</p>
-          </div>
-          
-          <div class="activity-card">
-            <div class="activity-icon">🎭</div>
-            <h4>文化表演</h4>
-            <p>Cultural Performances</p>
-            <p style="margin-top:0.5rem; color: var(--warm-gray);">传统与现代交织的视听盛宴</p>
-          </div>
-          
-          <div class="activity-card">
-            <div class="activity-icon">🎨</div>
-            <h4>慈善义卖</h4>
-            <p>Charity Auction</p>
-            <p style="margin-top:0.5rem; color: var(--warm-gray);">献爱心，回馈学校</p>
-          </div>
-          
-          <div class="activity-card">
-            <div class="activity-icon">🏆</div>
-            <h4>20周年庆典</h4>
-            <p>20th Anniversary Ceremony</p>
-            <p style="margin-top:0.5rem; color: var(--warm-gray);">隆重庆祝，感恩有你</p>
-          </div>
-          
-          <div class="activity-card">
-            <div class="activity-icon">🍜</div>
-            <h4>团圆宴</h4>
-            <p>Reunion Dinner</p>
-            <p style="margin-top:0.5rem; color: var(--warm-gray);">共进晚餐，畅叙情谊</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Schedule Timeline Section -->
-    <section class="section schedule-section">
-      <div class="section-container">
-        <div class="section-header">
-          <h2 class="section-title">活动流程 Schedule</h2>
-          <p class="section-subtitle">当日活动安排 Event Flow</p>
-        </div>
-        
-        <div class="timeline">
-          <div class="timeline-item">
-            <div class="timeline-dot"></div>
-            <div class="timeline-content">
-              <div class="timeline-time">10:00 AM</div>
-              <h4>报到 Registration</h4>
-              <p>校友签到，领取纪念品</p>
-            </div>
-          </div>
-          
-          <div class="timeline-item">
-            <div class="timeline-dot"></div>
-            <div class="timeline-content">
-              <div class="timeline-time">11:00 AM</div>
-              <h4>开幕典礼 Opening</h4>
-              <p>20周年庆典开幕仪式</p>
-            </div>
-          </div>
-          
-          <div class="timeline-item">
-            <div class="timeline-dot"></div>
-            <div class="timeline-content">
-              <div class="timeline-time">11:30 AM</div>
-              <h4>校园导览 Campus Tour</h4>
-              <p>参观校舍及文史馆</p>
-            </div>
-          </div>
-          
-          <div class="timeline-item">
-            <div class="timeline-dot"></div>
-            <div class="timeline-content">
-              <div class="timeline-time">12:30 PM</div>
-              <h4>校友足球赛 Football</h4>
-              <p>分组比赛，友谊第一</p>
-            </div>
-          </div>
-          
-          <div class="timeline-item">
-            <div class="timeline-dot"></div>
-            <div class="timeline-content">
-              <div class="timeline-time">2:00 PM</div>
-              <h4>文化表演 Cultural Show</h4>
-              <p>精彩节目欣赏</p>
-            </div>
-          </div>
-          
-          <div class="timeline-item">
-            <div class="timeline-dot"></div>
-            <div class="timeline-content">
-              <div class="timeline-time">3:30 PM</div>
-              <h4>慈善义卖 Charity Auction</h4>
-              <p>献爱心，回馈学校</p>
-            </div>
-          </div>
-          
-          <div class="timeline-item">
-            <div class="timeline-dot"></div>
-            <div class="timeline-content">
-              <div class="timeline-time">5:00 PM</div>
-              <h4>合影留念 Group Photo</h4>
-              <p>大合照，记录美好时刻</p>
-            </div>
-          </div>
-          
-          <div class="timeline-item">
-            <div class="timeline-dot"></div>
-            <div class="timeline-content">
-              <div class="timeline-time">6:00 PM</div>
-              <h4>团圆宴 Reunion Dinner</h4>
-              <p>共进晚餐，畅叙情谊</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Registration Section -->
-    <section id="register" class="section registration-section">
-      <div class="section-container">
-        <div class="section-header">
-          <h2 class="section-title">报名参加 Register</h2>
-          <p class="section-subtitle">名额有限，请尽早报名 Limited Slots - Register Early!</p>
-        </div>
-        
-        <div class="registration-grid">
-          <div class="ticket-cards">
-            <div class="ticket-card selected" data-ticket="early-bird" data-price="150">
-              <div class="ticket-type">早鸟票 Early Bird</div>
-              <div class="ticket-price">RM 150</div>
-              <div class="ticket-note">即日起至2026年7月31日 / Until July 31, 2026</div>
-            </div>
-            
-            <div class="ticket-card" data-ticket="standard" data-price="250">
-              <div class="ticket-type">标准票 Standard</div>
-              <div class="ticket-price">RM 250</div>
-              <div class="ticket-note">2026年8月1日起 / From August 1, 2026</div>
-            </div>
-            
-            <div class="ticket-card" data-ticket="family" data-price="500">
-              <div class="ticket-type">家庭票 Family Package</div>
-              <div class="ticket-price">RM 500</div>
-              <div class="ticket-note">4人同座，含团圆宴 / 4 pax, includes dinner</div>
-            </div>
-          </div>
-          
-          <form class="registration-form" id="registrationForm">
-            <h3 class="form-title">📝 填写报名信息<br><span style="font-size:0.9rem; color:var(--warm-gray);">Fill in Registration Details</span></h3>
-            
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">姓名 Name <span class="required">*</span></label>
-                <input type="text" class="form-input" name="name" placeholder="请输入您的姓名" required>
-                <div class="form-error">请输入姓名 Please enter your name</div>
-              </div>
-              
-              <div class="form-group">
-                <label class="form-label">电子邮箱 Email <span class="required">*</span></label>
-                <input type="email" class="form-input" name="email" placeholder="your@email.com" required>
-                <div class="form-error">请输入有效的电子邮箱 Please enter a valid email</div>
-              </div>
-            </div>
-            
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">电话号码 Phone <span class="required">*</span></label>
-                <input type="tel" class="form-input" name="phone" placeholder="012-3456789" required>
-                <div class="form-error">请输入有效的电话号码 Please enter a valid phone number</div>
-              </div>
-              
-              <div class="form-group">
-                <label class="form-label">入学年份 Intake Year <span class="required">*</span></label>
-                <select class="form-select" name="intakeYear" required>
-                  <option value="">请选择 Select</option>
-                  <option value="2001 intake">2001年入学 2001 Intake</option>
-                  <option value="2006 graduating">2006年毕业 2006 Graduating</option>
-                </select>
-                <div class="form-error">请选择入学年份 Please select intake year</div>
-              </div>
-            </div>
-            
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">参加人数 Attendees <span class="required">*</span></label>
-                <select class="form-select" name="attendees" required>
-                  <option value="1">1 人 Person</option>
-                  <option value="2">2 人 Persons</option>
-                  <option value="3">3 人 Persons</option>
-                  <option value="4">4 人 Persons</option>
-                </select>
-              </div>
-              
-              <div class="form-group">
-                <label class="form-label">餐饮偏好 Meal Preference</label>
-                <select class="form-select" name="mealPreference">
-                  <option value="no_preference">无特别要求 No Preference</option>
-                  <option value="vegetarian">素食 Vegetarian</option>
-                  <option value="halal">清真 Halal</option>
-                  <option value="allergies">食物过敏 Food Allergies</option>
-                </select>
-              </div>
-            </div>
-            
-            <input type="hidden" name="ticketType" id="selectedTicket" value="early-bird">
-            <input type="hidden" name="amountPaid" id="selectedAmount" value="150">
-            
-            <div style="background: var(--cream); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem;">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="color: var(--dark-text); font-weight: 600;">应付金额 Total:</span>
-                <span style="font-size: 1.5rem; font-weight: 700; color: var(--primary-red);" id="totalAmount">RM 150</span>
-              </div>
-            </div>
-            
-            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 1rem;">
-              提交报名 Submit Registration ✓
-            </button>
-            
-            <p style="text-align: center; margin-top: 1rem; font-size: 0.85rem; color: var(--warm-gray);">
-              报名成功后，我们会发送确认邮件到您的邮箱<br>
-              A confirmation email will be sent after successful registration
-            </p>
-          </form>
-        </div>
-      </div>
-    </section>
-
-    <!-- Table Seating Section -->
-    <section id="seating" class="section seating-section">
-      <div class="section-container">
-        <div class="section-header">
-          <h2 class="section-title">🪑 选桌坐位 Table Seating</h2>
-          <p class="section-subtitle">选择您的桌位 Choose Your Table</p>
-        </div>
-
-        <!-- Seating Instructions -->
-        <div class="seating-info-bar" id="seatingInfoBar" style="display:none;">
-          <div class="seating-legend">
-            <span class="legend-item"><span class="legend-dot available"></span> 可选 Available</span>
-            <span class="legend-item"><span class="legend-dot reserved"></span> 已满 Reserved</span>
-            <span class="legend-item"><span class="legend-dot selected"></span> 已选 Selected</span>
-          </div>
-          <div class="seating-stats" id="seatingStats"></div>
-        </div>
-
-        <!-- Table Grid -->
-        <div class="table-grid" id="tableGrid">
-          <!-- Tables 1-40 generated by JS -->
-        </div>
-
-        <!-- Selected Table Panel -->
-        <div class="seating-selection-panel" id="seatingSelectionPanel" style="display:none;">
-          <div class="seating-selected-info">
-            <div class="selected-table-number" id="selectedTableNumber">—</div>
-            <p>您选择了桌位 <strong id="selectedTableName">—</strong></p>
-            <p class="seating-capacity-note">每桌可坐 10 人 | Each table seats 10 guests</p>
-          </div>
-          <button class="btn btn-primary" id="confirmTableBtn" onclick="confirmTableSelection()">
-            ✅ 确认此桌位 Confirm Table
-          </button>
-          <button class="btn btn-ghost" onclick="cancelTableSelection()">
-            取消 Cancel
-          </button>
-        </div>
-
-        <!-- Seating Success -->
-        <div class="seating-success" id="seatingSuccess" style="display:none;">
-          <div class="success-icon-large">🎉</div>
-          <h3>桌位预订成功！<br>Table Reserved!</h3>
-          <p>您已成功预订 <strong id="successTableNum">—</strong> 号桌</p>
-          <p class="seating-success-note">请在活动当天到达您的桌位。<br>Please proceed to your table on event day.</p>
-          <button class="btn btn-primary" onclick="goHomeFromSeating()">返回首页 Back to Home</button>
-        </div>
-
-        <!-- Seating Login Prompt -->
-        <div class="seating-login-prompt" id="seatingLoginPrompt">
-          <div class="seating-locked-icon">🔒</div>
-          <h3>请先报名 / Register First</h3>
-          <p>您需要先完成报名并付款，才能选择桌位。<br>Please complete your registration and payment first to choose a table.</p>
-          <button class="btn btn-primary" onclick="scrollToSection('register')">前往报名 Go to Registration</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Committee Section -->
-    <section id="committee" class="section committee-section">
-      <div class="section-container">
-        <div class="section-header">
-          <h2 class="section-title">📋 筹委会 Committee</h2>
-          <p class="section-subtitle">感谢筹委会全体成员 · Thanks to Our Organizing Team</p>
-        </div>
-        <div class="committee-table-wrap">
-          <table class="committee-table">
-            <thead>
-              <tr>
-                <th>组别 Group</th>
-                <th>负责人 PIC</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td>主席</td><td>Mar Win, Yizao</td></tr>
-              <tr><td>秘书</td><td>Yizao, Mun Beng</td></tr>
-              <tr><td>财政</td><td>Lek Kee, Shi Ling</td></tr>
-              <tr><td>票务组</td><td>Kenny, Yizao</td></tr>
-              <tr><td>宣传 / 设计 / 周边</td><td>Kang Yao, Hui Shien, Mun Beng, Aifen, Shze Been</td></tr>
-              <tr><td>筹款组</td><td>Ah Kok, Lek Kee, Yizao, Mar Win, Kang Yao</td></tr>
-              <tr><td>活动节目组</td><td>Ah Kok, Mar Win</td></tr>
-              <tr><td>音响 / 技术组</td><td>（待定）</td></tr>
-              <tr><td>膳食组</td><td>Hui Wen</td></tr>
-              <tr><td>场地 / 主持</td><td>Mar Win, Aifen, Yizao</td></tr>
-              <tr><td>摄影 / 摄像</td><td>友胜（负责人）</td></tr>
-              <tr><td>联络组</td><td>（由宣传组延伸）</td></tr>
-              <tr><td>老师代表</td><td>洁莹师, 嘉娴师</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- Fundraising Section -->
-    <section id="fundraising" class="section fundraising-section">
-      <div class="section-container">
-        <div class="section-header">
-          <h2 class="section-title">💝 清寒子弟资助计划</h2>
-          <p class="section-subtitle">您的善心，让清寒子弟也能完成学业梦想</p>
-        </div>
-        <div class="fundraising-content">
-          <div class="fundraising-intro">
-            <p>吉隆坡中华独立中学向来坚持"有教无类"的办学精神，每年帮助无数家境清寒的学生完成学业。此募款旨在资助清寒子弟，让他们能安心上学，追逐梦想。</p>
-          </div>
-          <div class="fundraising-progress">
-            <div class="progress-header">
-              <div>
-                <div class="progress-amount" id="fundsRaised">RM 0</div>
-                <div class="progress-goal">目标 Goal: RM 500,000</div>
-              </div>
-              <div style="text-align: right;">
-                <div style="font-size: 1.5rem; font-weight: 700; color: var(--gold);" id="fundsPercent">0%</div>
-                <div style="font-size: 0.85rem; color: var(--warm-gray);">已筹得 Achieved</div>
-              </div>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill" id="progressFill"></div>
-            </div>
-            <div class="progress-stats">
-              <span>已筹得 Raised</span>
-              <span>目标 Target: RM 500,000</span>
-            </div>
-          </div>
-          <div class="fund-usage-grid">
-            <div class="fund-usage-card">
-              <div class="fund-usage-icon">🎓</div>
-              <h4>RM 42,000 / 年</h4>
-              <p>6位清寒子弟资助<br>Student Sponsorship</p>
-            </div>
-            <div class="fund-usage-card">
-              <div class="fund-usage-icon">📖</div>
-              <h4>每生 RM 7,000 / 年</h4>
-              <p>助学金包括学费、住宿、餐食<br>Tuition, Stay & Meals</p>
-            </div>
-            <div class="fund-usage-card">
-              <div class="fund-usage-icon">❤️</div>
-              <h4>让爱延续</h4>
-              <p>您的善心，改变一个孩子的命运<br>Your Kindness Changes Lives</p>
-            </div>
-          </div>
-          <div class="fundraising-cta">
-            <p>欲捐款请联络筹委会秘书处 · For donations, please contact the Committee Secretariat</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Alumni Directory Section --><!-- Alumni Directory Section -->
-    <section id="alumni" class="section alumni-section">
-      <div class="section-container">
-        <div class="section-header">
-          <h2 class="section-title">校友名录 Alumni Directory</h2>
-          <p class="section-subtitle">寻找久别重逢的老同学 Find Your Long-Lost Friends</p>
-        </div>
-        
-        <div class="alumni-controls">
-          <div class="search-box">
-            <input type="text" id="alumniSearch" placeholder="搜索姓名或班级 Search by name or class...">
-          </div>
-          <select class="filter-select" id="yearFilter">
-            <option value="">所有年份 All Years</option>
-            <option value="2005">2005年 高二 / 2005 Senior 2</option>
-            <option value="2006">2006年 高三 / 2006 Senior 3</option>
-          </select>
-        </div>
-        
-        <div class="alumni-grid" id="alumniGrid">
-          <!-- Alumni cards will be populated by JavaScript -->
-        </div>
-      </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-      <div class="footer-content">
-        <img src="/images/chonghwa_kl/logo_main.png" alt="吉隆坡中华独中" style="height:60px;margin-bottom:1rem;filter:brightness(0)invert(1);opacity:0.9;">
-        <div class="footer-logo">🏠 Homecoming 2026 | 回家吃饭</div>
-        <p class="footer-text">
-          吉隆坡中华独立中学 20周年校友回校日<br>
-          Chong Hwa Independent High School KL 20th Anniversary Reunion<br>
-          Kuala Lumpur, Malaysia
-        </p>
-        <div class="footer-links">
-          <a href="#home">首页 Home</a>
-          <a href="#event">活动 Event</a>
-          <a href="#register">报名 Register</a>
-          <a href="#committee">筹委 Committee</a>
-          <a href="https://www.chonghwakl.edu.my/" target="_blank" rel="noopener">学校官网 School Website</a>
-          <a href="https://www.facebook.com/chhspages" target="_blank" rel="noopener">Facebook</a>
-          <a href="https://www.youtube.com/@chhs" target="_blank" rel="noopener">YouTube</a>
-        </div>
-        <div class="footer-copyright">
-          © 2026 Chong Hwa Independent High School Alumni Association. All Rights Reserved.
-        </div>
-      </div>
-    </footer>
-  </div>
-
-  <!-- Admin Section -->
-  <section class="admin-section">
-    <!-- Admin Login (shown when not logged in) -->
-    <div class="admin-login" id="adminLogin">
-      <div class="admin-login-box">
-        <h2>🔐 管理员登录</h2>
-        <p>Admin Panel Login</p>
-        <form id="adminLoginForm">
-          <div class="form-group">
-            <label class="form-label">用户名 Username</label>
-            <input type="text" class="form-input" name="username" placeholder="admin" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label">密码 Password</label>
-            <input type="password" class="form-input" name="password" placeholder="••••••••" required>
-          </div>
-          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
-            登录 Login
-          </button>
-        </form>
-        <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--warm-gray);">
-          <a href="/" style="color: var(--primary-red);">← 返回首页 Back to Home</a>
-        </p>
-      </div>
+      <div class="hero-cta"><a href="#register" class="btn btn-primary">立即报名 Register Now</a></div>
     </div>
-    
-    <!-- Admin Panel (shown when logged in) -->
-    <div class="admin-panel" id="adminPanel" style="display: none;">
-      <div class="admin-header">
-        <div class="admin-header-content">
-          <h2 class="admin-title">📊 管理面板 Admin Panel</h2>
-          <div class="admin-stats">
-            <div class="admin-stat">
-              <div class="admin-stat-value" id="statRegistrations">0</div>
-              <div class="admin-stat-label">报名人数 Registrations</div>
-            </div>
-            <div class="admin-stat">
-              <div class="admin-stat-value" id="statAttendees">0</div>
-              <div class="admin-stat-label">总参加人数 Total Attendees</div>
-            </div>
-            <div class="admin-stat">
-              <div class="admin-stat-value" id="statRevenue">RM 0</div>
-              <div class="admin-stat-label">总收入 Revenue</div>
-            </div>
-            <div class="admin-stat">
-              <div class="admin-stat-value" id="statDonations">RM 0</div>
-              <div class="admin-stat-label">募款总额 Donations</div>
-            </div>
-          </div>
-          <div class="admin-actions">
-            <a href="/" class="btn btn-ghost">← 返回首页</a>
-            <button class="btn btn-primary" id="exportBtn">📥 导出CSV Export CSV</button>
-            <button class="btn btn-ghost" id="logoutBtn">登出 Logout</button>
+  </section>
+
+  <!-- Activities / Schedule -->
+  <section id="activities" class="section" style="background:#fffdf7;">
+    <div class="section-container">
+      <div class="section-header">
+        <h2 class="section-title">📅 活动流程 Programme</h2>
+        <p class="section-subtitle">10 October 2026 · 吉隆坡中华独中</p>
+      </div>
+      <div class="programme-timeline">
+        <div class="programme-item">
+          <div class="programme-time">3:00 PM</div>
+          <div class="programme-dot"></div>
+          <div class="programme-content">
+            <div class="programme-icon">🏫</div>
+            <div class="programme-title">Visitation</div>
+            <div class="programme-desc">重游校园，回忆当年 Campus Tour</div>
           </div>
         </div>
-      </div>
-      
-      <div class="admin-content">
-        <div class="admin-table-container">
-          <div class="admin-table-header">
-            <h3 class="admin-table-title">报名记录 Registration Records</h3>
-            <div class="admin-table-search">
-              <input type="text" id="adminSearch" placeholder="搜索姓名、邮箱或电话...">
-              <button class="btn btn-primary" id="searchBtn">搜索 Search</button>
-            </div>
+        <div class="programme-item">
+          <div class="programme-time">4:00 PM</div>
+          <div class="programme-dot"></div>
+          <div class="programme-content">
+            <div class="programme-icon">🏀</div>
+            <div class="programme-title">Sports Games</div>
+            <div class="programme-desc">Basketball · Badminton 球类竞赛</div>
           </div>
-          <div style="overflow-x: auto;">
-            <table class="admin-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>姓名 Name</th>
-                  <th>邮箱 Email</th>
-                  <th>电话 Phone</th>
-                  <th>入学年份 Intake</th>
-                  <th>人数 Attending</th>
-                  <th>票类 Ticket</th>
-                  <th>金额 Amount</th>
-                  <th>日期 Date</th>
-                </tr>
-              </thead>
-              <tbody id="adminTableBody">
-                <!-- Data will be populated by JavaScript -->
-              </tbody>
-            </table>
+        </div>
+        <div class="programme-item">
+          <div class="programme-time">6:00 PM</div>
+          <div class="programme-dot"></div>
+          <div class="programme-content">
+            <div class="programme-icon">📋</div>
+            <div class="programme-title">Registration</div>
+            <div class="programme-desc">来宾签到 Check-in</div>
+          </div>
+        </div>
+        <div class="programme-item">
+          <div class="programme-time">6:30 PM</div>
+          <div class="programme-dot"></div>
+          <div class="programme-content">
+            <div class="programme-icon">🍸</div>
+            <div class="programme-title">Cocktail Session</div>
+            <div class="programme-desc">自由交流 · 茶点招待</div>
+          </div>
+        </div>
+        <div class="programme-item">
+          <div class="programme-time">7:30 PM</div>
+          <div class="programme-dot"></div>
+          <div class="programme-content">
+            <div class="programme-icon">🍽️</div>
+            <div class="programme-title">Dinner</div>
+            <div class="programme-desc">晚宴开始 · 校友欢聚</div>
+          </div>
+        </div>
+        <div class="programme-item">
+          <div class="programme-time">8:00 PM</div>
+          <div class="programme-dot"></div>
+          <div class="programme-content">
+            <div class="programme-icon">🎤</div>
+            <div class="programme-title">表演节目</div>
+            <div class="programme-desc">余兴节目 Entertainment</div>
+          </div>
+        </div>
+        <div class="programme-item">
+          <div class="programme-time">10:30 PM</div>
+          <div class="programme-dot"></div>
+          <div class="programme-content">
+            <div class="programme-icon">👋</div>
+            <div class="programme-title">End</div>
+            <div class="programme-desc">活动结束 · 珍重再见</div>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Modal -->
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal" id="modal">
-      <div class="modal-icon" id="modalIcon">✓</div>
-      <h3 id="modalTitle">Success!</h3>
-      <p id="modalMessage">Your registration was successful.</p>
-      <button class="modal-close" id="modalClose">关闭 Close</button>
+  <!-- Registration Section -->
+  <section id="register" class="section booking-section">
+    <div class="section-container" style="max-width:720px;margin:0 auto;">
+      <div class="section-header">
+        <h2 class="section-title">📝 报名参加 Register</h2>
+        <p class="section-subtitle">名额有限，请尽早报名 Limited Slots — Register Early!</p>
+      </div>
+
+      <!-- Steps Bar -->
+      <div class="steps-bar" id="regStepsBar">
+        <div class="step-item active" data-step="1">
+          <div class="step-num">1</div>
+          <div class="step-label">报名信息<br><small>Registration</small></div>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-item" data-step="2">
+          <div class="step-num">2</div>
+          <div class="step-label">选购周边<br><small>Merchandise</small></div>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-item" data-step="3">
+          <div class="step-num">3</div>
+          <div class="step-label">付款<br><small>Payment</small></div>
+        </div>
+      </div>
+
+      <!-- Step 1: Registration -->
+      <div class="book-card" id="regStep1">
+        <div class="card-title"><span>📝</span> 报名信息 Registration</div>
+        <div class="error-msg" id="regStep1Error"></div>
+
+        <div class="form-group">
+          <label class="form-label">学号 Student ID <span class="hint">（选填 optional）</span></label>
+          <div class="student-lookup">
+            <div class="form-group" style="margin-bottom:0;flex:1;">
+              <input type="text" class="form-input" id="regStudentId" placeholder="例如: 200101" maxlength="20">
+            </div>
+            <button class="btn-lookup" id="regBtnLookup" type="button" onclick="regLookupStudent()">查找 Lookup</button>
+          </div>
+          <div class="lookup-result" id="regLookupResult"></div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">姓名 Name *</label>
+            <input type="text" class="form-input" id="regBuyerName" placeholder="请输入姓名" required>
+            <div class="form-error" id="regErrName">请输入姓名</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">手机 Mobile *</label>
+            <input type="tel" class="form-input" id="regBuyerMobile" placeholder="例如: 012-3456789">
+            <div class="form-error" id="regErrMobile">请输入手机号</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">邮箱 Email</label>
+          <input type="email" class="form-input" id="regBuyerEmail" placeholder="例如: abc@email.com">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">票种 Ticket Type *</label>
+          <div class="ticket-grid" id="regTicketGrid">
+            <div class="ticket-card selected" id="ticket-single" data-type="single" onclick="regSelectTicket('single')">
+              <div class="ticket-radio"></div>
+              <div class="ticket-info">
+                <div class="ticket-name">单人票 Single</div>
+                <div class="ticket-desc">1 人参加</div>
+                <div class="ticket-seats">含 1 席 seat</div>
+                <div class="qty-stepper">
+                  <span style="font-size:0.8rem;color:#888;">数量:</span>
+                  <button type="button" class="qty-btn" onclick="event.stopPropagation(); regChangeQty(-1)">−</button>
+                  <span class="qty-display" id="singleQty">1</span>
+                  <button type="button" class="qty-btn" onclick="event.stopPropagation(); regChangeQty(1)">+</button>
+                </div>
+              </div>
+              <div class="ticket-price">RM 200</div>
+            </div>
+            <div class="ticket-card" id="ticket-family" data-type="family" onclick="regSelectTicket('family')">
+              <div class="ticket-radio"></div>
+              <div class="ticket-info">
+                <div class="ticket-name">家庭票 Family</div>
+                <div class="ticket-desc">4 人家庭套票</div>
+                <div class="ticket-seats">含 4 席 seats</div>
+              </div>
+              <div class="ticket-price">RM 800</div>
+            </div>
+            <div class="ticket-card" id="ticket-table" data-type="table" onclick="regSelectTicket('table')">
+              <div class="ticket-radio"></div>
+              <div class="ticket-info">
+                <div class="ticket-name">桌席 Table</div>
+                <div class="ticket-desc">10 人桌席</div>
+                <div class="ticket-seats">含 10 席 seats</div>
+              </div>
+              <div class="ticket-price">RM 1800</div>
+            </div>
+          </div>
+          <div class="form-error" id="regErrTicket">请选择票种</div>
+        </div>
+
+        <div class="book-nav" style="margin-top:1.5rem;">
+          <div></div>
+          <button class="btn-next" id="regBtnStep1Next" type="button">下一步 Next →</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Merchandise -->
+      <div class="book-card" id="regStep2" style="display:none;">
+        <div class="card-title"><span>🎽</span> 选购周边 Merchandise <span class="hint" style="font-weight:400;font-size:0.8rem;">（可选）Optional</span></div>
+        <div class="merch-grid" id="regMerchGrid">
+          <div class="merch-item" id="merch-tshirt" onclick="regToggleMerch('tshirt')">
+            <div class="merch-header">
+              <div class="merch-checkbox" id="merch-check-tshirt"></div>
+              <div class="merch-info">
+                <div class="merch-name">T-恤 T-shirt</div>
+                <div class="merch-price">RM 60</div>
+              </div>
+            </div>
+            <div class="merch-options" id="merch-opts-tshirt">
+              <span style="font-size:0.8rem;color:#666;">尺码 Size:</span>
+              <button type="button" class="size-btn" onclick="event.stopPropagation(); regSelectSize('tshirt','S')">S</button>
+              <button type="button" class="size-btn selected" onclick="event.stopPropagation(); regSelectSize('tshirt','M')">M</button>
+              <button type="button" class="size-btn" onclick="event.stopPropagation(); regSelectSize('tshirt','L')">L</button>
+              <button type="button" class="size-btn" onclick="event.stopPropagation(); regSelectSize('tshirt','XL')">XL</button>
+              <button type="button" class="size-btn" onclick="event.stopPropagation(); regSelectSize('tshirt','XXL')">XXL</button>
+            </div>
+          </div>
+          <div class="merch-item" id="merch-tumbler" onclick="regToggleMerch('tumbler')">
+            <div class="merch-header">
+              <div class="merch-checkbox" id="merch-check-tumbler"></div>
+              <div class="merch-info">
+                <div class="merch-name">保温瓶 Tumbler</div>
+                <div class="merch-price">RM 50</div>
+              </div>
+            </div>
+            <div class="merch-options" id="merch-opts-tumbler">
+              <span style="font-size:0.8rem;color:#666;">数量 Qty:</span>
+              <button type="button" class="qty-btn" onclick="event.stopPropagation(); regChangeMerchQty('tumbler',-1)">−</button>
+              <span class="qty-display" id="merch-qty-tumbler">1</span>
+              <button type="button" class="qty-btn" onclick="event.stopPropagation(); regChangeMerchQty('tumbler',1)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="summary-box">
+          <div class="summary-row" id="regSummaryTickets"><span>票务 Ticket</span><span>—</span></div>
+          <div class="summary-row" id="regSummaryMerch"><span>周边 Merchandise</span><span>—</span></div>
+          <div class="summary-row total"><span>总计 Total</span><span id="regSummaryTotal">RM 0</span></div>
+        </div>
+
+        <div class="book-nav">
+          <button class="btn-prev" type="button" onclick="regGoToStep1()">← 上一步 Prev</button>
+          <button class="btn-next" type="button">下一步 Next →</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Payment -->
+      <div class="book-card" id="regStep3" style="display:none;">
+        <div class="card-title"><span>💳</span> 付款 Payment</div>
+        <div class="error-msg" id="regStep3Error"></div>
+        <div class="payment-ref-box">
+          <div style="font-size:0.9rem;opacity:0.8;">参考码 Reference</div>
+          <div class="payment-ref-code" id="regPayRef">—</div>
+          <div class="payment-amount" id="regPayAmount">RM 0</div>
+        </div>
+        <div class="qr-wrap">
+          <img src="/images/chkl_bank_qr.png" alt="Bank QR Code" style="width:220px;border-radius:12px;border:3px solid #f0f0f0;">
+          <p style="font-size:0.8rem;color:#888;margin-top:0.5rem;">请扫描上方二维码完成付款<br>Scan QR code above to pay</p>
+        </div>
+        <div class="receipt-area">
+          <label class="receipt-upload-label" for="regReceiptInput">
+            📤 上传付款凭证 / Upload Payment Receipt <span style="color:#e53e3e">*</span>
+          </label>
+          <input type="file" id="regReceiptInput" class="receipt-input" accept="image/*,.pdf">
+          <div class="receipt-preview" id="regReceiptPreview"></div>
+        </div>
+        <div class="book-nav">
+          <button class="btn-prev" type="button" onclick="regGoToStep2()">← 上一步 Prev</button>
+          <button class="btn-next" id="regBtnConfirm" type="button" style="background:#28a745;">✅ 确认提交 Confirm</button>
+        </div>
+      </div>
+
+      <!-- Success Screen -->
+      <div class="book-card" id="regSuccess" style="display:none;">
+        <div class="success-screen">
+          <div class="success-icon">🎉</div>
+          <div class="success-title">提交成功！</div>
+          <div class="success-ref" id="regSuccessRef">Reference: —</div>
+          <p class="success-msg">
+            您的报名已收到，筹委会将审核后确认。<br>
+            付款凭证已上传，请耐心等待批准。<br><br>
+            Your registration has been received.<br>
+            The committee will review and approve shortly.
+          </p>
+          <button class="btn-next" type="button" style="max-width:300px;margin:2rem auto 0;display:block;" onclick="regReset()">← 返回重新报名</button>
+        </div>
+      </div>
     </div>
-  </div>
+  </section>
 
-  <!-- Payment Modal -->
-  <div class="modal-overlay payment-modal" id="paymentModalOverlay">
-    <div class="modal" id="paymentModal">
-      <div class="payment-modal-header">
-        <h3>🏦 银行转账 Bank Transfer</h3>
-        <p>请在限时内完成转账</p>
-        <div class="payment-amount" id="paymentAmount">RM 0</div>
-        <div class="payment-amount-label">应付金额 Amount Due</div>
+  <!-- Committee Section -->
+  <section id="committee" class="section" style="background:#fafafa;">
+    <div class="section-container">
+      <div class="section-header">
+        <h2 class="section-title">📋 筹委会 Committee</h2>
+        <p class="section-subtitle">感谢筹委会全体成员 · Thanks to Our Organizing Team</p>
       </div>
-
-      <div class="payment-qr-section">
-        <img class="payment-qr-code" id="paymentQRCode" src="/images/chkl_bank_qr.png" alt="Bank QR Code">
-        <div class="payment-ref">
-          参考码 Reference: <strong id="paymentRefCode">---</strong>
-        </div>
-      </div>
-
-      <div class="payment-countdown-bar">
-        <div class="countdown-timer">
-          <span class="countdown-icon">⏱️</span>
-          <div class="countdown-text">
-            <div class="countdown-label-text">剩余时间 Time Remaining</div>
-            <div class="countdown-seconds" id="paymentCountdown">100</div>
-          </div>
-        </div>
-
-        <div class="bank-details">
-          <div class="bank-details-title">收款账户 Recipient Account</div>
-          <div class="bank-detail-row">
-            <span class="bank-detail-label">银行 Bank</span>
-            <span class="bank-detail-value" id="paymentBankName">Bank Islam</span>
-          </div>
-          <div class="bank-detail-row">
-            <span class="bank-detail-label">账户名 Account Name</span>
-            <span class="bank-detail-value" id="paymentAccountName">PERSATUAN BEKAS MURID CHONG HWA KL</span>
-          </div>
-          <div class="bank-detail-row">
-            <span class="bank-detail-label">账号 Account Number</span>
-            <span class="bank-detail-value account-num" id="paymentAccountNumber">1018 2120 1456</span>
-          </div>
-        </div>
-
-        <div class="receipt-upload-section">
-          <label for="receiptInput" class="receipt-upload-label">📤 上传付款凭证 / Upload Payment Receipt</label>
-          <input type="file" id="receiptInput" accept="image/*,.pdf" class="receipt-upload-input">
-          <div id="receiptPreview" class="receipt-preview"></div>
-        </div>
-
-        <button class="simulate-pay-btn" id="simulatePayBtn">
-          ✅ 确认已付款 Confirm Payment
-        </button>
-      </div>
-
-      <p class="payment-note">
-        请使用手机银行或网上银行转账到以上账户<br>
-        完成转账后，系统将自动确认您的报名<br>
-        Please transfer to the account above via your bank app or online banking
-      </p>
-
-      <div class="payment-modal-footer">
-        <button class="btn btn-ghost" id="cancelPaymentBtn">取消报名 Cancel Registration</button>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+          <thead><tr style="background:#8B1A1A;color:white;">
+            <th style="padding:1rem 1.5rem;text-align:left;font-weight:600;">组别 Group</th>
+            <th style="padding:1rem 1.5rem;text-align:left;font-weight:600;">负责人 PIC</th>
+          </tr></thead>
+          <tbody style="font-size:0.95rem;">
+            <tr><td style="padding:0.875rem 1.5rem;font-weight:600;color:#8B1A1A;white-space:nowrap;">主席</td><td style="padding:0.875rem 1.5rem;">Mar Win, Yizao</td></tr>
+            <tr style="background:#f9f9f9;"><td style="padding:0.875rem 1.5rem;font-weight:600;color:#8B1A1A;white-space:nowrap;">秘书</td><td style="padding:0.875rem 1.5rem;">Yizao, Mun Beng</td></tr>
+            <tr><td style="padding:0.875rem 1.5rem;font-weight:600;color:#8B1A1A;white-space:nowrap;">财政</td><td style="padding:0.875rem 1.5rem;">Lek Kee, Shi Ling</td></tr>
+            <tr style="background:#f9f9f9;"><td style="padding:0.875rem 1.5rem;font-weight:600;color:#8B1A1A;white-space:nowrap;">票务组</td><td style="padding:0.875rem 1.5rem;">Kenny, Yizao</td></tr>
+            <tr><td style="padding:0.875rem 1.5rem;font-weight:600;color:#8B1A1A;white-space:nowrap;">宣传 / 设计 / 周边</td><td style="padding:0.875rem 1.5rem;">Kang Yao, Hui Shien, Mun Beng, Aifen, Shze Been</td></tr>
+            <tr style="background:#f9f9f9;"><td style="padding:0.875rem 1.5rem;font-weight:600;color:#8B1A1A;white-space:nowrap;">筹款组</td><td style="padding:0.875rem 1.5rem;">Ah Kok, Lek Kee, Yizao, Mar Win, Kang Yao</td></tr>
+            <tr><td style="padding:0.875rem 1.5rem;font-weight:600;color:#8B1A1A;white-space:nowrap;">活动节目组</td><td style="padding:0.875rem 1.5rem;">Ah Kok, Mar Win</td></tr>
+            <tr style="background:#f9f9f9;"><td style="padding:0.875rem 1.5rem;font-weight:600;color:#8B1A1A;white-space:nowrap;">音响 / 技术组</td><td style="padding:0.875rem 1.5rem;">（待定）</td></tr>
+            <tr><td style="padding:0.875rem 1.5rem;font-weight:600;color:#8B1A1A;white-space:nowrap;">膳食组</td><td style="padding:0.875rem 1.5rem;">Hui Wen</td></tr>
+            <tr style="background:#f9f9f9;"><td style="padding:0.875rem 1.5rem;font-weight:600;color:#8B1A1A;white-space:nowrap;">场地 / 主持</td><td style="padding:0.875rem 1.5rem;">Mar Win, Aifen, Yizao</td></tr>
+            <tr><td style="padding:0.875rem 1.5rem;font-weight:600;color:#8B1A1A;white-space:nowrap;">摄影 / 摄像</td><td style="padding:0.875rem 1.5rem;">友胜（负责人）</td></tr>
+            <tr style="background:#f9f9f9;"><td style="padding:0.875rem 1.5rem;font-weight:600;color:#8B1A1A;white-space:nowrap;">联络组</td><td style="padding:0.875rem 1.5rem;">（由宣传组延伸）</td></tr>
+            <tr><td style="padding:0.875rem 1.5rem;font-weight:600;color:#8B1A1A;white-space:nowrap;">老师代表</td><td style="padding:0.875rem 1.5rem;">洁莹师, 嘉娴师</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- Payment Status Overlay (full screen) -->
-  <div class="payment-status-overlay" id="paymentStatusOverlay">
-    <div class="payment-status-spinner" id="paymentStatusSpinner"></div>
-    <div class="payment-status-icon" id="paymentStatusIcon"></div>
-    <h3 class="payment-status-title" id="paymentStatusTitle">处理中...</h3>
-    <p class="payment-status-message" id="paymentStatusMessage"></p>
-    <button class="payment-status-done-btn" id="paymentDoneBtn">确定 Done</button>
-  </div>
+  <!-- Gallery Section -->
+  <section id="gallery" class="section" style="background:#fafafa;">
+    <div class="section-container">
+      <div class="section-header">
+        <h2 class="section-title">📸 活动回顾 Gallery</h2>
+      </div>
+      <div class="gallery-grid">
+        <div class="gallery-item"><img src="/images/chonghwa_kl/campus_wall.jpg" alt="校园风景 Campus" loading="lazy"><div class="gallery-overlay"><span>校园风景<br>Campus</span></div></div>
+        <div class="gallery-item"><img src="/images/chonghwa_kl/qianrenyan.jpg" alt="千人宴 Qian Ren Yan" loading="lazy"><div class="gallery-overlay"><span>千人宴<br>Qian Ren Yan</span></div></div>
+        <div class="gallery-item"><img src="/images/chonghwa_kl/yigong.jpg" alt="义演 Yi Gong" loading="lazy"><div class="gallery-overlay"><span>义演活动<br>Yi Gong</span></div></div>
+        <div class="gallery-item"><img src="/images/chonghwa_kl/campus_kaixue.jpg" alt="校园活动 Campus Activities" loading="lazy"><div class="gallery-overlay"><span>校园活动<br>Campus Activities</span></div></div>
+        <div class="gallery-item"><img src="/images/chonghwa_kl/20220620-alumni-01.jpg" alt="校友团聚 Alumni" loading="lazy"><div class="gallery-overlay"><span>校友团聚<br>Alumni Reunion</span></div></div>
+        <div class="gallery-item"><img src="/images/chonghwa_kl/campus_107.jpg" alt="107校庆 107th Anniversary" loading="lazy"><div class="gallery-overlay"><span>107周年校庆<br>107th Anniversary</span></div></div>
+      </div>
+    </div>
+  </section>
 
-  <script src="/js/app.js?v=1740558600"></script>
-  <script>
-    // Receipt upload preview
-    document.getElementById('receiptInput')?.addEventListener('change', function(e) {
-      const file = e.target.files[0];
-      const preview = document.getElementById('receiptPreview');
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(ev) {
-        preview.innerHTML = '<img src="' + ev.target.result + '" alt="Receipt preview">';
-      };
-      reader.readAsDataURL(file);
-    });
-  </script>
-  <script>
-    // ========== COUNTDOWN (standalone) ==========
-    (function() {
-      var TARGET_DATE = new Date('2026-10-10T10:00:00+08:00');
-      console.log('[COUNTDOWN] Target:', TARGET_DATE);
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <p>© 2026 吉隆坡中华独立中学校友会 · Chong Hwa Independent High School Alumni Association</p>
+      <p>如有疑问请联系筹委会 · For enquiries, contact the organizing committee</p>
+    </div>
+  </footer>
 
-      function pad(n, len) { return String(n).padStart(len, '0'); }
-
-      function update() {
-        var now = new Date();
-        var diff = TARGET_DATE - now;
-        console.log('[COUNTDOWN] diff ms:', diff);
-
-        var d = document.getElementById('days');
-        var h = document.getElementById('hours');
-        var m = document.getElementById('minutes');
-        var s = document.getElementById('seconds');
-
-        if (diff <= 0) {
-          if (d) d.textContent = '000';
-          if (h) h.textContent = '00';
-          if (m) m.textContent = '00';
-          if (s) s.textContent = '00';
-          return;
-        }
-
-        var days = Math.floor(diff / 86400000);
-        var hours = Math.floor((diff % 86400000) / 3600000);
-        var mins = Math.floor((diff % 3600000) / 60000);
-        var secs = Math.floor((diff % 60000) / 1000);
-
-        if (d) d.textContent = pad(days, 3);
-        if (h) h.textContent = pad(hours, 2);
-        if (m) m.textContent = pad(mins, 2);
-        if (s) s.textContent = pad(secs, 2);
-      }
-
-      update();
-      setInterval(update, 1000);
-    })();
-  </script>
+    <!-- Booking Form JS -->
+  <script src="/js/booking.js"></script>
+  <script src="/js/app.js"></script>
 </body>
 </html>

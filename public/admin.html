@@ -3,559 +3,218 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Homecoming 2026 - Admin</title>
+  <title>Admin — Homecoming 2026</title>
+  <link rel="stylesheet" href="/css/style.css">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; }
-    
-    /* Login */
-    .login-screen {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, #8B1A1A, #C62828);
-    }
-    .login-box {
-      background: white;
-      border-radius: 20px;
-      padding: 3rem;
-      width: 90%;
-      max-width: 400px;
-      text-align: center;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    }
-    .login-box h1 { color: #8B1A1A; margin-bottom: 0.5rem; }
-    .login-box p { color: #666; margin-bottom: 2rem; }
-    .login-box input {
-      width: 100%;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      border: 2px solid #ddd;
-      border-radius: 12px;
-      font-size: 1rem;
-    }
-    .login-box button {
-      width: 100%;
-      padding: 1rem;
-      background: #8B1A1A;
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-size: 1.1rem;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .login-error { color: #dc3545; font-size: 0.9rem; margin-top: 0.5rem; display: none; }
-    
-    /* Admin Layout */
-    .admin-layout { display: none; }
-    .admin-layout.active { display: block; }
-    
-    .topbar {
-      background: #8B1A1A;
-      color: white;
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .topbar h1 { font-size: 1.2rem; }
-    .topbar-right { display: flex; gap: 1rem; align-items: center; }
-    .logout-btn {
-      background: rgba(255,255,255,0.2);
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 20px;
-      cursor: pointer;
-    }
-    
-    /* Stats Bar */
-    .stats-bar {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 1rem;
-      padding: 1.5rem 2rem;
-      background: white;
-      border-bottom: 1px solid #eee;
-    }
-    .stat-card {
-      text-align: center;
-      padding: 1rem;
-      background: #f8f8f8;
-      border-radius: 12px;
-    }
-    .stat-number { font-size: 2rem; font-weight: 800; color: #8B1A1A; }
-    .stat-label { font-size: 0.8rem; color: #666; margin-top: 0.25rem; }
-    
-    /* Tabs */
-    .tabs {
-      display: flex;
-      background: white;
-      border-bottom: 2px solid #eee;
-      padding: 0 2rem;
-    }
-    .tab {
-      padding: 1rem 1.5rem;
-      cursor: pointer;
-      border-bottom: 3px solid transparent;
-      font-weight: 600;
-      color: #666;
-    }
-    .tab.active { border-color: #8B1A1A; color: #8B1A1A; }
-    
-    /* Tab Content */
-    .tab-content { display: none; padding: 1.5rem 2rem; }
-    .tab-content.active { display: block; }
-    
-    /* Tables Grid */
-    .tables-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 1rem;
-    }
-    .table-card {
-      background: white;
-      border: 2px solid #e0e0e0;
-      border-radius: 12px;
-      padding: 1rem;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .table-card:hover { border-color: #8B1A1A; transform: translateY(-2px); }
-    .table-card.booked { border-color: #28a745; background: #f0fff4; }
-    .table-card.partial { border-color: #ffc107; background: #fffdf0; }
-    .table-number { font-size: 1.5rem; font-weight: 800; color: #333; }
-    .table-seats { font-size: 0.8rem; color: #666; margin-top: 0.25rem; }
-    .table-info { font-size: 0.75rem; color: #28a745; margin-top: 0.5rem; word-break: break-all; }
-    
-    /* Registrations List */
-    .regs-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-    .regs-filter {
-      display: flex;
-      gap: 0.5rem;
-    }
-    .filter-btn {
-      padding: 0.5rem 1rem;
-      border: 2px solid #ddd;
-      background: white;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 0.85rem;
-    }
-    .filter-btn.active { background: #8B1A1A; color: white; border-color: #8B1A1A; }
-    
-    .regs-table {
-      width: 100%;
-      background: white;
-      border-radius: 12px;
-      overflow: hidden;
-      font-size: 0.9rem;
-    }
-    .regs-table th {
-      background: #f8f8f8;
-      padding: 1rem;
-      text-align: left;
-      font-weight: 600;
-      border-bottom: 2px solid #eee;
-    }
-    .regs-table td {
-      padding: 0.75rem 1rem;
-      border-bottom: 1px solid #f0f0f0;
-    }
-    .regs-table tr:hover td { background: #fafafa; }
-    
-    .status-badge {
-      padding: 0.3rem 0.8rem;
-      border-radius: 15px;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
-    .status-pending { background: #FFF3CD; color: #856404; }
-    .status-completed { background: #D4EDDA; color: #155724; }
-    .status-cancelled { background: #F8D7DA; color: #721C24; }
-    
-    .action-btn {
-      padding: 0.4rem 0.8rem;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.8rem;
-      margin-right: 0.3rem;
-    }
-    .btn-confirm { background: #28a745; color: white; }
-    .btn-cancel { background: #dc3545; color: white; }
-    .btn-view { background: #007bff; color: white; }
-    
-    /* Table Detail Modal */
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 1000; display: none;
-    }
-    .modal-overlay.active { display: flex; }
-    .modal {
-      background: white; border-radius: 20px; padding: 2rem;
-      max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;
-    }
-    .modal h2 { margin-bottom: 1rem; }
-    .modal-close {
-      float: right;
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      cursor: pointer;
-      color: #666;
-    }
-    .seat-list {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 0.5rem;
-      margin-top: 1rem;
-    }
-    .seat-chip {
-      padding: 0.5rem;
-      background: #f0f0f0;
-      border-radius: 8px;
-      text-align: center;
-      font-size: 0.8rem;
-    }
-    .seat-chip.checked { background: #D4EDDA; color: #155724; }
-    
-    /* Student Import */
-    .import-box {
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 1rem;
-    }
-    .import-box textarea {
-      width: 100%;
-      height: 150px;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      padding: 0.75rem;
-      font-family: monospace;
-      font-size: 0.85rem;
-      margin-top: 0.5rem;
-    }
-    .import-box button {
-      margin-top: 0.5rem;
-      padding: 0.75rem 1.5rem;
-      background: #8B1A1A;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter','Noto Sans SC',system-ui,sans-serif; background: #f0f0f0; color: #333; min-height: 100vh; }
+
+    /* ── Login ── */
+    .login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .login-box { background: white; border-radius: 16px; padding: 2.5rem; box-shadow: 0 4px 24px rgba(0,0,0,0.1); width: 360px; }
+    .login-box h1 { color: #8B1A1A; font-size: 1.4rem; margin-bottom: 0.3rem; text-align: center; }
+    .login-box p { color: #888; font-size: 0.85rem; text-align: center; margin-bottom: 2rem; }
+    .login-field { margin-bottom: 1rem; }
+    .login-field label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.3rem; color: #555; }
+    .login-field input { width: 100%; padding: 0.7rem 1rem; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; transition: border-color 0.2s; }
+    .login-field input:focus { outline: none; border-color: #8B1A1A; }
+    .btn-login { width: 100%; padding: 0.85rem; background: #8B1A1A; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 1rem; transition: background 0.2s; }
+    .btn-login:hover { background: #6B1010; }
+    .login-error { color: #e53e3e; font-size: 0.85rem; text-align: center; margin-top: 0.75rem; min-height: 1.2em; }
+    .login-footer { text-align: center; margin-top: 1.5rem; }
+    .login-footer a { color: #8B1A1A; text-decoration: none; font-size: 0.85rem; }
+
+    /* ── Admin Page ── */
+    .admin-page { display: none; }
+    .admin-header { background: linear-gradient(135deg, #8B1A1A, #6B1010); color: white; padding: 0.85rem 1.5rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; gap: 1rem; flex-wrap: wrap; }
+    .admin-header h1 { font-size: 1.1rem; }
+    .admin-header-right { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+    .admin-stats { display: flex; gap: 1.5rem; }
+    .admin-stat { text-align: center; }
+    .admin-stat-val { font-size: 1.3rem; font-weight: 800; }
+    .admin-stat-label { font-size: 0.68rem; opacity: 0.8; }
+    .btn-logout { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+
+    /* ── Tabs ── */
+    .admin-tabs { background: white; padding: 0 1.5rem; border-bottom: 1px solid #eee; display: flex; gap: 0; }
+    .admin-tab { padding: 0.8rem 1.4rem; font-size: 0.88rem; font-weight: 600; color: #888; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap; }
+    .admin-tab:hover { color: #8B1A1A; }
+    .admin-tab.active { color: #8B1A1A; border-bottom-color: #8B1A1A; }
+    .admin-tab .tab-count { background: #eee; color: #666; font-size: 0.72rem; padding: 0.1rem 0.45rem; border-radius: 10px; margin-left: 0.35rem; font-weight: 700; }
+    .admin-tab.active .tab-count { background: #FDECEA; color: #8B1A1A; }
+
+    /* ── Toolbar ── */
+    .admin-toolbar { background: white; padding: 0.75rem 1.5rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #f0f0f0; }
+    .toolbar-search { display: flex; align-items: center; gap: 0.5rem; flex: 1; min-width: 220px; max-width: 360px; }
+    .toolbar-search input { flex: 1; padding: 0.5rem 0.85rem; border: 2px solid #e8e8e8; border-radius: 8px; font-size: 0.88rem; }
+    .toolbar-search input:focus { border-color: #8B1A1A; outline: none; }
+    .toolbar-btn { padding: 0.5rem 1rem; border: 2px solid #e8e8e8; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; background: white; color: #555; transition: all 0.15s; white-space: nowrap; }
+    .toolbar-btn:hover { border-color: #8B1A1A; color: #8B1A1A; }
+    .toolbar-btn.primary { background: #8B1A1A; border-color: #8B1A1A; color: white; }
+    .toolbar-btn.primary:hover { background: #6B1010; }
+    .toolbar-right { margin-left: auto; font-size: 0.82rem; color: #999; font-weight: 600; white-space: nowrap; }
+
+    /* ── Table ── */
+    .admin-content { padding: 0; }
+    .table-wrapper { overflow-x: auto; }
+    .admin-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; background: white; min-width: 800px; }
+    .admin-table th { background: #fafafa; border-bottom: 2px solid #e8e8e8; padding: 0.6rem 0.75rem; text-align: left; font-weight: 700; font-size: 0.78rem; color: #666; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; cursor: pointer; user-select: none; position: relative; }
+    .admin-table th:hover { background: #f0f0f0; color: #333; }
+    .admin-table th.sorted { color: #8B1A1A; }
+    .admin-table th .sort-icon { margin-left: 0.3rem; opacity: 0.5; font-size: 0.7rem; }
+    .admin-table th.sorted .sort-icon { opacity: 1; }
+    .admin-table td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #f4f4f4; vertical-align: middle; }
+    .admin-table tr:nth-child(even) td { background: #fafafa; }
+    .admin-table tr:hover td { background: #FEF9F0; }
+    .admin-table tr.row-expanded td { background: #FEF9F0; }
+
+    /* Row refs */
+    .ref-code { font-family: 'Courier New', monospace; font-weight: 800; font-size: 0.85rem; color: #333; letter-spacing: 0.5px; }
+
+    /* Status badge */
+    .status-badge { display: inline-block; padding: 0.18rem 0.55rem; border-radius: 20px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+    .status-badge.pending { background: #FEF3C7; color: #92400E; }
+    .status-badge.approved { background: #D1FAE5; color: #065F46; }
+    .status-badge.cancelled { background: #FEE2E2; color: #991B1B; }
+
+    /* Ticket & merch compact */
+    .item-chip { display: inline-block; background: #f0f0f0; border: 1px solid #e0e0e0; border-radius: 4px; padding: 0.1rem 0.4rem; font-size: 0.75rem; margin: 0.1rem; white-space: nowrap; }
+    .item-chip.merch { background: #eef2ff; border-color: #c7d2fe; }
+
+    /* Amount */
+    .amount { font-weight: 700; color: #8B1A1A; white-space: nowrap; }
+
+    /* Actions cell */
+    .actions-cell { display: flex; gap: 0.4rem; align-items: center; white-space: nowrap; }
+    .btn-sm { padding: 0.3rem 0.7rem; border: none; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+    .btn-approve-sm { background: #D1FAE5; color: #065F46; }
+    .btn-approve-sm:hover { background: #bbf7d0; }
+    .btn-cancel-sm { background: #FEE2E2; color: #991B1B; }
+    .btn-cancel-sm:hover { background: #fecaca; }
+    .action-done { padding: 0.3rem 0.7rem; border-radius: 6px; font-size: 0.78rem; font-weight: 600; }
+    .action-done.approved { background: #D1FAE5; color: #065F46; }
+    .action-done.cancelled { background: #FEE2E2; color: #991B1B; }
+
+    /* Expand toggle */
+    .expand-btn { background: none; border: 1px solid #ddd; border-radius: 4px; padding: 0.15rem 0.4rem; cursor: pointer; font-size: 0.75rem; color: #888; transition: all 0.15s; line-height: 1; }
+    .expand-btn:hover { background: #f0f0f0; color: #333; }
+    .expand-btn.expanded { background: #8B1A1A; border-color: #8B1A1A; color: white; }
+
+    /* Expanded detail row */
+    .detail-row td { background: #fffbf5 !important; border-bottom: 2px solid #f0dcc0; padding: 0.8rem 1rem; }
+    .detail-row:hover td { background: #fffbf5 !important; }
+    .detail-inner { display: flex; gap: 2rem; flex-wrap: wrap; }
+    .detail-section { min-width: 180px; }
+    .detail-section h4 { font-size: 0.72rem; text-transform: uppercase; color: #aaa; letter-spacing: 0.5px; margin-bottom: 0.4rem; }
+    .detail-section p { font-size: 0.85rem; color: #333; line-height: 1.5; }
+    .detail-section p strong { font-weight: 700; }
+    .detail-receipt-img { max-height: 120px; max-width: 200px; border-radius: 6px; border: 1px solid #eee; cursor: pointer; vertical-align: middle; }
+    .detail-empty { font-size: 0.82rem; color: #ccc; font-style: italic; }
+
+    /* Expand indicator on main row */
+    .admin-table tr.has-detail td:first-child::before { content: ''; }
+
+    /* Empty state */
+    .empty-state { text-align: center; padding: 3.5rem; color: #aaa; }
+    .empty-state .emoji { font-size: 3rem; margin-bottom: 1rem; }
+    .loading-row td { text-align: center; padding: 2rem; color: #aaa; }
+
+    /* Receipt modal */
+    .img-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; cursor: pointer; }
+    .img-modal.active { display: flex; }
+    .img-modal img { max-width: 90vw; max-height: 90vh; border-radius: 12px; }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .admin-header { flex-direction: column; gap: 0.75rem; align-items: flex-start; }
+      .admin-stats { gap: 1rem; }
+      .admin-table { font-size: 0.8rem; }
     }
   </style>
 </head>
 <body>
-  <!-- Login Screen -->
-  <div class="login-screen" id="loginScreen">
-    <div class="login-box">
-      <h1>🏠 Homecoming 2026</h1>
-      <p>Admin Panel | 管理系统</p>
-      <input type="text" id="username" placeholder="Username" value="admin">
-      <input type="password" id="password" placeholder="Password" value="homecoming2026">
-      <button onclick="doLogin()">登录 Login</button>
-      <div class="login-error" id="loginError">用户名或密码错误</div>
+<div class="login-page" id="loginPage">
+  <div class="login-box">
+    <h1>Homecoming 2026</h1>
+    <p>吉隆坡中华独立中学 · 校友回校日管理后台</p>
+    <div class="login-field">
+      <label>用户名 Username</label>
+      <input type="text" id="loginUser" placeholder="admin" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label>密码 Password</label>
+      <input type="password" id="loginPass" placeholder="" autocomplete="current-password">
+    </div>
+    <button class="btn-login" id="btnLogin" onclick="doLogin()">登录 Login</button>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-footer">
+      <a href="/">← 返回首页 Back to Home</a>
     </div>
   </div>
-  
-  <!-- Admin Layout -->
-  <div class="admin-layout" id="adminLayout">
-    <div class="topbar">
-      <h1>🏠 Homecoming 2026 Admin</h1>
-      <div class="topbar-right">
-        <span id="adminUser">admin</span>
-        <button class="logout-btn" onclick="doLogout()">登出 Logout</button>
+</div>
+
+<div class="admin-page" id="adminPage">
+  <div class="admin-header">
+    <h1>🏠 Homecoming 2026 管理后台</h1>
+    <div class="admin-header-right">
+      <div class="admin-stats" id="adminStats">
+        <div class="admin-stat"><div class="admin-stat-val" id="statTotal">—</div><div class="admin-stat-label">总计 Total</div></div>
+        <div class="admin-stat"><div class="admin-stat-val" id="statPending">—</div><div class="admin-stat-label">待审核 Pending</div></div>
+        <div class="admin-stat"><div class="admin-stat-val" id="statApproved">—</div><div class="admin-stat-label">已批准 Approved</div></div>
+        <div class="admin-stat"><div class="admin-stat-val" id="statRevenue">—</div><div class="admin-stat-label">收入 Revenue</div></div>
       </div>
-    </div>
-    
-    <!-- Stats -->
-    <div class="stats-bar" id="statsBar">
-      <div class="stat-card"><div class="stat-number" id="statPending">0</div><div class="stat-label">待确认 Pending</div></div>
-      <div class="stat-card"><div class="stat-number" id="statCompleted">0</div><div class="stat-label">已确认 Completed</div></div>
-      <div class="stat-card"><div class="stat-number" id="statCancelled">0</div><div class="stat-label">已取消 Cancelled</div></div>
-      <div class="stat-card"><div class="stat-number" id="statRevenue">RM 0</div><div class="stat-label">收入 Revenue</div></div>
-      <div class="stat-card"><div class="stat-number" id="statCheckedIn">0</div><div class="stat-label">已签到 Checked-in</div></div>
-    </div>
-    
-    <!-- Tabs -->
-    <div class="tabs">
-      <div class="tab active" onclick="showTab('registrations')">📋 报名 Registrations</div>
-      <div class="tab" onclick="showTab('tables')">🪑 桌位 Tables</div>
-      <div class="tab" onclick="showTab('students')">👥 学生 Students</div>
-    </div>
-    
-    <!-- Registrations Tab -->
-    <div class="tab-content active" id="tabRegistrations">
-      <div class="regs-header">
-        <div class="regs-filter">
-          <button class="filter-btn active" onclick="filterRegs('all')">全部 All</button>
-          <button class="filter-btn" onclick="filterRegs('pending')">待确认 Pending</button>
-          <button class="filter-btn" onclick="filterRegs('completed')">已确认 Completed</button>
-          <button class="filter-btn" onclick="filterRegs('cancelled')">已取消 Cancelled</button>
-        </div>
-        <button class="action-btn btn-view" onclick="exportCSV()" style="background:#666;color:white;">📥 Export CSV</button>
-      </div>
-      <div class="regs-table">
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>学号 Student ID</th>
-              <th>姓名 Name</th>
-              <th>票种 Ticket</th>
-              <th>位数 Seats</th>
-              <th>金额 Amount</th>
-              <th>状态 Status</th>
-              <th>操作 Actions</th>
-            </tr>
-          </thead>
-          <tbody id="regsBody"></tbody>
-        </table>
-      </div>
-    </div>
-    
-    <!-- Tables Tab -->
-    <div class="tab-content" id="tabTables">
-      <div class="tables-grid" id="tablesGrid"></div>
-    </div>
-    
-    <!-- Students Tab -->
-    <div class="tab-content" id="tabStudents">
-      <div class="import-box">
-        <h3>📥 导入学生数据 Import Student Data</h3>
-        <p style="font-size:0.85rem;color:#666;margin-bottom:0.5rem;">格式: 学号,中文姓名 (每行一组)<br>Format: StudentID,ChineseName (one per line)</p>
-        <textarea id="studentImportData" placeholder="例:&#10;01001,张伟&#10;01002,李明"></textarea>
-        <button onclick="importStudents()">导入 Import</button>
-        <span id="importStatus" style="margin-left:1rem;font-size:0.85rem;"></span>
-      </div>
-      <div id="studentsList"></div>
-    </div>
-  </div>
-  
-  <!-- Table Detail Modal -->
-  <div class="modal-overlay" id="tableModal">
-    <div class="modal">
-      <button class="modal-close" onclick="closeTableModal()">×</button>
-      <h2 id="modalTableTitle">Table 1</h2>
-      <div id="modalTableInfo" style="color:#666;font-size:0.9rem;margin-bottom:1rem;"></div>
-      <div class="seat-list" id="modalSeatList"></div>
+      <button class="btn-logout" onclick="doLogout()">登出 Logout</button>
     </div>
   </div>
 
-  <script>
-    const API = '/api';
-    let currentFilter = 'all';
-    let allRegistrations = [];
-    let allTables = [];
+  <div class="admin-tabs" id="adminTabs">
+    <div class="admin-tab active" data-tab="all" onclick="switchTab('all')">全部 All <span class="tab-count" id="countAll">0</span></div>
+    <div class="admin-tab" data-tab="pending" onclick="switchTab('pending')">待审核 Pending <span class="tab-count" id="countPending">0</span></div>
+    <div class="admin-tab" data-tab="approved" onclick="switchTab('approved')">已批准 Approved <span class="tab-count" id="countApproved">0</span></div>
+    <div class="admin-tab" data-tab="cancelled" onclick="switchTab('cancelled')">已取消 Cancelled <span class="tab-count" id="countCancelled">0</span></div>
+  </div>
 
-    // ====== AUTH ======
-    async function doLogin() {
-      const u = document.getElementById('username').value;
-      const p = document.getElementById('password').value;
-      const res = await fetch(`${API}/admin/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: u, password: p })
-      });
-      const data = await res.json();
-      if (data.success) {
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('adminLayout').classList.add('active');
-        loadAll();
-      } else {
-        document.getElementById('loginError').style.display = 'block';
-      }
-    }
+  <div class="admin-toolbar">
+    <div class="toolbar-search">
+      <span style="color:#999;font-size:0.9rem;">🔍</span>
+      <input type="text" id="searchInput" placeholder="搜索姓名 / 学号 / Ref..." oninput="applyFilters()">
+    </div>
+    <button class="toolbar-btn primary" onclick="exportCSV()">📥 导出 CSV</button>
+    <div class="toolbar-right" id="regCount">— 条记录</div>
+  </div>
 
-    async function doLogout() {
-      await fetch(`${API}/admin/logout`, { method: 'POST' });
-      location.reload();
-    }
+  <div class="admin-content">
+    <div class="table-wrapper">
+      <table class="admin-table" id="adminTable">
+        <thead>
+          <tr>
+            <th style="width:40px;"></th>
+            <th data-sort="ref_code" onclick="sortBy('ref_code')">Ref <span class="sort-icon">↕</span></th>
+            <th data-sort="name" onclick="sortBy('name')">姓名 Name <span class="sort-icon">↕</span></th>
+            <th data-sort="student_id" onclick="sortBy('student_id')">学号 Student ID <span class="sort-icon">↕</span></th>
+            <th data-sort="mobile" onclick="sortBy('mobile')">手机 Mobile <span class="sort-icon">↕</span></th>
+            <th data-sort="intake_year" onclick="sortBy('intake_year')">年份 Year <span class="sort-icon">↕</span></th>
+            <th onclick="return false;" style="cursor:default;">票务 Tickets</th>
+            <th onclick="return false;" style="cursor:default;">周边 Merch</th>
+            <th data-sort="total_seats" onclick="sortBy('total_seats')">💺 Seats <span class="sort-icon">↕</span></th>
+            <th data-sort="total_amount" onclick="sortBy('total_amount')">总额 Amount <span class="sort-icon">↕</span></th>
+            <th data-sort="status" onclick="sortBy('status')">状态 Status <span class="sort-icon">↕</span></th>
+            <th data-sort="created_at" onclick="sortBy('created_at')">登记日期 Date <span class="sort-icon">↕</span></th>
+            <th onclick="return false;" style="cursor:default;">操作 Actions</th>
+          </tr>
+        </thead>
+        <tbody id="regTableBody">
+          <tr class="loading-row"><td colspan="13">加载中... Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
-    // ====== LOAD DATA ======
-    async function loadAll() {
-      await Promise.all([loadStats(), loadRegistrations(), loadTables(), loadStudents()]);
-    }
+<div class="img-modal" id="imgModal" onclick="this.classList.remove('active')">
+  <img id="imgModalContent" src="" alt="Receipt">
+</div>
 
-    async function loadStats() {
-      const res = await fetch(`${API}/admin/stats`);
-      const data = await res.json();
-      if (data.success) {
-        document.getElementById('statPending').textContent = data.stats.pending_count;
-        document.getElementById('statCompleted').textContent = data.stats.completed_count;
-        document.getElementById('statCancelled').textContent = data.stats.cancelled_count;
-        document.getElementById('statRevenue').textContent = `RM ${data.stats.total_revenue || 0}`;
-        document.getElementById('statCheckedIn').textContent = `${data.stats.checked_in || 0}/${data.stats.total_seats || 0}`;
-      }
-    }
-
-    async function loadRegistrations() {
-      const res = await fetch(`${API}/admin/registrations`);
-      const data = await res.json();
-      allRegistrations = data.registrations || [];
-      renderRegistrations();
-    }
-
-    async function loadTables() {
-      const res = await fetch(`${API}/admin/tables`);
-      const data = await res.json();
-      allTables = data.tables || [];
-      renderTables();
-    }
-
-    async function loadStudents() {
-      const res = await fetch(`${API}/student/list`);
-      // This endpoint may not exist, handle gracefully
-    }
-
-    // ====== RENDER ======
-    function renderRegistrations() {
-      const filtered = currentFilter === 'all' 
-        ? allRegistrations 
-        : allRegistrations.filter(r => r.status === currentFilter);
-      
-      document.getElementById('regsBody').innerHTML = filtered.map(r => `
-        <tr>
-          <td>${r.id}</td>
-          <td><strong>${r.student_id || '-'}</strong></td>
-          <td>${r.name}</td>
-          <td>${r.ticket_type}</td>
-          <td>${r.attendees}</td>
-          <td>RM ${r.amount_paid}</td>
-          <td><span class="status-badge status-${r.status}">${r.status}</span></td>
-          <td>
-            ${r.status === 'pending' ? `<button class="action-btn btn-confirm" onclick="updateStatus(${r.id}, 'completed')">✅ 确认</button>` : ''}
-            ${r.status === 'pending' ? `<button class="action-btn btn-cancel" onclick="updateStatus(${r.id}, 'cancelled')">❌ 取消</button>` : ''}
-            <button class="action-btn btn-view" onclick="viewReg(${r.id})">👁</button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    function renderTables() {
-      document.getElementById('tablesGrid').innerHTML = allTables.map(t => {
-        const cls = t.booked_seats >= t.capacity ? 'booked' : t.booked_seats > 0 ? 'partial' : '';
-        const info = t.seat_info ? t.seat_info.split(',').map(s => {
-          const [sid, cnt] = s.split(':');
-          return `${sid} (${cnt})`;
-        }).join(', ') : '';
-        return `
-          <div class="table-card ${cls}" onclick="viewTable(${t.table_number})">
-            <div class="table-number">${t.table_number}</div>
-            <div class="table-seats">${t.booked_seats || 0}/${t.capacity} 位</div>
-            ${info ? `<div class="table-info">${info}</div>` : ''}
-          </div>
-        `;
-      }).join('');
-    }
-
-    // ====== ACTIONS ======
-    async function updateStatus(id, status) {
-      if (!confirm(`确定${status === 'completed' ? '确认' : '取消'}这个报名？`)) return;
-      await fetch(`${API}/admin/registration/${id}/status`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
-      });
-      loadAll();
-    }
-
-    async function viewReg(id) {
-      const r = allRegistrations.find(x => x.id === id);
-      if (!r) return;
-      const seatsRes = await fetch(`${API}/registration/${id}`);
-      const seatsData = await seatsRes.json();
-      alert(`ID: ${r.id}\n学号: ${r.student_id}\n姓名: ${r.name}\n票种: ${r.ticket_type}\n位数: ${r.attendees}\n金额: RM ${r.amount_paid}\n状态: ${r.status}\n日期: ${r.created_at}`);
-    }
-
-    async function viewTable(num) {
-      const res = await fetch(`${API}/admin/table/${num}`);
-      const data = await res.json();
-      if (!data.success) return;
-      
-      const t = data.table;
-      const seats = data.seats || [];
-      
-      document.getElementById('modalTableTitle').textContent = `🪑 第 ${num} 桌`;
-      document.getElementById('modalTableInfo').textContent = `已预订 ${seats.length}/${t.capacity} 位`;
-      
-      // Group by student
-      const byStudent = {};
-      seats.forEach(s => {
-        if (!byStudent[s.student_id]) byStudent[s.student_id] = [];
-        byStudent[s.student_id].push(s);
-      });
-      
-      document.getElementById('modalSeatList').innerHTML = Object.entries(byStudent).map(([sid, ss]) => 
-        `<div class="seat-chip${ss[0].checked_in ? ' checked' : ''}">${sid}<br><small>${ss.length}位</small></div>`
-      ).join('');
-      
-      document.getElementById('tableModal').classList.add('active');
-    }
-
-    function closeTableModal() {
-      document.getElementById('tableModal').classList.remove('active');
-    }
-
-    function filterRegs(filter) {
-      currentFilter = filter;
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      event.target.classList.add('active');
-      renderRegistrations();
-    }
-
-    async function exportCSV() {
-      window.open(`${API}/admin/export`, '_blank');
-    }
-
-    async function importStudents() {
-      const text = document.getElementById('studentImportData').value;
-      const lines = text.trim().split('\n');
-      const students = lines.map(line => {
-        const parts = line.split(',');
-        return { studentId: parts[0]?.trim(), chineseName: parts[1]?.trim() };
-      }).filter(s => s.studentId && s.chineseName);
-      
-      const res = await fetch(`${API}/admin/students/bulk`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ students })
-      });
-      const data = await res.json();
-      document.getElementById('importStatus').textContent = 
-        data.success ? `✅ 已导入 ${data.inserted} 条` : `❌ 导入失败`;
-    }
-
-    // ====== TABS ======
-    function showTab(tab) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      event.target.classList.add('active');
-      document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.add('active');
-    }
-
-    // Check auth status on load
-    fetch(`${API}/admin/status`).then(r => r.json()).then(data => {
-      if (data.isAdmin) {
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('adminLayout').classList.add('active');
-        loadAll();
-      }
-    });
-  </script>
+<script src="/js/admin.js"></script>
 </body>
 </html>
