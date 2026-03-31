@@ -7,7 +7,9 @@ const database = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const { queries } = database;
+
+// Lazy query accessor — queries are only accessed after init() completes
+const q = () => database.getQueries();
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(express.json());
@@ -46,7 +48,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
 
 // ─── API: Student lookup ──────────────────────────────────────────────────────
 app.get('/api/student/:id', (req, res) => {
-  const student = queries.getStudent(req.params.id);
+  const student = q().getStudent(req.params.id);
   if (!student) return res.status(404).json({ success: false, message: 'Student ID not found' });
   res.json({ success: true, student });
 });
@@ -54,8 +56,8 @@ app.get('/api/student/:id', (req, res) => {
 // ─── API: Ticket & merch config ───────────────────────────────────────────────
 app.get('/api/config', (req, res) => {
   res.json({
-    tickets: queries.TICKET_CONFIG,
-    merchandise: queries.MERCH_CONFIG
+    tickets: q().TICKET_CONFIG,
+    merchandise: q().MERCH_CONFIG
   });
 });
 
@@ -70,14 +72,14 @@ app.post('/api/register', (req, res) => {
 
     // Validate student ID if provided
     if (studentId) {
-      const student = queries.getStudent(studentId);
+      const student = q().getStudent(studentId);
       if (!student) return res.status(404).json({ success: false, message: 'Student ID not found in database' });
       if (student.chinese_name !== name) {
         return res.status(400).json({ success: false, message: 'Name does not match student ID' });
       }
     }
 
-    const reg = queries.createRegistration({ studentId, name, mobile, email, intakeYear, tickets, merchandise });
+    const reg = q().createRegistration({ studentId, name, mobile, email, intakeYear, tickets, merchandise });
     res.json({ success: true, registration: reg });
   } catch (err) {
     console.error('Register error:', err);
@@ -87,7 +89,7 @@ app.post('/api/register', (req, res) => {
 
 // ─── API: Get registration by ID ───────────────────────────────────────────────
 app.get('/api/registration/:id', (req, res) => {
-  const reg = queries.getRegistration(parseInt(req.params.id));
+  const reg = q().getRegistration(parseInt(req.params.id));
   if (!reg) return res.status(404).json({ success: false, message: 'Registration not found' });
   res.json({ success: true, registration: reg });
 });
@@ -104,7 +106,7 @@ app.post('/api/upload-receipt', upload.single('receipt'), (req, res) => {
     fs.renameSync(req.file.path, savedPath);
     const url = `/uploads/receipts/${safeName}`;
 
-    queries.uploadReceipt(regId, url, req.file.originalname, req.file.size);
+    q().uploadReceipt(regId, url, req.file.originalname, req.file.size);
 
     res.json({ success: true, url, filename: safeName });
   } catch (err) {
@@ -141,38 +143,38 @@ function requireAdmin(req, res, next) {
 app.get('/api/admin/registrations', requireAdmin, (req, res) => {
   const status = req.query.status;
   let regs;
-  if (status) regs = queries.getRegsByStatus(status);
-  else regs = queries.getAllRegistrations();
+  if (status) regs = q().getRegsByStatus(status);
+  else regs = q().getAllRegistrations();
   res.json({ success: true, registrations: regs });
 });
 
 app.get('/api/admin/pending', requireAdmin, (req, res) => {
-  res.json({ success: true, registrations: queries.getPendingRegistrations() });
+  res.json({ success: true, registrations: q().getPendingRegistrations() });
 });
 
 app.get('/api/admin/stats', requireAdmin, (req, res) => {
-  res.json({ success: true, stats: queries.getStats() });
+  res.json({ success: true, stats: q().getStats() });
 });
 
 app.get('/api/admin/registration/:id', requireAdmin, (req, res) => {
-  const reg = queries.getRegistration(parseInt(req.params.id));
+  const reg = q().getRegistration(parseInt(req.params.id));
   if (!reg) return res.status(404).json({ success: false, message: 'Not found' });
   res.json({ success: true, registration: reg });
 });
 
 app.post('/api/admin/registration/:id/approve', requireAdmin, (req, res) => {
   const id = parseInt(req.params.id);
-  const reg = queries.getRegistration(id);
+  const reg = q().getRegistration(id);
   if (!reg) return res.status(404).json({ success: false, message: 'Not found' });
-  queries.updateStatus(id, 'approved');
+  q().updateStatus(id, 'approved');
   res.json({ success: true });
 });
 
 app.post('/api/admin/registration/:id/cancel', requireAdmin, (req, res) => {
   const id = parseInt(req.params.id);
-  const reg = queries.getRegistration(id);
+  const reg = q().getRegistration(id);
   if (!reg) return res.status(404).json({ success: false, message: 'Not found' });
-  queries.updateStatus(id, 'cancelled');
+  q().updateStatus(id, 'cancelled');
   res.json({ success: true });
 });
 

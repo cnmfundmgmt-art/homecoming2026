@@ -18,11 +18,34 @@ const MERCH_CONFIG = {
   tumbler:  { price: 50, label: '保温瓶 Tumbler', sizes: null }
 };
 
+// ─── Init & export ────────────────────────────────────────────────────────────
+let _queries = null;
+let _isTurso = false;
+
+async function init() {
+  if (TURSO_URL && TURSO_TOKEN) {
+    console.log(`☁️  Turso cloud: ${TURSO_URL}`);
+    _queries = buildTursoQueries(TURSO_URL, TURSO_TOKEN);
+    _isTurso = true;
+  } else {
+    console.log('💾 Local SQLite database');
+    const db = initLocal();
+    _queries = buildLocalQueries(db);
+    _isTurso = false;
+  }
+}
+
+function getQueries() {
+  if (!_queries) throw new Error('database.init() must be called first');
+  return _queries;
+}
+
+function isTurso() { return _isTurso; }
+
 // ─── Local SQLite setup ───────────────────────────────────────────────────────
-let db;
 function initLocal() {
   const dbPath = path.join(__dirname, 'homecoming.db');
-  db = new Database(dbPath);
+  const db = new Database(dbPath);
   db.pragma('journal_mode = WAL');
   db.exec(`
     CREATE TABLE IF NOT EXISTS students (
@@ -79,7 +102,7 @@ function initLocal() {
   return db;
 }
 
-// ─── Query API (local sync — for server.js) ───────────────────────────────────
+// ─── Query API (local sync) ──────────────────────────────────────────────────
 function buildLocalQueries(db) {
   const stmts = {
     getStudent:        db.prepare(`SELECT * FROM students WHERE student_id = ?`),
@@ -158,8 +181,7 @@ function buildLocalQueries(db) {
     getAllRegistrations:     () => stmts.getAllRegs.all().map(enrich),
     getPendingRegistrations: () => stmts.getPendingRegs.all().map(enrich),
     getApprovedRegistrations: () => {
-      const approved = stmts.getApprovedRegs.all();
-      return approved.map(r => {
+      return stmts.getApprovedRegs.all().map(r => {
         const tickets = stmts.getTicketsByReg.all(r.id);
         const merch = stmts.getMerchByReg.all(r.id);
         return { ...r, tickets, merchandise: merch };
@@ -178,21 +200,22 @@ function buildLocalQueries(db) {
   };
 }
 
-// ─── Turso async wrapper ─────────────────────────────────────────────────────
-function buildTursoQueries(turso) {
+// ─── Turso async queries ─────────────────────────────────────────────────────
+function buildTursoQueries(url, token) {
+  const { createClient } = require('@libsql/client');
+  const turso = createClient({ url, authToken: token });
+
   const tGetAll = (sql, args = []) => turso.execute({ sql, args }).then(r => r.rows);
   const tGetOne = (sql, args = []) => tGetAll(sql, args).then(rows => rows[0] || null);
   const tRun = (sql, args = []) => turso.execute({ sql, args }).then(r => ({ lastInsertRowid: r.lastInsertRowid, changes: r.changes }));
 
   let _refCounter = null;
-  function nextRef() {
+  async function nextRef() {
     if (_refCounter === null) {
-      return tGetOne(`SELECT ref_code FROM registrations ORDER BY id DESC LIMIT 1`).then(row => {
-        _refCounter = row ? parseInt(row.ref_code.replace('HOME', ''), 10) : 0;
-        return 'HOME' + String(++_refCounter).padStart(4, '0');
-      });
+      const row = await tGetOne(`SELECT ref_code FROM registrations ORDER BY id DESC LIMIT 1`);
+      _refCounter = row ? parseInt(row.ref_code.replace('HOME', ''), 10) : 0;
     }
-    return Promise.resolve('HOME' + String(++_refCounter).padStart(4, '0'));
+    return 'HOME' + String(++_refCounter).padStart(4, '0');
   }
 
   async function enrich(r) {
@@ -237,9 +260,18 @@ function buildTursoQueries(turso) {
       return { id: regId, ref_code: refCode, name, mobile, email, tickets: ticketRows, merchandise: merchRows, total_amount: total, status: 'pending', created_at: new Date().toISOString() };
     },
 
-    getRegistration:      (id)  => tGetOne(`SELECT * FROM registrations WHERE id = ?`, [id]).then(r => r ? enrich(r) : null),
-    getRegistrationByRef: (ref) => tGetOne(`SELECT * FROM registrations WHERE ref_code = ?`, [ref]).then(r => r ? enrich(r) : null),
-    getRegistrationByStudent: (sid) => tGetOne(`SELECT * FROM registrations WHERE student_id = ? ORDER BY id DESC LIMIT 1`, [sid]).then(r => r ? enrich(r) : null),
+    async getRegistration(id) {
+      const r = await tGetOne(`SELECT * FROM registrations WHERE id = ?`, [id]);
+      return r ? enrich(r) : null;
+    },
+    async getRegistrationByRef(ref) {
+      const r = await tGetOne(`SELECT * FROM registrations WHERE ref_code = ?`, [ref]);
+      return r ? enrich(r) : null;
+    },
+    async getRegistrationByStudent(sid) {
+      const r = await tGetOne(`SELECT * FROM registrations WHERE student_id = ? ORDER BY id DESC LIMIT 1`, [sid]);
+      return r ? enrich(r) : null;
+    },
 
     updateStatus:         (id, status) => tRun(`UPDATE registrations SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [status, id]),
     uploadReceipt:        (id, fp, fn, fs) => Promise.all([
@@ -247,9 +279,18 @@ function buildTursoQueries(turso) {
       tRun(`INSERT INTO receipts (registration_id, file_path, file_name, file_size) VALUES (?, ?, ?, ?)`, [id, fp, fn, fs])
     ]).then(() => ({ lastInsertRowid: id })),
 
-    getAllRegistrations:     () => tGetAll(`SELECT * FROM registrations ORDER BY created_at DESC`).then(rs => Promise.all(rs.map(enrich))),
-    getPendingRegistrations: () => tGetAll(`SELECT * FROM registrations WHERE status = 'pending' ORDER BY created_at DESC`).then(rs => Promise.all(rs.map(enrich))),
-    getApprovedRegistrations: () => tGetAll(`SELECT * FROM registrations WHERE status = 'approved' ORDER BY updated_at DESC`).then(rs => Promise.all(rs.map(enrich))),
+    async getAllRegistrations() {
+      const regs = await tGetAll(`SELECT * FROM registrations ORDER BY created_at DESC`);
+      return Promise.all(regs.map(enrich));
+    },
+    async getPendingRegistrations() {
+      const regs = await tGetAll(`SELECT * FROM registrations WHERE status = 'pending' ORDER BY created_at DESC`);
+      return Promise.all(regs.map(enrich));
+    },
+    async getApprovedRegistrations() {
+      const regs = await tGetAll(`SELECT * FROM registrations WHERE status = 'approved' ORDER BY updated_at DESC`);
+      return Promise.all(regs.map(enrich));
+    },
 
     async getStats() {
       const s = await tGetOne(`SELECT COUNT(*) as total, COUNT(*) FILTER(WHERE status='pending') as pending, COUNT(*) FILTER(WHERE status='approved') as approved, COUNT(*) FILTER(WHERE status='cancelled') as cancelled, COALESCE(SUM(total_amount) FILTER(WHERE status='approved'),0) as revenue FROM registrations`);
@@ -260,57 +301,4 @@ function buildTursoQueries(turso) {
   };
 }
 
-// ─── Init & export ────────────────────────────────────────────────────────────
-let _queries;
-let _isTurso = false;
-
-async function initAsync() {
-  if (TURSO_URL && TURSO_TOKEN) {
-    console.log(`☁️  Turso cloud: ${TURSO_URL}`);
-    const { createClient } = require('@libsql/client');
-    const turso = createClient({ url: TURSO_URL, authToken: TURSO_TOKEN });
-    // Create schema on Turso
-    await turso.executeMultiple(`
-      CREATE TABLE IF NOT EXISTS students (student_id TEXT PRIMARY KEY, chinese_name TEXT NOT NULL);
-      CREATE TABLE IF NOT EXISTS registrations (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, ref_code TEXT UNIQUE NOT NULL, student_id TEXT, name TEXT NOT NULL,
-        mobile TEXT, email TEXT, intake_year TEXT, status TEXT DEFAULT 'pending' CHECK(status IN ('pending','approved','cancelled')),
-        total_amount REAL DEFAULT 0, receipt_path TEXT, receipt_uploaded_at DATETIME, checked_in_at DATETIME, notes TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-      CREATE TABLE IF NOT EXISTS tickets (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, registration_id INTEGER NOT NULL, ticket_type TEXT NOT NULL CHECK(ticket_type IN ('single','family','table')),
-        quantity INTEGER DEFAULT 1, unit_price REAL NOT NULL, seats INTEGER NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (registration_id) REFERENCES registrations(id)
-      );
-      CREATE TABLE IF NOT EXISTS merchandise (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, registration_id INTEGER NOT NULL, item_type TEXT NOT NULL,
-        size TEXT, quantity INTEGER DEFAULT 1, unit_price REAL NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (registration_id) REFERENCES registrations(id)
-      );
-      CREATE TABLE IF NOT EXISTS receipts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, registration_id INTEGER NOT NULL UNIQUE, file_path TEXT NOT NULL,
-        file_name TEXT, file_size INTEGER, uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (registration_id) REFERENCES registrations(id)
-      );
-    `);
-    _queries = buildTursoQueries(turso);
-    _isTurso = true;
-  } else {
-    console.log('💾 Local SQLite database');
-    const localDb = initLocal();
-    _queries = buildLocalQueries(localDb);
-    _isTurso = false;
-  }
-}
-
-// Synchronous queries object used by server.js
-// After initAsync() resolves, _queries is populated
-const queries = new Proxy({}, {
-  get(_, prop) {
-    if (!_queries) throw new Error('database.initAsync() must be called before using queries');
-    return _queries[prop];
-  }
-});
-
-module.exports = { init: initAsync, queries, isTurso: () => _isTurso };
+module.exports = { init, getQueries, isTurso };
