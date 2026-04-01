@@ -59,6 +59,8 @@ async function initTursoSchema(url, token) {
     `ALTER TABLE tickets ADD COLUMN seats INTEGER NOT NULL DEFAULT 1`,
     `ALTER TABLE tickets ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP`,
     `ALTER TABLE merchandise ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP`,
+    `ALTER TABLE receipts ADD COLUMN file_name TEXT`,
+    `ALTER TABLE receipts ADD COLUMN file_size INTEGER`,
     `ALTER TABLE receipts ADD COLUMN uploaded_at DATETIME`,
   ];
   for (const sql of migrations) {
