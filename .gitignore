@@ -3,3 +3,7 @@ node_modules/
 *.db-journal
 .env
 .DS_Store
+public/uploads/
+*.py
+.server.pid
+.version
