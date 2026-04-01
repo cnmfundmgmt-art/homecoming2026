@@ -140,42 +140,56 @@ function requireAdmin(req, res, next) {
 }
 
 // ─── Admin: Registrations ─────────────────────────────────────────────────────
-app.get('/api/admin/registrations', requireAdmin, (req, res) => {
-  const status = req.query.status;
-  let regs;
-  if (status) regs = q().getRegsByStatus(status);
-  else regs = q().getAllRegistrations();
-  res.json({ success: true, registrations: regs });
+app.get('/api/admin/registrations', requireAdmin, async (req, res) => {
+  try {
+    const status = req.query.status;
+    let regs;
+    if (status) regs = await q().getRegsByStatus(status);
+    else regs = await q().getAllRegistrations();
+    res.json({ success: true, registrations: regs });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-app.get('/api/admin/pending', requireAdmin, (req, res) => {
-  res.json({ success: true, registrations: q().getPendingRegistrations() });
+app.get('/api/admin/pending', requireAdmin, async (req, res) => {
+  try {
+    const regs = await q().getPendingRegistrations();
+    res.json({ success: true, registrations: regs });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-app.get('/api/admin/stats', requireAdmin, (req, res) => {
-  res.json({ success: true, stats: q().getStats() });
+app.get('/api/admin/stats', requireAdmin, async (req, res) => {
+  try {
+    const stats = await q().getStats();
+    res.json({ success: true, stats });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-app.get('/api/admin/registration/:id', requireAdmin, (req, res) => {
-  const reg = q().getRegistration(parseInt(req.params.id));
-  if (!reg) return res.status(404).json({ success: false, message: 'Not found' });
-  res.json({ success: true, registration: reg });
+app.get('/api/admin/registration/:id', requireAdmin, async (req, res) => {
+  try {
+    const reg = await q().getRegistration(parseInt(req.params.id));
+    if (!reg) return res.status(404).json({ success: false, message: 'Not found' });
+    res.json({ success: true, registration: reg });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-app.post('/api/admin/registration/:id/approve', requireAdmin, (req, res) => {
-  const id = parseInt(req.params.id);
-  const reg = q().getRegistration(id);
-  if (!reg) return res.status(404).json({ success: false, message: 'Not found' });
-  q().updateStatus(id, 'approved');
-  res.json({ success: true });
+app.post('/api/admin/registration/:id/approve', requireAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const reg = await q().getRegistration(id);
+    if (!reg) return res.status(404).json({ success: false, message: 'Not found' });
+    await q().updateStatus(id, 'approved');
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-app.post('/api/admin/registration/:id/cancel', requireAdmin, (req, res) => {
-  const id = parseInt(req.params.id);
-  const reg = q().getRegistration(id);
-  if (!reg) return res.status(404).json({ success: false, message: 'Not found' });
-  q().updateStatus(id, 'cancelled');
-  res.json({ success: true });
+app.post('/api/admin/registration/:id/cancel', requireAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const reg = await q().getRegistration(id);
+    if (!reg) return res.status(404).json({ success: false, message: 'Not found' });
+    await q().updateStatus(id, 'cancelled');
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
 // ─── Check-in ─────────────────────────────────────────────────────────────────

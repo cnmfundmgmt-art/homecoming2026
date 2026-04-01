@@ -117,6 +117,7 @@ function buildLocalQueries(db) {
     getAllRegs:        db.prepare(`SELECT * FROM registrations ORDER BY created_at DESC`),
     getPendingRegs:    db.prepare(`SELECT * FROM registrations WHERE status = 'pending' ORDER BY created_at DESC`),
     getApprovedRegs:   db.prepare(`SELECT * FROM registrations WHERE status = 'approved' ORDER BY updated_at DESC`),
+    getRegsByStatus:   db.prepare(`SELECT * FROM registrations WHERE status = ? ORDER BY created_at DESC`),
     getStats:          db.prepare(`SELECT COUNT(*) as total, COUNT(*) FILTER(WHERE status='pending') as pending, COUNT(*) FILTER(WHERE status='approved') as approved, COUNT(*) FILTER(WHERE status='cancelled') as cancelled, COALESCE(SUM(total_amount) FILTER(WHERE status='approved'),0) as revenue FROM registrations`),
     insertTicket:      db.prepare(`INSERT INTO tickets (registration_id, ticket_type, quantity, unit_price, seats) VALUES (?, ?, ?, ?, ?)`),
     getTicketsByReg:   db.prepare(`SELECT * FROM tickets WHERE registration_id = ?`),
@@ -187,6 +188,7 @@ function buildLocalQueries(db) {
         return { ...r, tickets, merchandise: merch };
       });
     },
+    getRegsByStatus: (status) => stmts.getRegsByStatus.all(status).map(enrich),
 
     getStats: () => {
       const s = stmts.getStats.get();
@@ -285,6 +287,10 @@ function buildTursoQueries(url, token) {
     },
     async getPendingRegistrations() {
       const regs = await tGetAll(`SELECT * FROM registrations WHERE status = 'pending' ORDER BY created_at DESC`);
+      return Promise.all(regs.map(enrich));
+    },
+    async getRegsByStatus(status) {
+      const regs = await tGetAll(`SELECT * FROM registrations WHERE status = ? ORDER BY created_at DESC`, [status]);
       return Promise.all(regs.map(enrich));
     },
     async getApprovedRegistrations() {
