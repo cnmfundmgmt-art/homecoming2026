@@ -264,15 +264,15 @@ function buildTursoQueries(url, token) {
 
     async getRegistration(id) {
       const r = await tGetOne(`SELECT * FROM registrations WHERE id = ?`, [id]);
-      return r ? enrich(r) : null;
+      return r ? await enrich(r) : null;
     },
     async getRegistrationByRef(ref) {
       const r = await tGetOne(`SELECT * FROM registrations WHERE ref_code = ?`, [ref]);
-      return r ? enrich(r) : null;
+      return r ? await enrich(r) : null;
     },
     async getRegistrationByStudent(sid) {
       const r = await tGetOne(`SELECT * FROM registrations WHERE student_id = ? ORDER BY id DESC LIMIT 1`, [sid]);
-      return r ? enrich(r) : null;
+      return r ? await enrich(r) : null;
     },
 
     updateStatus:         async (id, status) => tRun(`UPDATE registrations SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [status, id]),
