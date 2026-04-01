@@ -113,6 +113,10 @@ app.post('/api/upload-receipt', upload.single('receipt'), async (req, res) => {
     if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
     if (isNaN(regId)) return res.status(400).json({ success: false, message: 'Invalid registrationId' });
 
+    // Ensure file size is a finite number (Turso rejects NaN/Infinity)
+    const fileSize = Number(req.file.size);
+    const safeFileSize = Number.isFinite(fileSize) ? fileSize : 0;
+
     let url;
     if (cloudinary) {
       // Upload to Cloudinary
@@ -122,7 +126,10 @@ app.post('/api/upload-receipt', upload.single('receipt'), async (req, res) => {
         resource_type: 'auto',
       });
       url = result.secure_url;
-      console.log(`[UploadReceipt] Cloudinary: ${url}`);
+      // Use Cloudinary's bytes as the authoritative file size
+      const cloudinaryBytes = Number(result.bytes);
+      console.log(`[UploadReceipt] Cloudinary: ${url}, bytes=${cloudinaryBytes}`);
+      await q().uploadReceipt(regId, url, req.file.originalname, Number.isFinite(cloudinaryBytes) ? cloudinaryBytes : safeFileSize);
     } else {
       // Fallback: local disk
       const ext = path.extname(req.file.originalname).toLowerCase() || '.jpg';
@@ -130,10 +137,10 @@ app.post('/api/upload-receipt', upload.single('receipt'), async (req, res) => {
       const savedPath = path.join(receiptDir, safeName);
       fs.renameSync(req.file.path, savedPath);
       url = `/uploads/receipts/${safeName}`;
-      console.log(`[UploadReceipt] Local: ${url}`);
+      console.log(`[UploadReceipt] Local: ${url}, size=${safeFileSize}`);
+      await q().uploadReceipt(regId, url, req.file.originalname, safeFileSize);
     }
 
-    await q().uploadReceipt(regId, url, req.file.originalname, req.file.size);
     console.log(`[UploadReceipt] done`);
 
     res.json({ success: true, url, filename: url.split('/').pop() });
