@@ -47,6 +47,20 @@ async function initTursoSchema(url, token) {
     `CREATE TABLE IF NOT EXISTS receipts (id INTEGER PRIMARY KEY AUTOINCREMENT, registration_id INTEGER NOT NULL UNIQUE, file_path TEXT NOT NULL, file_name TEXT, file_size INTEGER, uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (registration_id) REFERENCES registrations(id))`,
   ];
   for (const sql of stmts) { await turso.execute({ sql }); }
+
+  // Migration: add missing columns to existing tables (ALTER TABLE IF NOT EXISTS isn't standard SQL, so use try/catch)
+  const migrations = [
+    `ALTER TABLE registrations ADD COLUMN receipt_uploaded_at DATETIME`,
+    `ALTER TABLE registrations ADD COLUMN checked_in_at DATETIME`,
+    `ALTER TABLE registrations ADD COLUMN notes TEXT`,
+    `ALTER TABLE registrations ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP`,
+    `ALTER TABLE tickets ADD COLUMN seats INTEGER NOT NULL DEFAULT 1`,
+    `ALTER TABLE tickets ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP`,
+    `ALTER TABLE merchandise ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP`,
+  ];
+  for (const sql of migrations) {
+    try { await turso.execute({ sql }); } catch(e) { /* column already exists, ignore */ }
+  }
 }
 
 function getQueries() {
