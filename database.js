@@ -347,7 +347,7 @@ function buildTursoQueries(url, token) {
 
     async getStats() {
       const s = await tGetOne(`SELECT COUNT(*) as total, COUNT(*) FILTER(WHERE status='pending') as pending, COUNT(*) FILTER(WHERE status='approved') as approved, COUNT(*) FILTER(WHERE status='cancelled') as cancelled, COALESCE(SUM(total_amount) FILTER(WHERE status='approved'),0) as revenue FROM registrations`);
-      const approved = await this.getApprovedRegistrations();
+      const approved = await this.getRegsByStatus('approved');
       const approvedSeats = approved.reduce((sum, r) => sum + (r.total_seats || 0), 0);
       return { ...s, approved_seats: approvedSeats };
     }
