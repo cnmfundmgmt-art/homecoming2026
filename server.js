@@ -185,11 +185,15 @@ app.post('/api/admin/registration/:id/approve', requireAdmin, async (req, res) =
 app.post('/api/admin/registration/:id/cancel', requireAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ success: false, message: 'Invalid ID' });
+    console.log(`[Cancel] id=${id}`);
     const reg = await q().getRegistration(id);
+    console.log(`[Cancel] reg=`, reg ? `found(${reg.status})` : 'null');
     if (!reg) return res.status(404).json({ success: false, message: 'Not found' });
-    await q().updateStatus(id, 'cancelled');
+    const result = await q().updateStatus(id, 'cancelled');
+    console.log(`[Cancel] updateStatus result=`, result);
     res.json({ success: true });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+  } catch (err) { console.error('[Cancel] ERROR:', err); res.status(500).json({ success: false, message: err.message }); }
 });
 
 // ─── Check-in ─────────────────────────────────────────────────────────────────
