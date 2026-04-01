@@ -275,8 +275,8 @@ function buildTursoQueries(url, token) {
       return r ? enrich(r) : null;
     },
 
-    updateStatus:         (id, status) => tRun(`UPDATE registrations SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [status, id]),
-    uploadReceipt:        (id, fp, fn, fs) => Promise.all([
+    updateStatus:         async (id, status) => tRun(`UPDATE registrations SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [status, id]),
+    uploadReceipt:        async (id, fp, fn, fs) => Promise.all([
       tRun(`UPDATE registrations SET receipt_path = ?, receipt_uploaded_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [fp, id]),
       tRun(`INSERT INTO receipts (registration_id, file_path, file_name, file_size) VALUES (?, ?, ?, ?)`, [id, fp, fn, fs])
     ]).then(() => ({ lastInsertRowid: id })),
