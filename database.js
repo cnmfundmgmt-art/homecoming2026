@@ -226,15 +226,7 @@ function buildLocalQueries(db) {
     checkin:              (id) => db.prepare(`UPDATE registrations SET checked_in_at = CURRENT_TIMESTAMP WHERE id = ?`).run(id),
     uploadReceipt:        (id, fp, fn, fs) => { stmts.updateRegReceipt.run(fp, id); return stmts.insertReceipt.run(id, fp, fn, fs); },
 
-    getAllRegistrations:     () => stmts.getAllRegs.all().map(enrich),
     getPendingRegistrations: () => stmts.getPendingRegs.all().map(enrich),
-    getApprovedRegistrations: () => {
-      return stmts.getApprovedRegs.all().map(r => {
-        const tickets = stmts.getTicketsByReg.all(r.id);
-        const merch = stmts.getMerchByReg.all(r.id);
-        return { ...r, tickets, merchandise: merch };
-      });
-    },
     getRegsByStatus: (status) => stmts.getRegsByStatus.all(status).map(enrich),
 
     getStats: () => {
@@ -332,10 +324,6 @@ function buildTursoQueries(url, token) {
       const r = await tGetOne(`SELECT * FROM registrations WHERE student_id = ? ORDER BY id DESC LIMIT 1`, [sid]);
       return r ? await enrich(r) : null;
     },
-    async getRegsByStudent(sid) {
-      const r = await tGetOne(`SELECT * FROM registrations WHERE student_id = ? ORDER BY id DESC LIMIT 1`, [sid]);
-      return r ? await enrich(r) : null;
-    },
 
     updateStatus:         async (id, status) => tRun(`UPDATE registrations SET status = ? WHERE id = ?`, [status, id]),
     checkin:              async (id) => tRun(`UPDATE registrations SET checked_in_at = CURRENT_TIMESTAMP WHERE id = ?`, [id]),
@@ -354,10 +342,6 @@ function buildTursoQueries(url, token) {
     },
     async getRegsByStatus(status) {
       const regs = await tGetAll(`SELECT * FROM registrations WHERE status = ? ORDER BY created_at DESC`, [status]);
-      return Promise.all(regs.map(enrich));
-    },
-    async getApprovedRegistrations() {
-      const regs = await tGetAll(`SELECT * FROM registrations WHERE status = 'approved' ORDER BY updated_at DESC`);
       return Promise.all(regs.map(enrich));
     },
 
