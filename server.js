@@ -186,14 +186,24 @@ app.post('/api/admin/registration/:id/cancel', requireAdmin, async (req, res) =>
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ success: false, message: 'Invalid ID' });
-    console.log(`[Cancel] id=${id}`);
+    console.log(`[Cancel] id=${id}, calling getRegistration...`);
     const reg = await q().getRegistration(id);
-    console.log(`[Cancel] reg=`, reg ? `found(${reg.status})` : 'null');
+    console.log(`[Cancel] getRegistration returned:`, reg ? `id=${reg.id}, status=${reg.status}` : 'NULL');
     if (!reg) return res.status(404).json({ success: false, message: 'Not found' });
+    console.log(`[Cancel] calling updateStatus(${id}, 'cancelled')...`);
     const result = await q().updateStatus(id, 'cancelled');
-    console.log(`[Cancel] updateStatus result=`, result);
+    console.log(`[Cancel] updateStatus completed:`, result);
     res.json({ success: true });
   } catch (err) { console.error('[Cancel] ERROR:', err); res.status(500).json({ success: false, message: err.message }); }
+});
+
+// TEMP: diagnostic endpoint — remove after debugging
+app.get('/api/admin/test-db', requireAdmin, async (req, res) => {
+  try {
+    const all = await q().getAllRegistrations();
+    const stats = await q().getStats();
+    res.json({ success: true, count: all.length, stats });
+  } catch (err) { res.status(500).json({ success: false, message: err.message, stack: err.stack }); }
 });
 
 // ─── Check-in ─────────────────────────────────────────────────────────────────
