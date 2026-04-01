@@ -55,9 +55,11 @@ async function initTursoSchema(url, token) {
     `ALTER TABLE registrations ADD COLUMN checked_in_at DATETIME`,
     `ALTER TABLE registrations ADD COLUMN notes TEXT`,
     `ALTER TABLE registrations ADD COLUMN updated_at DATETIME`,
+    `ALTER TABLE registrations ADD COLUMN receipt_path TEXT`,
     `ALTER TABLE tickets ADD COLUMN seats INTEGER NOT NULL DEFAULT 1`,
     `ALTER TABLE tickets ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP`,
     `ALTER TABLE merchandise ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP`,
+    `ALTER TABLE receipts ADD COLUMN uploaded_at DATETIME`,
   ];
   for (const sql of migrations) {
     try {
@@ -325,6 +327,10 @@ function buildTursoQueries(url, token) {
       return r ? await enrich(r) : null;
     },
     async getRegistrationByStudent(sid) {
+      const r = await tGetOne(`SELECT * FROM registrations WHERE student_id = ? ORDER BY id DESC LIMIT 1`, [sid]);
+      return r ? await enrich(r) : null;
+    },
+    async getRegsByStudent(sid) {
       const r = await tGetOne(`SELECT * FROM registrations WHERE student_id = ? ORDER BY id DESC LIMIT 1`, [sid]);
       return r ? await enrich(r) : null;
     },
