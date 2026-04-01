@@ -190,8 +190,9 @@ app.get('/api/admin/registrations', requireAdmin, async (req, res) => {
     let regs;
     if (status) regs = await q().getRegsByStatus(status);
     else regs = await q().getAllRegistrations();
+    console.log('[Registrations] status=', status, 'count=', regs?.length || 0);
     res.json({ success: true, registrations: regs });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+  } catch (err) { console.error('[Registrations] ERROR:', err.message); res.status(500).json({ success: false, message: err.message }); }
 });
 
 app.get('/api/admin/pending', requireAdmin, async (req, res) => {
@@ -203,9 +204,11 @@ app.get('/api/admin/pending', requireAdmin, async (req, res) => {
 
 app.get('/api/admin/stats', requireAdmin, async (req, res) => {
   try {
+    console.log('[Stats] calling q().getStats()...');
     const stats = await q().getStats();
+    console.log('[Stats] result:', JSON.stringify(stats));
     res.json({ success: true, stats });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+  } catch (err) { console.error('[Stats] ERROR:', err.message); res.status(500).json({ success: false, message: err.message }); }
 });
 
 app.get('/api/admin/registration/:id', requireAdmin, async (req, res) => {
