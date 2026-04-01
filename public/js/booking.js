@@ -24,6 +24,10 @@ let selectedMerch = {};
     renderMerchInto(document.getElementById('regMerchGrid'));
     // Bind all booking form event handlers
     bindBookingEvents();
+    // Initialize selectedTicket to 'single' as default (index.html has hardcoded tickets)
+    if (ticketConfig.single) {
+      selectedTicket = { type: 'single', quantity: 1, unitPrice: ticketConfig.single.price, seats: ticketConfig.single.seats };
+    }
   }
 })();
 
@@ -347,7 +351,7 @@ function goToStep2() {
 }
 
 async function goToStep3() {
-  console.log('=== goToStep3 called ===');
+  console.log('=== goToStep3 called ===', { selectedTicket, selectedMerch });
   hideErrors();
   updateMerchTotal();
   const name = (document.getElementById('buyerName') || document.getElementById('regBuyerName'))?.value.trim();
@@ -356,7 +360,12 @@ async function goToStep3() {
   const intakeYear = (document.getElementById('intakeYear') || document.getElementById('regIntakeYear'))?.value;
   const studentId = (document.getElementById('studentId') || document.getElementById('regStudentId'))?.value.trim();
   console.log('Form values:', { name, mobile, email, intakeYear, studentId });
-  if (!name || !mobile) { console.log('name or mobile missing, returning'); return; }
+  if (!name || !mobile) { console.log('name or mobile missing, returning'); showError('regStep1Error', '请填写姓名和手机号'); return; }
+  if (!selectedTicket || !selectedTicket.type) {
+    console.log('selectedTicket is null or invalid!', selectedTicket);
+    showError('regStep2Error', '请选择票种');
+    return;
+  }
 
   const tickets = [{ type: selectedTicket.type, quantity: selectedTicket.quantity }];
   const merchandise = [];
@@ -367,6 +376,7 @@ async function goToStep3() {
   console.log('Payload:', JSON.stringify({ studentId: studentId || null, name, mobile, email: email || null, intakeYear: intakeYear || null, tickets, merchandise }));
 
   const btn = document.querySelector('#regStep2 .btn-next') || document.querySelector('#step2 .btn-next');
+  console.log('Next button found:', btn);
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 处理中...'; }
 
   try {
@@ -375,7 +385,15 @@ async function goToStep3() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ studentId: studentId || null, name, mobile, email: email || null, intakeYear: intakeYear || null, tickets, merchandise })
     });
-    const data = await res.json();
+    console.log('API status:', res.status);
+    let data;
+    try { data = await res.json(); } catch(e) {
+      const text = await res.text();
+      console.error('Non-JSON response:', text.substring(0, 200));
+      showError('regStep2Error', '服务器错误 (' + res.status + '): ' + text.substring(0, 100));
+      if (btn) { btn.disabled = false; btn.textContent = '下一步 Next →'; }
+      return;
+    }
     console.log('API response:', data);
     if (!data.success) { showError('regStep2Error', data.message || '提交失败'); if (btn) { btn.disabled = false; btn.textContent = '下一步 Next →'; } return; }
     currentRegId = data.registration.id;
