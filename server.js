@@ -232,3 +232,4 @@ app.listen(PORT, async () => {
   console.log("   Admin:        http://localhost:" + PORT + "/admin");
   console.log("   Check-in:     http://localhost:" + PORT + "/checkin\n");
 });
+})();
