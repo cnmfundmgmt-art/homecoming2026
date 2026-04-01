@@ -109,9 +109,10 @@ app.get('/api/registration/:id', (req, res) => {
 // ─── API: Upload receipt ──────────────────────────────────────────────────────
 app.post('/api/upload-receipt', upload.single('receipt'), async (req, res) => {
   try {
+    console.log(`[UploadReceipt] body:`, JSON.stringify(req.body), `file:`, req.file ? `${req.file.originalname} (${req.file.size}b, path=${req.file.path})` : 'NONE');
     const regId = parseInt(req.body.registrationId);
-    if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
-    if (isNaN(regId)) return res.status(400).json({ success: false, message: 'Invalid registrationId' });
+    if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded - check formData field name matches "receipt"' });
+    if (isNaN(regId)) return res.status(400).json({ success: false, message: 'Invalid registrationId: ' + req.body.registrationId });
 
     // Ensure file size is a finite number (Turso rejects NaN/Infinity)
     const fileSize = Number(req.file.size);
@@ -120,6 +121,9 @@ app.post('/api/upload-receipt', upload.single('receipt'), async (req, res) => {
     let url;
     if (cloudinary) {
       // Upload to Cloudinary
+      if (!req.file.path || !fs.existsSync(req.file.path)) {
+        return res.status(400).json({ success: false, message: 'Temp file missing, please retry' });
+      }
       const result = await cloudinary.uploader.upload(req.file.path, {
         folder: 'homecoming-2026/receipts',
         public_id: `receipt_${regId}_${Date.now()}`,
