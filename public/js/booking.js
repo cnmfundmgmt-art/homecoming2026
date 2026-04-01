@@ -394,13 +394,15 @@ async function goToStep3() {
       if (btn) { btn.disabled = false; btn.textContent = '下一步 Next →'; }
       return;
     }
-    console.log('API response:', data);
+    console.log('API response:', JSON.stringify(data));
     console.log('Registration fields:', Object.keys(data.registration || {}));
     if (!data.success) { showError('regStep2Error', data.message || '提交失败'); if (btn) { btn.disabled = false; btn.textContent = '下一步 Next →'; } return; }
+    if (!data.registration?.id) { showError('regStep2Error', '报名失败：未收到报名编号 (' + JSON.stringify(data.registration) + ')'); if (btn) { btn.disabled = false; btn.textContent = '下一步 Next →'; } return; }
     currentRegId = data.registration.id;
     (document.getElementById('payRef') || document.getElementById('regPayRef')).textContent = data.registration.ref_code;
     const totalAmt = data.registration.total_amount ?? data.registration.totalAmount ?? 0;
     (document.getElementById('payAmount') || document.getElementById('regPayAmount')).textContent = `RM ${Number(totalAmt).toFixed(0)}`;
+    console.log('currentRegId set to:', currentRegId, '— calling showStep(3)');
     showStep(3);
   } catch (e) { console.error('API error:', e); showError('regStep2Error', '网络错误: ' + e.message); } finally { if (btn) { btn.disabled = false; btn.textContent = '下一步 Next →'; } }
 }
@@ -417,10 +419,11 @@ document.getElementById('receiptInput')?.addEventListener('change', function(e) 
 
 // ─── Submit registration ──────────────────────────────────────────────────────
 async function submitRegistration() {
+  console.log('=== submitRegistration called, currentRegId=', currentRegId);
   const fileInput = document.getElementById('receiptInput') || document.getElementById('regReceiptInput');
   const file = fileInput?.files[0];
   if (!file) { showError('regStep3Error', '请上传付款凭证'); return; }
-  if (!currentRegId) { showError('regStep3Error', '报名未完成，请重新填写并提交'); return; }
+  if (!currentRegId) { showError('regStep3Error', '报名未完成，请重新填写并提交 (currentRegId=' + currentRegId + ')'); return; }
 
   const btn = document.getElementById('regBtnConfirm') || document.getElementById('btnConfirm');
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 上传中...'; }
