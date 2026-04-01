@@ -227,6 +227,7 @@ function buildLocalQueries(db) {
     uploadReceipt:        (id, fp, fn, fs) => { stmts.updateRegReceipt.run(fp, id); return stmts.insertReceipt.run(id, fp, fn, fs); },
 
     getPendingRegistrations: () => stmts.getPendingRegs.all().map(enrich),
+    getAllRegistrations: () => stmts.getAllRegs.all().map(enrich),
     getRegsByStatus: (status) => stmts.getRegsByStatus.all(status).map(enrich),
 
     getStats: () => {
