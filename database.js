@@ -276,7 +276,7 @@ function buildTursoQueries(url, token) {
     TICKET_CONFIG,
     MERCH_CONFIG,
 
-    getStudent:           (id)  => tGetOne(`SELECT * FROM students WHERE student_id = ?`, [id]),
+    getStudent:           async (id)  => tGetOne(`SELECT * FROM students WHERE student_id = ?`, [id]),
     getAllStudents:       ()   => tGetAll(`SELECT * FROM students`),
 
     async createRegistration({ studentId, name, mobile, email, intakeYear, tickets, merchandise }) {

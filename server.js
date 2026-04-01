@@ -74,7 +74,7 @@ app.get('/api/config', (req, res) => {
 });
 
 // ─── API: Create registration ─────────────────────────────────────────────────
-app.post('/api/register', (req, res) => {
+app.post('/api/register', async (req, res) => {
   try {
     const { studentId, name, mobile, email, intakeYear, tickets, merchandise } = req.body;
 
@@ -84,14 +84,14 @@ app.post('/api/register', (req, res) => {
 
     // Validate student ID if provided
     if (studentId) {
-      const student = q().getStudent(studentId);
+      const student = await q().getStudent(studentId);
       if (!student) return res.status(404).json({ success: false, message: 'Student ID not found in database' });
       if (student.chinese_name !== name) {
         return res.status(400).json({ success: false, message: 'Name does not match student ID' });
       }
     }
 
-    const reg = q().createRegistration({ studentId, name, mobile, email, intakeYear, tickets, merchandise });
+    const reg = await q().createRegistration({ studentId, name, mobile, email, intakeYear, tickets, merchandise });
     res.json({ success: true, registration: reg });
   } catch (err) {
     console.error('Register error:', err);
