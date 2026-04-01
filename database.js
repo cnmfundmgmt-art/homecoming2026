@@ -37,6 +37,7 @@ async function init() {
 }
 
 async function initTursoSchema(url, token) {
+  console.log('[initTursoSchema] Starting schema setup for Turso DB...');
   const { createClient } = require('@libsql/client');
   const turso = createClient({ url, authToken: token });
   const stmts = [
@@ -48,7 +49,7 @@ async function initTursoSchema(url, token) {
   ];
   for (const sql of stmts) { await turso.execute({ sql }); }
 
-  // Migration: add missing columns to existing tables (ALTER TABLE IF NOT EXISTS isn't standard SQL, so use try/catch)
+  // Migration: add missing columns to existing tables
   const migrations = [
     `ALTER TABLE registrations ADD COLUMN receipt_uploaded_at DATETIME`,
     `ALTER TABLE registrations ADD COLUMN checked_in_at DATETIME`,
@@ -59,8 +60,21 @@ async function initTursoSchema(url, token) {
     `ALTER TABLE merchandise ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP`,
   ];
   for (const sql of migrations) {
-    try { await turso.execute({ sql }); } catch(e) { /* column already exists, ignore */ }
+    try {
+      await turso.execute({ sql });
+      console.log(`[SchemaMigration] OK: ${sql.substring(0, 60)}`);
+    } catch(e) {
+      // Log the actual error so we know what failed
+      console.log(`[SchemaMigration] SKIP/FAIL: ${sql.substring(0, 60)} — ${e.message}`);
+    }
   }
+
+  // Inspect final schema
+  try {
+    const cols = await turso.execute({ sql: `PRAGMA table_info(registrations)` });
+    const colNames = (cols.rows || []).map(r => r.name).join(', ');
+    console.log(`[SchemaMigration] registrations columns: ${colNames}`);
+  } catch(e) { console.log(`[SchemaMigration] could not inspect schema: ${e.message}`); }
 }
 
 function getQueries() {
@@ -254,7 +268,7 @@ function buildTursoQueries(url, token) {
       tGetAll(`SELECT * FROM merchandise WHERE registration_id = ?`, [r.id]),
       tGetOne(`SELECT * FROM receipts WHERE registration_id = ?`, [r.id]),
     ]);
-    const total_seats = tickets.reduce((s, t) => s + t.seats, 0);
+    const total_seats = tickets.reduce((s, t) => s + (t.seats || 0), 0);
     return { ...r, tickets, merchandise: merch, receipt: receipt || null, total_seats };
   }
 
@@ -303,7 +317,7 @@ function buildTursoQueries(url, token) {
       return r ? await enrich(r) : null;
     },
 
-    updateStatus:         async (id, status) => tRun(`UPDATE registrations SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [status, id]),
+    updateStatus:         async (id, status) => tRun(`UPDATE registrations SET status = ? WHERE id = ?`, [status, id]),
     uploadReceipt:        async (id, fp, fn, fs) => Promise.all([
       tRun(`UPDATE registrations SET receipt_path = ?, receipt_uploaded_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [fp, id]),
       tRun(`INSERT INTO receipts (registration_id, file_path, file_name, file_size) VALUES (?, ?, ?, ?)`, [id, fp, fn, fs])
