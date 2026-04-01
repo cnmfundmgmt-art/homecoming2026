@@ -420,6 +420,7 @@ async function submitRegistration() {
   const fileInput = document.getElementById('receiptInput') || document.getElementById('regReceiptInput');
   const file = fileInput?.files[0];
   if (!file) { showError('regStep3Error', '请上传付款凭证'); return; }
+  if (!currentRegId) { showError('regStep3Error', '报名未完成，请重新填写并提交'); return; }
 
   const btn = document.getElementById('regBtnConfirm') || document.getElementById('btnConfirm');
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 上传中...'; }

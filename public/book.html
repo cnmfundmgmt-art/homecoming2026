@@ -700,8 +700,8 @@ async function goToStep3() {
 
     currentRegId = data.registration.id;
     document.getElementById('payRef').textContent = data.registration.ref_code;
-    const total = data.registration.total_amount;
-    document.getElementById('payAmount').textContent = `RM ${total.toFixed(0)}`;
+    const totalAmt = data.registration.total_amount ?? data.registration.totalAmount ?? 0;
+    document.getElementById('payAmount').textContent = `RM ${Number(totalAmt).toFixed(0)}`;
 
     showStep(3);
   } catch (e) {
@@ -728,6 +728,11 @@ async function submitRegistration() {
 
   if (!file) {
     showError('step3Error', '请上传付款凭证 / Please upload payment receipt');
+    return;
+  }
+
+  if (!currentRegId) {
+    showError('step3Error', '报名信息无效，请重新填写并提交 (currentRegId missing)');
     return;
   }
 
