@@ -58,6 +58,13 @@ app.use(express.static(path.join(__dirname, 'public'), {
   }
 }));
 
+// Block /book.html when not in production (localhost dev uses local SQLite — disable to prevent confusion)
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/book.html', (req, res) => {
+    res.status(503).send('<h1>Registration temporarily unavailable</h1><p>Please use the homepage form at <a href="/">Home</a>.</p>');
+  });
+}
+
 // ─── API: Student lookup ──────────────────────────────────────────────────────
 app.get('/api/student/:id', async (req, res) => {
   try {
@@ -73,9 +80,10 @@ app.get('/api/config', (req, res) => {
     tickets: q().TICKET_CONFIG,
     merchandise: q().MERCH_CONFIG,
     sponsorship: {
-      goal: 20000,
-      description: '清寒子弟助学金 — 每RM 200助一位清寒子弟出席晚宴',
-      currency: 'RM'
+      goal: 500000,
+      description: '清寒子弟助学金 — 每RM 42,000 赞助一位清寒子弟完成6年学业',
+      currency: 'RM',
+      perStudent: 42000
     }
   });
 });

@@ -3,6 +3,8 @@ const API = '/api';
 // ─── State ───────────────────────────────────────────────────────────────────
 let ticketConfig = {};
 let merchConfig = {};
+let sponsorshipGoal = 500000;
+let sponsorshipPerStudent = 42000;
 let currentRegId = null;
 let selectedTicket = null;
 let selectedMerch = {};
@@ -14,6 +16,7 @@ let selectedMerch = {};
   const isIndexPage = !!document.getElementById('regTicketGrid') || !!document.getElementById('regMerchGrid');
 
   await loadTicketConfig();
+  loadSponsorship();
 
   if (isBookPage) {
     renderTickets();
@@ -105,6 +108,41 @@ async function loadTicketConfig() {
       tshirt:  { price: 60, label: 'T-恤 T-shirt', sizes: ['S','M','L','XL','XXL'] },
       tumbler: { price: 50, label: '保温瓶 Tumbler', sizes: null }
     };
+  }
+}
+
+async function loadSponsorship() {
+  try {
+    const res = await fetch(`${API}/sponsorship`);
+    const data = await res.json();
+    if (!data.success) return;
+    const raised = data.raised || 0;
+    const goal = data.goal || sponsorshipGoal;
+    const perStudent = data.per_student || sponsorshipPerStudent;
+    const pct = Math.min((raised / goal) * 100, 100);
+    const students = Math.floor(raised / perStudent);
+
+    // Update homepage sponsor card (index.html)
+    const raisedEl = document.getElementById('sponsorRaisedHome');
+    const goalEl = document.getElementById('sponsorGoalHome');
+    const countEl = document.getElementById('sponsorCountHome');
+    const barEl = document.getElementById('sponsorBarFillHome');
+    if (raisedEl) raisedEl.textContent = `RM ${raised.toLocaleString()}`;
+    if (goalEl) goalEl.textContent = goal.toLocaleString();
+    if (countEl) countEl.textContent = `${students}位`;
+    if (barEl) barEl.style.width = `${pct}%`;
+
+    // Update book.html sponsor card if present
+    const raisedEl2 = document.getElementById('sponsorRaised');
+    const goalEl2 = document.getElementById('sponsorGoal');
+    const countEl2 = document.getElementById('sponsorCount');
+    const barEl2 = document.getElementById('sponsorBarFill');
+    if (raisedEl2) raisedEl2.textContent = `RM ${raised.toLocaleString()}`;
+    if (goalEl2) goalEl2.textContent = goal.toLocaleString();
+    if (countEl2) countEl2.textContent = `${students}位`;
+    if (barEl2) barEl2.style.width = `${pct}%`;
+  } catch (e) {
+    // Silently fail — sponsor card is non-critical
   }
 }
 
