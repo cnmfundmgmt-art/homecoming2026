@@ -216,10 +216,10 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ─── /book → standalone booking form ─────────────────────────────────────────
+// ─── /book → redirect to landing page ───────────────────────────────────────
 app.get('/book', (req, res) => {
-  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-  res.sendFile(path.join(__dirname, 'public', 'book.html'));
+  res.redirect('/');
+  return;
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────
