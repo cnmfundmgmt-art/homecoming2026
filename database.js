@@ -54,7 +54,7 @@ async function initTursoSchema(url, token) {
     `ALTER TABLE registrations ADD COLUMN receipt_uploaded_at DATETIME`,
     `ALTER TABLE registrations ADD COLUMN checked_in_at DATETIME`,
     `ALTER TABLE registrations ADD COLUMN notes TEXT`,
-    `ALTER TABLE registrations ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP`,
+    `ALTER TABLE registrations ADD COLUMN updated_at DATETIME`,
     `ALTER TABLE tickets ADD COLUMN seats INTEGER NOT NULL DEFAULT 1`,
     `ALTER TABLE tickets ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP`,
     `ALTER TABLE merchandise ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP`,
@@ -281,28 +281,39 @@ function buildTursoQueries(url, token) {
     getAllStudents:       ()   => tGetAll(`SELECT * FROM students`),
 
     async createRegistration({ studentId, name, mobile, email, intakeYear, tickets, merchandise }) {
+      console.log('[createRegistration] INPUT:', { studentId, name, tickets, merchandise });
       let total = 0;
-      for (const t of tickets) total += TICKET_CONFIG[t.type].price * t.quantity;
-      for (const m of merchandise) total += MERCH_CONFIG[m.item].price * m.quantity;
+      for (const t of tickets) total += (TICKET_CONFIG[t.type]?.price || 0) * t.quantity;
+      for (const m of merchandise) total += (MERCH_CONFIG[m.item]?.price || 0) * m.quantity;
+      console.log('[createRegistration] computed total:', total);
       const refCode = await nextRef();
-      const res = await tRun(
-        `INSERT INTO registrations (ref_code, student_id, name, mobile, email, intake_year, status, total_amount) VALUES (?, ?, ?, ?, ?, ?, 'pending', ?)`,
-        [refCode, studentId||null, name, mobile||null, email||null, intakeYear||null, total]
-      );
-      const regId = res.lastInsertRowid;
-      const ticketRows = await Promise.all(tickets.map(async t => {
-        const cfg = TICKET_CONFIG[t.type];
-        const r = await tRun(`INSERT INTO tickets (registration_id, ticket_type, quantity, unit_price, seats) VALUES (?, ?, ?, ?, ?)`,
-          [regId, t.type, t.quantity, cfg.price, cfg.seats * t.quantity]);
-        return { id: r.lastInsertRowid, ...t, unitPrice: cfg.price, seats: cfg.seats * t.quantity };
-      }));
-      const merchRows = await Promise.all(merchandise.map(async m => {
-        const price = MERCH_CONFIG[m.item].price;
-        const r = await tRun(`INSERT INTO merchandise (registration_id, item_type, size, quantity, unit_price) VALUES (?, ?, ?, ?, ?)`,
-          [regId, m.item, m.size||null, m.quantity, price]);
-        return { id: r.lastInsertRowid, ...m, unitPrice: price };
-      }));
-      return { id: regId, ref_code: refCode, name, mobile, email, tickets: ticketRows, merchandise: merchRows, total_amount: total, status: 'pending', created_at: new Date().toISOString() };
+      console.log('[createRegistration] refCode:', refCode);
+      try {
+        const res = await tRun(
+          `INSERT INTO registrations (ref_code, student_id, name, mobile, email, intake_year, status, total_amount) VALUES (?, ?, ?, ?, ?, ?, 'pending', ?)`,
+          [refCode, studentId||null, name, mobile||null, email||null, intakeYear||null, total]
+        );
+        console.log('[createRegistration] INSERT reg result:', res);
+        const regId = Number(res.lastInsertRowid);
+        console.log('[createRegistration] regId:', regId);
+        const ticketRows = await Promise.all(tickets.map(async t => {
+          const cfg = TICKET_CONFIG[t.type] || { price: 0, seats: 1 };
+          const r = await tRun(`INSERT INTO tickets (registration_id, ticket_type, quantity, unit_price, seats) VALUES (?, ?, ?, ?, ?)`,
+            [regId, t.type, t.quantity, cfg.price, cfg.seats * t.quantity]);
+          return { id: Number(r.lastInsertRowid), ...t, unitPrice: cfg.price, seats: cfg.seats * t.quantity };
+        }));
+        const merchRows = await Promise.all(merchandise.map(async m => {
+          const price = MERCH_CONFIG[m.item]?.price || 0;
+          const r = await tRun(`INSERT INTO merchandise (registration_id, item_type, size, quantity, unit_price) VALUES (?, ?, ?, ?, ?)`,
+            [regId, m.item, m.size||null, m.quantity, price]);
+          return { id: Number(r.lastInsertRowid), ...m, unitPrice: price };
+        }));
+        console.log('[createRegistration] SUCCESS regId=', regId);
+        return { id: regId, ref_code: refCode, name, mobile, email, tickets: ticketRows, merchandise: merchRows, total_amount: total, status: 'pending', created_at: new Date().toISOString() };
+      } catch (err) {
+        console.error('[createRegistration] ERROR:', err.message, err.stack);
+        throw err;
+      }
     },
 
     async getRegistration(id) {

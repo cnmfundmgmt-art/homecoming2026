@@ -94,6 +94,7 @@ app.post('/api/register', async (req, res) => {
     }
 
     const reg = await q().createRegistration({ studentId, name, mobile, email, intakeYear, tickets, merchandise });
+    console.log('[Register] success, regId:', reg?.id, 'ref:', reg?.ref_code);
     res.json({ success: true, registration: reg });
   } catch (err) {
     console.error('Register error:', err);
