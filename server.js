@@ -5,6 +5,18 @@ const fs = require('fs');
 const multer = require('multer');
 const database = require('./database');
 
+// ─── Cloudinary config ───────────────────────────────────────────────────────
+let cloudinary = null;
+if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+  cloudinary = require('cloudinary').v2;
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+  console.log('☁️  Cloudinary configured');
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -99,18 +111,34 @@ app.post('/api/upload-receipt', upload.single('receipt'), async (req, res) => {
   try {
     const regId = parseInt(req.body.registrationId);
     if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
+    if (isNaN(regId)) return res.status(400).json({ success: false, message: 'Invalid registrationId' });
 
-    const ext = path.extname(req.file.originalname).toLowerCase() || '.jpg';
-    const safeName = `receipt_${regId}_${Date.now()}${ext}`;
-    const savedPath = path.join(receiptDir, safeName);
-    fs.renameSync(req.file.path, savedPath);
-    const url = `/uploads/receipts/${safeName}`;
+    let url;
+    if (cloudinary) {
+      // Upload to Cloudinary
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: 'homecoming-2026/receipts',
+        public_id: `receipt_${regId}_${Date.now()}`,
+        resource_type: 'auto',
+      });
+      url = result.secure_url;
+      console.log(`[UploadReceipt] Cloudinary: ${url}`);
+    } else {
+      // Fallback: local disk
+      const ext = path.extname(req.file.originalname).toLowerCase() || '.jpg';
+      const safeName = `receipt_${regId}_${Date.now()}${ext}`;
+      const savedPath = path.join(receiptDir, safeName);
+      fs.renameSync(req.file.path, savedPath);
+      url = `/uploads/receipts/${safeName}`;
+      console.log(`[UploadReceipt] Local: ${url}`);
+    }
 
     await q().uploadReceipt(regId, url, req.file.originalname, req.file.size);
+    console.log(`[UploadReceipt] done`);
 
-    res.json({ success: true, url, filename: safeName });
+    res.json({ success: true, url, filename: url.split('/').pop() });
   } catch (err) {
-    console.error('Receipt upload error:', err);
+    console.error('[UploadReceipt] ERROR:', err.message, err.stack);
     res.status(500).json({ success: false, message: err.message });
   }
 });
