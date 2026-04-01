@@ -59,10 +59,12 @@ app.use(express.static(path.join(__dirname, 'public'), {
 }));
 
 // ─── API: Student lookup ──────────────────────────────────────────────────────
-app.get('/api/student/:id', (req, res) => {
-  const student = q().getStudent(req.params.id);
-  if (!student) return res.status(404).json({ success: false, message: 'Student ID not found' });
-  res.json({ success: true, student });
+app.get('/api/student/:id', async (req, res) => {
+  try {
+    const student = await q().getStudent(req.params.id);
+    if (!student) return res.status(404).json({ success: false, message: 'Student ID not found' });
+    res.json({ success: true, student });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
 // ─── API: Ticket & merch config ───────────────────────────────────────────────
@@ -100,10 +102,12 @@ app.post('/api/register', async (req, res) => {
 });
 
 // ─── API: Get registration by ID ───────────────────────────────────────────────
-app.get('/api/registration/:id', (req, res) => {
-  const reg = q().getRegistration(parseInt(req.params.id));
-  if (!reg) return res.status(404).json({ success: false, message: 'Registration not found' });
-  res.json({ success: true, registration: reg });
+app.get('/api/registration/:id', async (req, res) => {
+  try {
+    const reg = await q().getRegistration(parseInt(req.params.id));
+    if (!reg) return res.status(404).json({ success: false, message: 'Registration not found' });
+    res.json({ success: true, registration: reg });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
 // ─── API: Upload receipt ──────────────────────────────────────────────────────
@@ -246,36 +250,36 @@ app.get('/api/admin/test-db', requireAdmin, async (req, res) => {
 });
 
 // ─── Check-in ─────────────────────────────────────────────────────────────────
-app.post('/api/checkin', (req, res) => {
-  const { refCode } = req.body;
-  if (!refCode) return res.status(400).json({ success: false, message: 'Reference code required' });
+app.post('/api/checkin', async (req, res) => {
+  try {
+    const { refCode } = req.body;
+    if (!refCode) return res.status(400).json({ success: false, message: 'Reference code required' });
 
-  const reg = db.prepare(`SELECT * FROM registrations WHERE ref_code = ?`).get(refCode);
-  if (!reg) return res.json({ success: false, message: 'Reference code not found' });
+    const reg = await q().getRegistrationByRef(refCode);
+    if (!reg) return res.json({ success: false, message: 'Reference code not found' });
 
-  if (reg.status === 'pending') {
-    return res.json({ success: false, message: 'Registration is pending approval. Please wait for committee confirmation.' });
-  }
-  if (reg.status === 'cancelled') {
-    return res.json({ success: false, message: 'Registration has been cancelled. Please contact the committee.' });
-  }
-  if (reg.checked_in_at) {
-    return res.json({ success: false, message: 'You have already checked in! 已签到。' });
-  }
+    if (reg.status === 'pending') {
+      return res.json({ success: false, message: 'Registration is pending approval. Please wait for committee confirmation.' });
+    }
+    if (reg.status === 'cancelled') {
+      return res.json({ success: false, message: 'Registration has been cancelled. Please contact the committee.' });
+    }
+    if (reg.checked_in_at) {
+      return res.json({ success: false, message: 'You have already checked in! 已签到。' });
+    }
 
-  db.prepare(`UPDATE registrations SET checked_in_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(reg.id);
+    await q().checkin(reg.id);
+    const updated = await q().getRegistration(reg.id);
 
-  const tickets = db.prepare(`SELECT * FROM tickets WHERE registration_id = ?`).all(reg.id);
-  const totalSeats = tickets.reduce((sum, t) => sum + (t.seats || 0), 0);
-
-  res.json({
-    success: true,
-    message: 'Check-in successful! 签到成功！',
-    refCode: reg.ref_code,
-    name: reg.name,
-    totalSeats,
-    checkedInAt: new Date().toISOString()
-  });
+    res.json({
+      success: true,
+      message: 'Check-in successful! 签到成功！',
+      refCode: updated.ref_code,
+      name: updated.name,
+      totalSeats: updated.total_seats || 0,
+      checkedInAt: new Date().toISOString()
+    });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
 // ─── Root → index.html (landing page with embedded booking form) ─────────────

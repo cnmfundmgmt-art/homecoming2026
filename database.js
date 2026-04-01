@@ -219,6 +219,7 @@ function buildLocalQueries(db) {
     getRegistrationByStudent: (sid) => { const r = stmts.getRegByStudent.get(sid); return r ? enrich(r) : null; },
 
     updateStatus:         (id, status) => stmts.updateRegStatus.run(status, id),
+    checkin:              (id) => db.prepare(`UPDATE registrations SET checked_in_at = CURRENT_TIMESTAMP WHERE id = ?`).run(id),
     uploadReceipt:        (id, fp, fn, fs) => { stmts.updateRegReceipt.run(fp, id); return stmts.insertReceipt.run(id, fp, fn, fs); },
 
     getAllRegistrations:     () => stmts.getAllRegs.all().map(enrich),
@@ -318,6 +319,7 @@ function buildTursoQueries(url, token) {
     },
 
     updateStatus:         async (id, status) => tRun(`UPDATE registrations SET status = ? WHERE id = ?`, [status, id]),
+    checkin:              async (id) => tRun(`UPDATE registrations SET checked_in_at = CURRENT_TIMESTAMP WHERE id = ?`, [id]),
     uploadReceipt:        async (id, fp, fn, fs) => Promise.all([
       tRun(`UPDATE registrations SET receipt_path = ?, receipt_uploaded_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [fp, id]),
       tRun(`INSERT INTO receipts (registration_id, file_path, file_name, file_size) VALUES (?, ?, ?, ?)`, [id, fp, fn, fs])
