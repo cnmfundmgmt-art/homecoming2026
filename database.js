@@ -25,6 +25,7 @@ let _isTurso = false;
 async function init() {
   if (TURSO_URL && TURSO_TOKEN) {
     console.log(`☁️  Turso cloud: ${TURSO_URL}`);
+    await initTursoSchema(TURSO_URL, TURSO_TOKEN);
     _queries = buildTursoQueries(TURSO_URL, TURSO_TOKEN);
     _isTurso = true;
   } else {
@@ -33,6 +34,19 @@ async function init() {
     _queries = buildLocalQueries(db);
     _isTurso = false;
   }
+}
+
+async function initTursoSchema(url, token) {
+  const { createClient } = require('@libsql/client');
+  const turso = createClient({ url, authToken: token });
+  const stmts = [
+    `CREATE TABLE IF NOT EXISTS students (student_id TEXT PRIMARY KEY, chinese_name TEXT NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS registrations (id INTEGER PRIMARY KEY AUTOINCREMENT, ref_code TEXT UNIQUE NOT NULL, student_id TEXT, name TEXT NOT NULL, mobile TEXT, email TEXT, intake_year TEXT, status TEXT DEFAULT 'pending', total_amount REAL DEFAULT 0, receipt_path TEXT, receipt_uploaded_at DATETIME, checked_in_at DATETIME, notes TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP)`,
+    `CREATE TABLE IF NOT EXISTS tickets (id INTEGER PRIMARY KEY AUTOINCREMENT, registration_id INTEGER NOT NULL, ticket_type TEXT NOT NULL, quantity INTEGER DEFAULT 1, unit_price REAL NOT NULL, seats INTEGER NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (registration_id) REFERENCES registrations(id))`,
+    `CREATE TABLE IF NOT EXISTS merchandise (id INTEGER PRIMARY KEY AUTOINCREMENT, registration_id INTEGER NOT NULL, item_type TEXT NOT NULL, size TEXT, quantity INTEGER DEFAULT 1, unit_price REAL NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (registration_id) REFERENCES registrations(id))`,
+    `CREATE TABLE IF NOT EXISTS receipts (id INTEGER PRIMARY KEY AUTOINCREMENT, registration_id INTEGER NOT NULL UNIQUE, file_path TEXT NOT NULL, file_name TEXT, file_size INTEGER, uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (registration_id) REFERENCES registrations(id))`,
+  ];
+  for (const sql of stmts) { await turso.execute({ sql }); }
 }
 
 function getQueries() {
