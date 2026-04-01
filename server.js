@@ -95,7 +95,7 @@ app.get('/api/registration/:id', (req, res) => {
 });
 
 // ─── API: Upload receipt ──────────────────────────────────────────────────────
-app.post('/api/upload-receipt', upload.single('receipt'), (req, res) => {
+app.post('/api/upload-receipt', upload.single('receipt'), async (req, res) => {
   try {
     const regId = parseInt(req.body.registrationId);
     if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
@@ -106,7 +106,7 @@ app.post('/api/upload-receipt', upload.single('receipt'), (req, res) => {
     fs.renameSync(req.file.path, savedPath);
     const url = `/uploads/receipts/${safeName}`;
 
-    q().uploadReceipt(regId, url, req.file.originalname, req.file.size);
+    await q().uploadReceipt(regId, url, req.file.originalname, req.file.size);
 
     res.json({ success: true, url, filename: safeName });
   } catch (err) {
