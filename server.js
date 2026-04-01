@@ -91,7 +91,7 @@ app.get('/api/config', (req, res) => {
 app.get('/api/sponsorship', async (req, res) => {
   try {
     const stats = await q().getStats();
-    res.json({ success: true, raised: stats.sponsorship_raised || 0, goal: 20000 });
+    res.json({ success: true, raised: stats.sponsorship_raised || 0, goal: 500000, per_student: 42000 });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
