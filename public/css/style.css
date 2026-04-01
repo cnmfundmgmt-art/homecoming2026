@@ -2517,8 +2517,24 @@ table.admin-table td {
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (max-width: 600px) {
   .form-row { grid-template-columns: 1fr; }
-  .steps-bar { gap: 0; }
-  .step-connector { width: 28px; }
+  .steps-bar { gap: 0; overflow-x: auto; padding-bottom: 0.5rem; justify-content: flex-start; scroll-snap-type: x mandatory; }
+  .step-item { scroll-snap-align: start; flex-shrink: 0; }
+  .step-connector { width: 28px; min-width: 28px; }
   .book-nav { flex-direction: column-reverse; }
   .btn-next { max-width: 100%; }
+  .section { padding: 3rem 1rem; }
+  .section-title { font-size: 1.5rem; }
+  .hero-title { font-size: 2rem; }
+  .hero-badge { font-size: 0.75rem; padding: 0.4rem 1rem; }
+  .book-card { padding: 1.25rem; }
+  .payment-ref-box { padding: 1rem; }
+  .qr-wrap img { width: 160px; }
+  .receipt-area { padding: 1rem; }
+  .book-page { padding: 1.5rem 1rem; }
+}
+
+@media (max-width: 400px) {
+  .step-num { width: 30px; height: 30px; font-size: 0.8rem; }
+  .step-label { font-size: 0.65rem; }
+  .step-connector { width: 20px; min-width: 20px; }
 }

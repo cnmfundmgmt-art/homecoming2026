@@ -100,50 +100,101 @@
     .booking-form-mark { position: fixed; bottom: 10px; right: 10px; background: #8B1A1A; color: white; padding: 3px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; z-index: 9999; pointer-events: none; }
     @media (max-width: 600px) {
       .form-row { grid-template-columns: 1fr; }
-      .steps-bar { gap: 0; }
-      .step-connector { width: 28px; }
+      .steps-bar { overflow-x: auto; gap: 0; padding-bottom: 0.5rem; justify-content: flex-start; }
+      .step-connector { width: 28px; min-width: 28px; }
       .book-nav { flex-direction: column-reverse; }
       .btn-next { max-width: 100%; }
+      .book-card { padding: 1.25rem; }
+      .payment-ref-box { padding: 1rem; }
+      .qr-wrap img { width: 160px; }
+      .ticket-card { padding: 0.75rem 1rem; }
+      .receipt-area { padding: 1rem; }
+      .section-container { padding-left: 1rem; padding-right: 1rem; }
     }
 
-    /* ── Sponsor card ── */
-    .sponsor-card {
-      background: linear-gradient(135deg, #fffbeb, #fef3c7);
-      border: 2px solid #D4A853;
-      border-radius: 16px;
-      padding: 1.25rem 1.5rem;
+    @media (max-width: 400px) {
+      .steps-bar { font-size: 0.85rem; }
+      .step-num { width: 28px; height: 28px; font-size: 0.8rem; }
+      .step-label { font-size: 0.65rem; }
     }
-    .sponsor-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
-    .sponsor-icon { font-size: 2rem; line-height: 1; }
-    .sponsor-title-group { flex: 1; }
-    .sponsor-title { font-weight: 800; font-size: 1.05rem; color: #92400E; }
-    .sponsor-subtitle { font-size: 0.8rem; color: #B45309; margin-top: 0.1rem; }
-    .sponsor-badge {
-      background: #D4A853;
-      color: #fff;
+
+    /* ── Sponsor section ── */
+    #sponsorship {
+      background: #FDF6E3;
+      padding: 3.5rem 1rem;
+      border-top: 2px solid #F5D78E;
+      text-align: center;
+    }
+    .sponsor-wrap { max-width: 560px; margin: 0 auto; }
+    .sponsor-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .sponsor-headline {
+      font-size: 1.4rem;
       font-weight: 800;
-      font-size: 0.95rem;
-      padding: 0.3rem 0.85rem;
-      border-radius: 20px;
-      white-space: nowrap;
+      color: #5C1717;
+      margin-bottom: 0.35rem;
     }
-    .sponsor-bar-wrap { margin-bottom: 0.6rem; }
-    .sponsor-bar {
-      height: 16px;
-      background: #fde68a;
+    .sponsor-tagline {
+      font-size: 0.82rem;
+      color: #B45309;
+      margin-bottom: 1.5rem;
+    }
+    .sponsor-numbers {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    .sponsor-stat { text-align: center; }
+    .sponsor-stat-num {
+      display: block;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #5C1717;
+      line-height: 1.1;
+    }
+    .sponsor-stat-label {
+      font-size: 0.72rem;
+      color: #B45309;
+    }
+    .sponsor-stat-sep { font-size: 1.2rem; color: #D4A853; font-weight: 300; }
+    .sponsor-progress { margin-bottom: 1.25rem; }
+    .sponsor-bar-track {
+      height: 10px;
+      background: #F5D78E;
       border-radius: 10px;
       overflow: hidden;
+      margin-bottom: 0.4rem;
     }
-    .sponsor-bar-fill {
+    .sponsor-bar-thumb {
       height: 100%;
-      background: linear-gradient(90deg, #D4A853, #F59E0B);
+      background: linear-gradient(90deg, #D4A853, #F5D78E);
       border-radius: 10px;
       transition: width 1s ease;
       min-width: 0%;
     }
-    .sponsor-footer { display: flex; align-items: baseline; gap: 0.25rem; }
-    .sponsor-raised { font-weight: 800; font-size: 1.15rem; color: #92400E; }
-    .sponsor-goal { font-size: 0.9rem; color: #B45309; }
+    .sponsor-progress-label {
+      font-size: 0.75rem;
+      color: #B45309;
+    }
+    .sponsor-btn {
+      display: inline-block;
+      background: #8B2323;
+      color: #FDF6E3;
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 0.7rem 2.2rem;
+      border-radius: 50px;
+      text-decoration: none;
+      box-shadow: 0 4px 14px rgba(139,35,35,0.3);
+      transition: all 0.2s;
+    }
+    .sponsor-btn:hover { background: #5C1717; transform: translateY(-2px); box-shadow: 0 6px 18px rgba(92,23,23,0.35); }
+
+    @media (max-width: 480px) {
+      .sponsor-numbers { gap: 0.75rem; }
+      .sponsor-stat-num { font-size: 1.1rem; }
+    }
   </style>
 
   <style>
@@ -743,27 +794,38 @@
   </section>
 
   <!-- Sponsorship Section -->
-  <section id="sponsorship" style="background:#fff8f0;padding:3rem 1rem;">
-    <div style="max-width:680px;margin:0 auto;">
-      <div class="sponsor-card" id="sponsorCardHome">
-        <div class="sponsor-header">
-          <div class="sponsor-icon">🎓</div>
-          <div class="sponsor-title-group">
-            <div class="sponsor-title">清寒子弟助学金</div>
-            <div class="sponsor-subtitle">每RM 42,000 = 赞助一位清寒子弟完成6年学业</div>
-          </div>
-          <div class="sponsor-badge" id="sponsorCountHome">0位</div>
+  <section id="sponsorship">
+    <div class="sponsor-wrap">
+      <div class="sponsor-top">
+        <div class="sponsor-icon">🎓</div>
+        <div class="sponsor-headline">圆一位清寒学子的求学梦</div>
+        <div class="sponsor-tagline">RM 7,000 赞助一年学费 · 6年完整学业共 RM 42,000</div>
+      </div>
+      <div class="sponsor-numbers">
+        <div class="sponsor-stat">
+          <span class="sponsor-stat-num" id="sponsorCountHome">0</span>
+          <span class="sponsor-stat-label">位学生受惠</span>
         </div>
-        <div class="sponsor-bar-wrap">
-          <div class="sponsor-bar">
-            <div class="sponsor-bar-fill" id="sponsorBarFillHome" style="width:0%"></div>
-          </div>
+        <div class="sponsor-stat-sep">·</div>
+        <div class="sponsor-stat">
+          <span class="sponsor-stat-num" id="sponsorRaisedHome">RM 0</span>
+          <span class="sponsor-stat-label">已筹得</span>
         </div>
-        <div class="sponsor-footer">
-          <span class="sponsor-raised" id="sponsorRaisedHome">RM 0</span>
-          <span class="sponsor-goal"> / RM <span id="sponsorGoalHome">500,000</span></span>
+        <div class="sponsor-stat-sep">·</div>
+        <div class="sponsor-stat">
+          <span class="sponsor-stat-num">10</span>
+          <span class="sponsor-stat-label">目标人数</span>
         </div>
       </div>
+      <div class="sponsor-progress">
+        <div class="sponsor-bar-track">
+          <div class="sponsor-bar-thumb" id="sponsorBarFillHome" style="width:0%"></div>
+        </div>
+        <div class="sponsor-progress-label">
+          <span id="sponsorPctHome">0%</span> · 目标 RM 500,000
+        </div>
+      </div>
+      <a href="/#register" class="sponsor-btn">🎁 我要赞助</a>
     </div>
   </section>
 
