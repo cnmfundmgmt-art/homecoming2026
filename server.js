@@ -71,8 +71,20 @@ app.get('/api/student/:id', async (req, res) => {
 app.get('/api/config', (req, res) => {
   res.json({
     tickets: q().TICKET_CONFIG,
-    merchandise: q().MERCH_CONFIG
+    merchandise: q().MERCH_CONFIG,
+    sponsorship: {
+      goal: 20000,
+      description: '清寒子弟助学金 — 每RM 200助一位清寒子弟出席晚宴',
+      currency: 'RM'
+    }
   });
+});
+
+app.get('/api/sponsorship', async (req, res) => {
+  try {
+    const stats = await q().getStats();
+    res.json({ success: true, raised: stats.sponsorship_raised || 0, goal: 20000 });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
 // ─── API: Create registration ─────────────────────────────────────────────────
