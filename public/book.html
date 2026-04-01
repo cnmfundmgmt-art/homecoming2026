@@ -584,6 +584,7 @@ function changeMerchQty(item, delta) {
 
 // ─── Summary ──────────────────────────────────────────────────────────────────
 function updateMerchTotal() {
+  console.log('updateMerchTotal called', { selectedTicket, selectedMerch });
   const ticketRow = document.getElementById('summaryTickets');
   const merchRow = document.getElementById('summaryMerch');
   const totalEl = document.getElementById('summaryTotal');
@@ -648,6 +649,7 @@ function showError(id, msg) {
 
 function goToStep1() { showStep(1); }
 function goToStep2() {
+  console.log('goToStep2 called', { selectedTicket, selectedMerch });
   hideErrors();
   const name = document.getElementById('buyerName').value.trim();
   const mobile = document.getElementById('buyerMobile').value.trim();
@@ -658,6 +660,7 @@ function goToStep2() {
   if (!ok) return;
 
   updateMerchTotal();
+  console.log('showing step 2, total:', document.getElementById('summaryTotal').textContent);
   showStep(2);
 }
 
