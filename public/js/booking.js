@@ -347,6 +347,7 @@ function goToStep2() {
 }
 
 async function goToStep3() {
+  console.log('=== goToStep3 called ===');
   hideErrors();
   updateMerchTotal();
   const name = (document.getElementById('buyerName') || document.getElementById('regBuyerName'))?.value.trim();
@@ -354,7 +355,8 @@ async function goToStep3() {
   const email = (document.getElementById('buyerEmail') || document.getElementById('regBuyerEmail'))?.value.trim();
   const intakeYear = (document.getElementById('intakeYear') || document.getElementById('regIntakeYear'))?.value;
   const studentId = (document.getElementById('studentId') || document.getElementById('regStudentId'))?.value.trim();
-  if (!name || !mobile) return;
+  console.log('Form values:', { name, mobile, email, intakeYear, studentId });
+  if (!name || !mobile) { console.log('name or mobile missing, returning'); return; }
 
   const tickets = [{ type: selectedTicket.type, quantity: selectedTicket.quantity }];
   const merchandise = [];
@@ -362,6 +364,7 @@ async function goToStep3() {
     if (!state?.checked) continue;
     merchandise.push({ item, size: state.size || null, quantity: state.quantity || 1 });
   }
+  console.log('Payload:', JSON.stringify({ studentId: studentId || null, name, mobile, email: email || null, intakeYear: intakeYear || null, tickets, merchandise }));
 
   const btn = document.querySelector('#regStep2 .btn-next') || document.querySelector('#step2 .btn-next');
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 处理中...'; }
@@ -373,12 +376,13 @@ async function goToStep3() {
       body: JSON.stringify({ studentId: studentId || null, name, mobile, email: email || null, intakeYear: intakeYear || null, tickets, merchandise })
     });
     const data = await res.json();
+    console.log('API response:', data);
     if (!data.success) { showError('regStep2Error', data.message || '提交失败'); if (btn) { btn.disabled = false; btn.textContent = '下一步 Next →'; } return; }
     currentRegId = data.registration.id;
     (document.getElementById('payRef') || document.getElementById('regPayRef')).textContent = data.registration.ref_code;
     (document.getElementById('payAmount') || document.getElementById('regPayAmount')).textContent = `RM ${data.registration.total_amount.toFixed(0)}`;
     showStep(3);
-  } catch (e) { showError('regStep2Error', '网络错误'); } finally { if (btn) { btn.disabled = false; btn.textContent = '下一步 Next →'; } }
+  } catch (e) { console.error('API error:', e); showError('regStep2Error', '网络错误: ' + e.message); } finally { if (btn) { btn.disabled = false; btn.textContent = '下一步 Next →'; } }
 }
 
 // ─── Receipt upload ───────────────────────────────────────────────────────────
