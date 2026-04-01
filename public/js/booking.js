@@ -395,10 +395,12 @@ async function goToStep3() {
       return;
     }
     console.log('API response:', data);
+    console.log('Registration fields:', Object.keys(data.registration || {}));
     if (!data.success) { showError('regStep2Error', data.message || '提交失败'); if (btn) { btn.disabled = false; btn.textContent = '下一步 Next →'; } return; }
     currentRegId = data.registration.id;
     (document.getElementById('payRef') || document.getElementById('regPayRef')).textContent = data.registration.ref_code;
-    (document.getElementById('payAmount') || document.getElementById('regPayAmount')).textContent = `RM ${data.registration.total_amount.toFixed(0)}`;
+    const totalAmt = data.registration.total_amount ?? data.registration.totalAmount ?? 0;
+    (document.getElementById('payAmount') || document.getElementById('regPayAmount')).textContent = `RM ${Number(totalAmt).toFixed(0)}`;
     showStep(3);
   } catch (e) { console.error('API error:', e); showError('regStep2Error', '网络错误: ' + e.message); } finally { if (btn) { btn.disabled = false; btn.textContent = '下一步 Next →'; } }
 }
