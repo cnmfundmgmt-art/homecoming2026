@@ -114,6 +114,7 @@ app.post('/api/register', async (req, res) => {
     }
 
     const reg = await q().createRegistration({ studentId, name, mobile, email, intakeYear, tickets, merchandise });
+    await q().logAudit('registration_created', 'registration', reg.id, null, { ref_code: reg.ref_code, name, mobile, ticket_types: tickets.map(t => t.type), total: reg.total_amount });
     console.log('[Register] success, regId:', reg?.id, 'ref:', reg?.ref_code);
     res.json({ success: true, registration: reg });
   } catch (err) {
@@ -172,6 +173,7 @@ app.post('/api/upload-receipt', upload.single('receipt'), async (req, res) => {
 
     console.log(`[UploadReceipt] done`);
 
+    await q().logAudit('receipt_uploaded', 'registration', regId, null, { filename: req.file.originalname, size: safeFileSize, url });
     res.json({ success: true, url, filename: url.split('/').pop() });
   } catch (err) {
     console.error('[UploadReceipt] ERROR:', err.message, err.stack);
@@ -231,6 +233,26 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
   } catch (err) { console.error('[Stats] ERROR:', err.message); res.status(500).json({ success: false, message: err.message }); }
 });
 
+app.get('/api/admin/audit-logs', requireAdmin, async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 100, 500);
+    const offset = parseInt(req.query.offset) || 0;
+    const targetType = req.query.target_type;
+    const targetId = req.query.target_id ? parseInt(req.query.target_id) : null;
+
+    let logs;
+    if (targetType && targetId) {
+      logs = await q().getAuditLogsByTarget(targetType, targetId);
+    } else {
+      logs = await q().getAuditLogs(limit, offset);
+    }
+
+    // Parse details JSON strings
+    const parsed = logs.map(l => ({ ...l, details: l.details ? JSON.parse(l.details) : null }));
+    res.json({ success: true, audit_logs: parsed, count: parsed.length });
+  } catch (err) { console.error('[AuditLogs] ERROR:', err.message); res.status(500).json({ success: false, message: err.message }); }
+});
+
 app.get('/api/admin/registration/:id', requireAdmin, async (req, res) => {
   try {
     const reg = await q().getRegistration(parseInt(req.params.id));
@@ -245,6 +267,7 @@ app.post('/api/admin/registration/:id/approve', requireAdmin, async (req, res) =
     const reg = await q().getRegistration(id);
     if (!reg) return res.status(404).json({ success: false, message: 'Not found' });
     await q().updateStatus(id, 'approved');
+    await q().logAudit('registration_approved', 'registration', id, 'admin', { ref_code: reg.ref_code, name: reg.name });
     res.json({ success: true });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
@@ -259,6 +282,7 @@ app.post('/api/admin/registration/:id/cancel', requireAdmin, async (req, res) =>
     if (!reg) return res.status(404).json({ success: false, message: 'Not found' });
     console.log(`[Cancel] calling updateStatus(${id}, 'cancelled')...`);
     const result = await q().updateStatus(id, 'cancelled');
+    await q().logAudit('registration_cancelled', 'registration', id, 'admin', { ref_code: reg.ref_code, name: reg.name });
     console.log(`[Cancel] updateStatus completed:`, result);
     res.json({ success: true });
   } catch (err) { console.error('[Cancel] ERROR:', err); res.status(500).json({ success: false, message: err.message }); }
@@ -293,6 +317,7 @@ app.post('/api/checkin', async (req, res) => {
     }
 
     await q().checkin(reg.id);
+    await q().logAudit('checked_in', 'registration', reg.id, null, { ref_code: reg.ref_code });
     const updated = await q().getRegistration(reg.id);
 
     res.json({

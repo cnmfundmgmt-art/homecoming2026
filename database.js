@@ -42,26 +42,30 @@ async function initTursoSchema(url, token) {
   const turso = createClient({ url, authToken: token });
   const stmts = [
     `CREATE TABLE IF NOT EXISTS students (student_id TEXT PRIMARY KEY, chinese_name TEXT NOT NULL)`,
-    `CREATE TABLE IF NOT EXISTS registrations (id INTEGER PRIMARY KEY AUTOINCREMENT, ref_code TEXT UNIQUE NOT NULL, student_id TEXT, name TEXT NOT NULL, mobile TEXT, email TEXT, intake_year TEXT, status TEXT DEFAULT 'pending', total_amount REAL DEFAULT 0, receipt_path TEXT, receipt_uploaded_at DATETIME, checked_in_at DATETIME, notes TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP)`,
-    `CREATE TABLE IF NOT EXISTS tickets (id INTEGER PRIMARY KEY AUTOINCREMENT, registration_id INTEGER NOT NULL, ticket_type TEXT NOT NULL, quantity INTEGER DEFAULT 1, unit_price REAL NOT NULL, seats INTEGER NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (registration_id) REFERENCES registrations(id))`,
-    `CREATE TABLE IF NOT EXISTS merchandise (id INTEGER PRIMARY KEY AUTOINCREMENT, registration_id INTEGER NOT NULL, item_type TEXT NOT NULL, size TEXT, quantity INTEGER DEFAULT 1, unit_price REAL NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (registration_id) REFERENCES registrations(id))`,
-    `CREATE TABLE IF NOT EXISTS receipts (id INTEGER PRIMARY KEY AUTOINCREMENT, registration_id INTEGER NOT NULL UNIQUE, file_path TEXT NOT NULL, file_name TEXT, file_size INTEGER, uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (registration_id) REFERENCES registrations(id))`,
+    `CREATE TABLE IF NOT EXISTS registrations (id INTEGER PRIMARY KEY AUTOINCREMENT, ref_code TEXT UNIQUE NOT NULL, student_id TEXT, name TEXT NOT NULL, mobile TEXT, email TEXT, intake_year TEXT, status TEXT DEFAULT 'pending', total_amount REAL DEFAULT 0, receipt_path TEXT, receipt_uploaded_at TEXT, checked_in_at TEXT, notes TEXT, created_at TEXT, updated_at TEXT)`,
+    `CREATE TABLE IF NOT EXISTS tickets (id INTEGER PRIMARY KEY AUTOINCREMENT, registration_id INTEGER NOT NULL, ticket_type TEXT NOT NULL, quantity INTEGER DEFAULT 1, unit_price REAL NOT NULL, seats INTEGER NOT NULL, created_at TEXT, FOREIGN KEY (registration_id) REFERENCES registrations(id))`,
+    `CREATE TABLE IF NOT EXISTS merchandise (id INTEGER PRIMARY KEY AUTOINCREMENT, registration_id INTEGER NOT NULL, item_type TEXT NOT NULL, size TEXT, quantity INTEGER DEFAULT 1, unit_price REAL NOT NULL, created_at TEXT, FOREIGN KEY (registration_id) REFERENCES registrations(id))`,
+    `CREATE TABLE IF NOT EXISTS receipts (id INTEGER PRIMARY KEY AUTOINCREMENT, registration_id INTEGER NOT NULL UNIQUE, file_path TEXT NOT NULL, file_name TEXT, file_size INTEGER, uploaded_at TEXT, FOREIGN KEY (registration_id) REFERENCES registrations(id))`,
+    `CREATE TABLE IF NOT EXISTS audit_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, action TEXT NOT NULL, target_type TEXT NOT NULL, target_id INTEGER, actor TEXT, details TEXT, created_at TEXT)`,
+    `CREATE INDEX IF NOT EXISTS idx_audit_target ON audit_logs(target_type, target_id)`,
   ];
   for (const sql of stmts) { await turso.execute({ sql }); }
 
   // Migration: add missing columns to existing tables
   const migrations = [
-    `ALTER TABLE registrations ADD COLUMN receipt_uploaded_at DATETIME`,
-    `ALTER TABLE registrations ADD COLUMN checked_in_at DATETIME`,
+    `ALTER TABLE registrations ADD COLUMN receipt_uploaded_at TEXT`,
+    `ALTER TABLE registrations ADD COLUMN checked_in_at TEXT`,
     `ALTER TABLE registrations ADD COLUMN notes TEXT`,
-    `ALTER TABLE registrations ADD COLUMN updated_at DATETIME`,
+    `ALTER TABLE registrations ADD COLUMN updated_at TEXT`,
     `ALTER TABLE registrations ADD COLUMN receipt_path TEXT`,
     `ALTER TABLE tickets ADD COLUMN seats INTEGER NOT NULL DEFAULT 1`,
-    `ALTER TABLE tickets ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP`,
-    `ALTER TABLE merchandise ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP`,
+    `ALTER TABLE tickets ADD COLUMN created_at TEXT`,
+    `ALTER TABLE merchandise ADD COLUMN created_at TEXT`,
     `ALTER TABLE receipts ADD COLUMN file_name TEXT`,
     `ALTER TABLE receipts ADD COLUMN file_size INTEGER`,
-    `ALTER TABLE receipts ADD COLUMN uploaded_at DATETIME`,
+    `ALTER TABLE receipts ADD COLUMN uploaded_at TEXT`,
+    `CREATE TABLE IF NOT EXISTS audit_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, action TEXT NOT NULL, target_type TEXT NOT NULL, target_id INTEGER, actor TEXT, details TEXT, created_at TEXT)`,
+    `CREATE INDEX IF NOT EXISTS idx_audit_target ON audit_logs(target_type, target_id)`,
   ];
   for (const sql of migrations) {
     try {
@@ -109,11 +113,11 @@ function initLocal() {
       status      TEXT    DEFAULT 'pending'   CHECK(status IN ('pending','approved','cancelled')),
       total_amount REAL   DEFAULT 0,
       receipt_path TEXT,
-      receipt_uploaded_at DATETIME,
-      checked_in_at DATETIME,
+      receipt_uploaded_at TEXT,
+      checked_in_at TEXT,
       notes       TEXT,
-      created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at  TEXT,
+      updated_at  TEXT
     );
     CREATE TABLE IF NOT EXISTS tickets (
       id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -122,7 +126,7 @@ function initLocal() {
       quantity        INTEGER DEFAULT 1,
       unit_price      REAL    NOT NULL,
       seats           INTEGER NOT NULL,
-      created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+      created_at      TEXT,
       FOREIGN KEY (registration_id) REFERENCES registrations(id)
     );
     CREATE TABLE IF NOT EXISTS merchandise (
@@ -132,7 +136,7 @@ function initLocal() {
       size            TEXT,
       quantity        INTEGER DEFAULT 1,
       unit_price      REAL    NOT NULL,
-      created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+      created_at      TEXT,
       FOREIGN KEY (registration_id) REFERENCES registrations(id)
     );
     CREATE TABLE IF NOT EXISTS receipts (
@@ -141,9 +145,19 @@ function initLocal() {
       file_path       TEXT    NOT NULL,
       file_name       TEXT,
       file_size       INTEGER,
-      uploaded_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+      uploaded_at     TEXT,
       FOREIGN KEY (registration_id) REFERENCES registrations(id)
     );
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      action      TEXT    NOT NULL,
+      target_type TEXT    NOT NULL,
+      target_id   INTEGER,
+      actor       TEXT,
+      details     TEXT,
+      created_at  TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_audit_target ON audit_logs(target_type, target_id);
   `);
   return db;
 }
@@ -154,23 +168,26 @@ function buildLocalQueries(db) {
     getStudent:        db.prepare(`SELECT * FROM students WHERE student_id = ?`),
     insertStudent:     db.prepare(`INSERT OR IGNORE INTO students (student_id, chinese_name) VALUES (?, ?)`),
     getAllStudents:    db.prepare(`SELECT * FROM students`),
-    insertReg:         db.prepare(`INSERT INTO registrations (ref_code, student_id, name, mobile, email, intake_year, status, total_amount) VALUES (@ref_code, @student_id, @name, @mobile, @email, @intake_year, 'pending', @total_amount)`),
+    insertReg:         db.prepare(`INSERT INTO registrations (ref_code, student_id, name, mobile, email, intake_year, status, total_amount, created_at, updated_at) VALUES (@ref_code, @student_id, @name, @mobile, @email, @intake_year, 'pending', @total_amount, @created_at, @updated_at)`),
     getReg:            db.prepare(`SELECT * FROM registrations WHERE id = ?`),
     getRegByRef:       db.prepare(`SELECT * FROM registrations WHERE ref_code = ?`),
     getRegByStudent:   db.prepare(`SELECT * FROM registrations WHERE student_id = ? ORDER BY id DESC LIMIT 1`),
-    updateRegStatus:   db.prepare(`UPDATE registrations SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`),
-    updateRegReceipt:  db.prepare(`UPDATE registrations SET receipt_path = ?, receipt_uploaded_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?`),
+    updateRegStatus:   db.prepare(`UPDATE registrations SET status = ?, updated_at = ? WHERE id = ?`),
+    updateRegReceipt:  db.prepare(`UPDATE registrations SET receipt_path = ?, receipt_uploaded_at = ?, updated_at = ? WHERE id = ?`),
     getAllRegs:        db.prepare(`SELECT * FROM registrations ORDER BY created_at DESC`),
     getPendingRegs:    db.prepare(`SELECT * FROM registrations WHERE status = 'pending' ORDER BY created_at DESC`),
     getApprovedRegs:   db.prepare(`SELECT * FROM registrations WHERE status = 'approved' ORDER BY updated_at DESC`),
     getRegsByStatus:   db.prepare(`SELECT * FROM registrations WHERE status = ? ORDER BY created_at DESC`),
     getStats:          db.prepare(`SELECT COUNT(*) as total, COUNT(*) FILTER(WHERE status='pending') as pending, COUNT(*) FILTER(WHERE status='approved') as approved, COUNT(*) FILTER(WHERE status='cancelled') as cancelled, COALESCE(SUM(total_amount) FILTER(WHERE status='approved'),0) as revenue FROM registrations`),
-    insertTicket:      db.prepare(`INSERT INTO tickets (registration_id, ticket_type, quantity, unit_price, seats) VALUES (?, ?, ?, ?, ?)`),
+    insertTicket:      db.prepare(`INSERT INTO tickets (registration_id, ticket_type, quantity, unit_price, seats, created_at) VALUES (?, ?, ?, ?, ?, ?)`),
     getTicketsByReg:   db.prepare(`SELECT * FROM tickets WHERE registration_id = ?`),
-    insertMerch:       db.prepare(`INSERT INTO merchandise (registration_id, item_type, size, quantity, unit_price) VALUES (?, ?, ?, ?, ?)`),
+    insertMerch:       db.prepare(`INSERT INTO merchandise (registration_id, item_type, size, quantity, unit_price, created_at) VALUES (?, ?, ?, ?, ?, ?)`),
     getMerchByReg:     db.prepare(`SELECT * FROM merchandise WHERE registration_id = ?`),
-    insertReceipt:     db.prepare(`INSERT INTO receipts (registration_id, file_path, file_name, file_size) VALUES (?, ?, ?, ?)`),
+    insertReceipt:     db.prepare(`INSERT INTO receipts (registration_id, file_path, file_name, file_size, uploaded_at) VALUES (?, ?, ?, ?, ?)`),
     getReceiptByReg:   db.prepare(`SELECT * FROM receipts WHERE registration_id = ?`),
+    insertAuditLog:    db.prepare(`INSERT INTO audit_logs (action, target_type, target_id, actor, details, created_at) VALUES (?, ?, ?, ?, ?, ?)`),
+    getAuditLogs:      db.prepare(`SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT ? OFFSET ?`),
+    getAuditLogsByTarget: db.prepare(`SELECT * FROM audit_logs WHERE target_type = ? AND target_id = ? ORDER BY created_at DESC`),
     getRefCounter:     db.prepare(`SELECT ref_code FROM registrations ORDER BY id DESC LIMIT 1`),
   };
 
@@ -203,28 +220,32 @@ function buildLocalQueries(db) {
       for (const t of tickets) total += TICKET_CONFIG[t.type].price * t.quantity;
       for (const m of merchandise) total += MERCH_CONFIG[m.item].price * m.quantity;
       const refCode = nextRef();
-      const res = stmts.insertReg.run({ ref_code: refCode, student_id: studentId||null, name, mobile: mobile||null, email: email||null, intake_year: intakeYear||null, total_amount: total });
+      const now = new Date().toISOString();
+      const res = stmts.insertReg.run({ ref_code: refCode, student_id: studentId||null, name, mobile: mobile||null, email: email||null, intake_year: intakeYear||null, total_amount: total, created_at: now, updated_at: now });
       const regId = res.lastInsertRowid;
       const ticketRows = tickets.map(t => {
         const cfg = TICKET_CONFIG[t.type];
-        const r = stmts.insertTicket.run(regId, t.type, t.quantity, cfg.price, cfg.seats * t.quantity);
-        return { id: r.lastInsertRowid, ...t, unitPrice: cfg.price, seats: cfg.seats * t.quantity };
+        const r = stmts.insertTicket.run(regId, t.type, t.quantity, cfg.price, cfg.seats * t.quantity, now);
+        return { id: r.lastInsertRowid, ...t, unitPrice: cfg.price, seats: cfg.seats * t.quantity, created_at: now };
       });
       const merchRows = merchandise.map(m => {
         const price = MERCH_CONFIG[m.item].price;
-        const r = stmts.insertMerch.run(regId, m.item, m.size||null, m.quantity, price);
-        return { id: r.lastInsertRowid, ...m, unitPrice: price };
+        const r = stmts.insertMerch.run(regId, m.item, m.size||null, m.quantity, price, now);
+        return { id: r.lastInsertRowid, ...m, unitPrice: price, created_at: now };
       });
-      return { id: regId, ref_code: refCode, name, mobile, email, tickets: ticketRows, merchandise: merchRows, total_amount: total, status: 'pending', created_at: new Date().toISOString() };
+      return { id: regId, ref_code: refCode, name, mobile, email, tickets: ticketRows, merchandise: merchRows, total_amount: total, status: 'pending', created_at: now };
     },
 
     getRegistration:      (id) => { const r = stmts.getReg.get(id); return r ? enrich(r) : null; },
     getRegistrationByRef: (ref) => { const r = stmts.getRegByRef.get(ref); return r ? enrich(r) : null; },
     getRegistrationByStudent: (sid) => { const r = stmts.getRegByStudent.get(sid); return r ? enrich(r) : null; },
 
-    updateStatus:         (id, status) => stmts.updateRegStatus.run(status, id),
-    checkin:              (id) => db.prepare(`UPDATE registrations SET checked_in_at = CURRENT_TIMESTAMP WHERE id = ?`).run(id),
-    uploadReceipt:        (id, fp, fn, fs) => { stmts.updateRegReceipt.run(fp, id); return stmts.insertReceipt.run(id, fp, fn, fs); },
+    updateStatus:         (id, status) => { const now = new Date().toISOString(); return stmts.updateRegStatus.run(status, now, id); },
+    checkin:              (id) => { const now = new Date().toISOString(); return db.prepare(`UPDATE registrations SET checked_in_at = ? WHERE id = ?`).run(now, id); },
+    uploadReceipt:        (id, fp, fn, fs) => { const now = new Date().toISOString(); stmts.updateRegReceipt.run(fp, now, now, id); return stmts.insertReceipt.run(id, fp, fn, fs, now); },
+    logAudit:             (action, targetType, targetId, actor, details) => stmts.insertAuditLog.run(action, targetType, targetId, actor||null, details ? JSON.stringify(details) : null, new Date().toISOString()),
+    getAuditLogs:          (limit = 100, offset = 0) => stmts.getAuditLogs.all(limit, offset),
+    getAuditLogsByTarget:  (targetType, targetId) => stmts.getAuditLogsByTarget.all(targetType, targetId),
 
     getPendingRegistrations: () => stmts.getPendingRegs.all().map(enrich),
     getAllRegistrations: () => stmts.getAllRegs.all().map(enrich),
@@ -279,35 +300,30 @@ function buildTursoQueries(url, token) {
     getAllStudents:       ()   => tGetAll(`SELECT * FROM students`),
 
     async createRegistration({ studentId, name, mobile, email, intakeYear, tickets, merchandise }) {
-      console.log('[createRegistration] INPUT:', { studentId, name, tickets, merchandise });
       let total = 0;
       for (const t of tickets) total += (TICKET_CONFIG[t.type]?.price || 0) * t.quantity;
       for (const m of merchandise) total += (MERCH_CONFIG[m.item]?.price || 0) * m.quantity;
-      console.log('[createRegistration] computed total:', total);
       const refCode = await nextRef();
-      console.log('[createRegistration] refCode:', refCode);
+      const now = new Date().toISOString();
       try {
         const res = await tRun(
-          `INSERT INTO registrations (ref_code, student_id, name, mobile, email, intake_year, status, total_amount) VALUES (?, ?, ?, ?, ?, ?, 'pending', ?)`,
-          [refCode, studentId||null, name, mobile||null, email||null, intakeYear||null, total]
+          `INSERT INTO registrations (ref_code, student_id, name, mobile, email, intake_year, status, total_amount, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?)`,
+          [refCode, studentId||null, name, mobile||null, email||null, intakeYear||null, total, now, now]
         );
-        console.log('[createRegistration] INSERT reg result:', res);
         const regId = Number(res.lastInsertRowid);
-        console.log('[createRegistration] regId:', regId);
         const ticketRows = await Promise.all(tickets.map(async t => {
           const cfg = TICKET_CONFIG[t.type] || { price: 0, seats: 1 };
-          const r = await tRun(`INSERT INTO tickets (registration_id, ticket_type, quantity, unit_price, seats) VALUES (?, ?, ?, ?, ?)`,
-            [regId, t.type, t.quantity, cfg.price, cfg.seats * t.quantity]);
-          return { id: Number(r.lastInsertRowid), ...t, unitPrice: cfg.price, seats: cfg.seats * t.quantity };
+          const r = await tRun(`INSERT INTO tickets (registration_id, ticket_type, quantity, unit_price, seats, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
+            [regId, t.type, t.quantity, cfg.price, cfg.seats * t.quantity, now]);
+          return { id: Number(r.lastInsertRowid), ...t, unitPrice: cfg.price, seats: cfg.seats * t.quantity, created_at: now };
         }));
         const merchRows = await Promise.all(merchandise.map(async m => {
           const price = MERCH_CONFIG[m.item]?.price || 0;
-          const r = await tRun(`INSERT INTO merchandise (registration_id, item_type, size, quantity, unit_price) VALUES (?, ?, ?, ?, ?)`,
-            [regId, m.item, m.size||null, m.quantity, price]);
-          return { id: Number(r.lastInsertRowid), ...m, unitPrice: price };
+          const r = await tRun(`INSERT INTO merchandise (registration_id, item_type, size, quantity, unit_price, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
+            [regId, m.item, m.size||null, m.quantity, price, now]);
+          return { id: Number(r.lastInsertRowid), ...m, unitPrice: price, created_at: now };
         }));
-        console.log('[createRegistration] SUCCESS regId=', regId);
-        return { id: regId, ref_code: refCode, name, mobile, email, tickets: ticketRows, merchandise: merchRows, total_amount: total, status: 'pending', created_at: new Date().toISOString() };
+        return { id: regId, ref_code: refCode, name, mobile, email, tickets: ticketRows, merchandise: merchRows, total_amount: total, status: 'pending', created_at: now };
       } catch (err) {
         console.error('[createRegistration] ERROR:', err.message, err.stack);
         throw err;
@@ -327,12 +343,22 @@ function buildTursoQueries(url, token) {
       return r ? await enrich(r) : null;
     },
 
-    updateStatus:         async (id, status) => tRun(`UPDATE registrations SET status = ? WHERE id = ?`, [status, id]),
-    checkin:              async (id) => tRun(`UPDATE registrations SET checked_in_at = CURRENT_TIMESTAMP WHERE id = ?`, [id]),
+    updateStatus:         async (id, status) => tRun(`UPDATE registrations SET status = ?, updated_at = ? WHERE id = ?`, [status, new Date().toISOString(), id]),
+    checkin:              async (id) => tRun(`UPDATE registrations SET checked_in_at = ? WHERE id = ?`, [new Date().toISOString(), id]),
     uploadReceipt:        async (id, fp, fn, fs) => Promise.all([
-      tRun(`UPDATE registrations SET receipt_path = ?, receipt_uploaded_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [fp, id]),
-      tRun(`INSERT INTO receipts (registration_id, file_path, file_name, file_size) VALUES (?, ?, ?, ?)`, [id, fp, fn, fs])
+      tRun(`UPDATE registrations SET receipt_path = ?, receipt_uploaded_at = ?, updated_at = ? WHERE id = ?`, [fp, new Date().toISOString(), new Date().toISOString(), id]),
+      tRun(`INSERT INTO receipts (registration_id, file_path, file_name, file_size, uploaded_at) VALUES (?, ?, ?, ?, ?)`, [id, fp, fn, fs, new Date().toISOString()])
     ]).then(() => ({ lastInsertRowid: id })),
+
+    logAudit:             async (action, targetType, targetId, actor, details) => {
+      await tRun(`INSERT INTO audit_logs (action, target_type, target_id, actor, details, created_at) VALUES (?, ?, ?, ?, ?, ?)`, [action, targetType, targetId, actor||null, details ? JSON.stringify(details) : null, new Date().toISOString()]);
+    },
+    getAuditLogs:         async (limit = 100, offset = 0) => {
+      return await tGetAll(`SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT ? OFFSET ?`, [limit, offset]);
+    },
+    getAuditLogsByTarget: async (targetType, targetId) => {
+      return await tGetAll(`SELECT * FROM audit_logs WHERE target_type = ? AND target_id = ? ORDER BY created_at DESC`, [targetType, targetId]);
+    },
 
     async getAllRegistrations() {
       const regs = await tGetAll(`SELECT * FROM registrations ORDER BY created_at DESC`);

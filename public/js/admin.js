@@ -1,6 +1,13 @@
 const API = '/api';
 const TICKET_LABELS = { single: '单人票 Single', family: '家庭票 Family', table: '桌席 Table' };
 const STATUS_LABELS = { pending: '待审核', approved: '已批准', cancelled: '已取消' };
+const AUDIT_ACTION_LABELS = {
+  registration_created: '📝 报名创建',
+  receipt_uploaded: '🧾 凭证上传',
+  registration_approved: '✅ 报名批准',
+  registration_cancelled: '❌ 报名取消',
+  checked_in: '🎫 已签到'
+};
 
 let allRegistrations = [];
 let currentTab = 'all';
@@ -48,6 +55,7 @@ document.getElementById('loginUser')?.addEventListener('keypress', e => { if (e.
 
 async function doLogout() {
   await fetch(`${API}/admin/logout`, { credentials: 'include' });
+  expandedRows.clear();
   document.getElementById('loginPage').style.display = 'flex';
   document.getElementById('adminPage').style.display = 'none';
 }
@@ -56,11 +64,15 @@ async function doLogout() {
 function showAdminPanel() {
   document.getElementById('loginPage').style.display = 'none';
   document.getElementById('adminPage').style.display = 'block';
+  expandedRows.clear();
+  loadRegistrations();
 }
 
 async function loadRegistrations() {
   const tbody = document.getElementById('regTableBody');
   tbody.innerHTML = '<tr class="loading-row"><td colspan="13">加载中... Loading...</td></tr>';
+  expandedRows.clear();
+  document.querySelectorAll('.detail-row').forEach(el => { el.classList.remove('visible'); el.style.display = 'none'; el.style.visibility = 'hidden'; });
   try {
     const res = await fetch(`${API}/admin/registrations`, { credentials: 'include' });
     const data = await res.json();
@@ -98,7 +110,22 @@ function switchTab(tab) {
   currentTab = tab;
   document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
   document.querySelector(`.admin-tab[data-tab="${tab}"]`)?.classList.add('active');
-  applyFilters();
+
+  const regContent = document.getElementById('regContent');
+  const auditContent = document.getElementById('auditContent');
+  const toolbar = document.querySelector('.admin-toolbar');
+
+  if (tab === 'audit') {
+    regContent.style.display = 'none';
+    auditContent.style.display = 'block';
+    if (toolbar) toolbar.style.display = 'none';
+    loadAuditLogs();
+  } else {
+    regContent.style.display = 'block';
+    auditContent.style.display = 'none';
+    if (toolbar) toolbar.style.display = 'flex';
+    applyFilters();
+  }
 }
 
 // ─── Sorting ──────────────────────────────────────────────────────────────────
@@ -192,26 +219,26 @@ function renderTable(regs) {
     // Main row
     html += `
     <tr id="row-${r.id}" class="${isExpanded ? 'row-expanded' : ''}" onclick="toggleRow(${r.id})">
-      <td style="text-align:center;">
+      <td data-label="" style="text-align:center;">
         <button class="expand-btn ${isExpanded ? 'expanded' : ''}" id="expand-btn-${r.id}">${isExpanded ? '−' : '+'}</button>
       </td>
-      <td><span class="ref-code">${r.ref_code}</span></td>
-      <td><strong>${r.name || '—'}</strong></td>
-      <td style="font-family:monospace;font-size:0.82rem;">${r.student_id || '—'}</td>
-      <td>${r.mobile || '—'}</td>
-      <td>${r.intake_year || '—'}</td>
-      <td>${ticketChips || '<span style="color:#ccc">—</span>'}</td>
-      <td>${merchChips || '<span style="color:#ccc">—</span>'}</td>
-      <td><strong style="color:#28a745;font-size:0.9rem;">${r.total_seats} 席</strong></td>
-      <td><span class="amount">RM ${(r.total_amount || 0).toLocaleString('en-MY')}</span></td>
-      <td><span class="status-badge ${r.status}">${STATUS_LABELS[r.status] || r.status}</span></td>
-      <td style="font-size:0.8rem;color:#666;">${date}</td>
-      <td class="actions-cell" onclick="event.stopPropagation();">${actionHtml}</td>
+      <td data-label="Ref"><span class="ref-code">${r.ref_code}</span></td>
+      <td data-label="姓名"><strong>${r.name || '—'}</strong></td>
+      <td data-label="学号" style="font-family:monospace;font-size:0.82rem;">${r.student_id || '—'}</td>
+      <td data-label="手机">${r.mobile || '—'}</td>
+      <td data-label="年份">${r.intake_year || '—'}</td>
+      <td data-label="票务">${ticketChips || '<span style="color:#ccc">—</span>'}</td>
+      <td data-label="周边">${merchChips || '<span style="color:#ccc">—</span>'}</td>
+      <td data-label="席位数"><strong style="color:#28a745;font-size:0.9rem;">${r.total_seats} 席</strong></td>
+      <td data-label="总额"><span class="amount">RM ${(r.total_amount || 0).toLocaleString('en-MY')}</span></td>
+      <td data-label="状态"><span class="status-badge ${r.status}">${STATUS_LABELS[r.status] || r.status}</span></td>
+      <td data-label="登记日期" style="font-size:0.8rem;color:#666;">${date}</td>
+      <td class="actions-cell" data-label="操作" onclick="event.stopPropagation();">${actionHtml}</td>
     </tr>`;
 
-    // Detail row
+    // Detail row — NO inline style, rely entirely on CSS classes
     html += `
-    <tr id="detail-${r.id}" class="detail-row" style="display:${isExpanded ? 'table-row' : 'none'};">
+    <tr id="detail-${r.id}" class="detail-row" style="display:none;">
       <td colspan="13">
         <div class="detail-inner">
           <div class="detail-section">
@@ -264,16 +291,18 @@ function toggleRow(id) {
   if (!detailRow) return;
   if (expandedRows.has(id)) {
     expandedRows.delete(id);
+    detailRow.classList.remove('visible');
     detailRow.style.display = 'none';
-    btn.textContent = '+';
-    btn.classList.remove('expanded');
-    mainRow.classList.remove('row-expanded');
+    detailRow.style.visibility = 'hidden';
+    if (btn) { btn.textContent = '+'; btn.classList.remove('expanded'); }
+    if (mainRow) mainRow.classList.remove('row-expanded');
   } else {
     expandedRows.add(id);
-    detailRow.style.display = 'table-row';
-    btn.textContent = '−';
-    btn.classList.add('expanded');
-    mainRow.classList.add('row-expanded');
+    detailRow.classList.add('visible');
+    detailRow.style.display = 'block';
+    detailRow.style.visibility = 'visible';
+    if (btn) { btn.textContent = '−'; btn.classList.add('expanded'); }
+    if (mainRow) mainRow.classList.add('row-expanded');
   }
 }
 
@@ -392,4 +421,101 @@ function getFilteredRegs() {
       (r.mobile && r.mobile.includes(q));
     return matchTab && matchSearch;
   });
+}
+
+// ─── Audit Log ────────────────────────────────────────────────────────────────
+let auditLogs = [];
+let auditSortCol = 'created_at';
+let auditSortDir = 'desc';
+let auditOffset = 0;
+const AUDIT_LIMIT = 50;
+
+async function loadAuditLogs(reset = true) {
+  const tbody = document.getElementById('auditTableBody');
+  if (reset) {
+    auditLogs = [];
+    auditOffset = 0;
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="5">加载中... Loading...</td></tr>';
+  }
+  try {
+    const res = await fetch(`${API}/admin/audit-logs?limit=${AUDIT_LIMIT}&offset=${auditOffset}`, { credentials: 'include' });
+    const data = await res.json();
+    if (!data.success) { tbody.innerHTML = '<tr class="loading-row"><td colspan="5">请先登录</td></tr>'; return; }
+    if (reset) auditLogs = data.audit_logs || [];
+    else auditLogs.push(...(data.audit_logs || []));
+    auditOffset += data.audit_logs?.length || 0;
+    document.getElementById('auditCount').textContent = `${auditLogs.length} 条记录`;
+    document.getElementById('auditLoadMore').style.display = (data.audit_logs?.length === AUDIT_LIMIT) ? 'inline-block' : 'none';
+    renderAuditTable();
+  } catch (e) { tbody.innerHTML = `<tr class="loading-row"><td colspan="5">加载失败: ${e.message}</td></tr>`; }
+}
+
+function renderAuditTable() {
+  const tbody = document.getElementById('auditTableBody');
+  if (!auditLogs.length) {
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="5">📋 暂无动态记录</td></tr>';
+    return;
+  }
+  // Sort
+  const sorted = [...auditLogs].sort((a, b) => {
+    let va = a[auditSortCol] ?? '';
+    let vb = b[auditSortCol] ?? '';
+    if (auditSortCol === 'created_at') { va = new Date(va); vb = new Date(vb); }
+    if (va < vb) return auditSortDir === 'asc' ? -1 : 1;
+    if (va > vb) return auditSortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+  tbody.innerHTML = sorted.map(log => {
+    const actionLabel = AUDIT_ACTION_LABELS[log.action] || log.action;
+    const time = new Date(log.created_at).toLocaleString('zh-CN', { dateStyle: 'medium', timeStyle: 'short' });
+    const details = log.details ? formatAuditDetails(log.action, log.details) : '—';
+    return `
+      <tr>
+        <td data-label="时间" style="font-size:0.8rem;color:#666;white-space:nowrap;">${time}</td>
+        <td data-label="操作"><strong>${actionLabel}</strong></td>
+        <td data-label="对象"><span class="item-chip">${log.target_type}</span></td>
+        <td data-label="ID" style="font-family:monospace;font-size:0.82rem;">${log.target_id || '—'}</td>
+        <td data-label="详情" style="font-size:0.82rem;color:#555;max-width:320px;">${details}</td>
+      </tr>`;
+  }).join('');
+}
+
+function formatAuditDetails(action, details) {
+  switch (action) {
+    case 'registration_created':
+      return `Ref: ${details.ref_code || '—'} · ${details.name || '—'} · ${details.ticket_types?.join(', ') || '—'} · RM ${details.total || 0}`;
+    case 'receipt_uploaded':
+      return `📎 ${details.filename || '—'} · ${details.size ? (details.size / 1024).toFixed(1) + ' KB' : '—'}`;
+    case 'registration_approved':
+      return `Ref: ${details.ref_code || '—'} · ${details.name || '—'}`;
+    case 'registration_cancelled':
+      return `Ref: ${details.ref_code || '—'} · ${details.name || '—'}`;
+    case 'checked_in':
+      return `Ref: ${details.ref_code || '—'}`;
+    default:
+      return JSON.stringify(details);
+  }
+}
+
+function sortAuditBy(col) {
+  if (auditSortCol === col) {
+    auditSortDir = auditSortDir === 'asc' ? 'desc' : 'asc';
+  } else {
+    auditSortCol = col;
+    auditSortDir = 'desc';
+  }
+  document.querySelectorAll('#auditTable th[data-sort]').forEach(th => {
+    th.classList.remove('sorted');
+    th.querySelector('.sort-icon').textContent = '↕';
+  });
+  const activeTh = document.querySelector(`#auditTable th[data-sort="${col}"]`);
+  if (activeTh) {
+    activeTh.classList.add('sorted');
+    activeTh.querySelector('.sort-icon').textContent = auditSortDir === 'asc' ? '↑' : '↓';
+  }
+  renderAuditTable();
+}
+
+function loadMoreAuditLogs() {
+  loadAuditLogs(false);
 }
