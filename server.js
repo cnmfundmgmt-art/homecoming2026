@@ -31,6 +31,7 @@ app.use(express.urlencoded({ extended: true }));
 // Session — use TursoSessionStore so sessions persist across ALL Render instances
 const sessionTtl = 24 * 60 * 60 * 1000; // 24h
 const sessionStore = new TursoSessionStore({ ttl: sessionTtl / 1000 });
+console.log('[Session] TursoSessionStore created — TURSO vars:', process.env.TURSO_DATABASE_URL ? 'PRESENT' : 'MISSING');
 app.use(session({
   secret: process.env.SESSION_SECRET || 'homecoming2026-secret',
   resave: false,
@@ -38,6 +39,7 @@ app.use(session({
   store: sessionStore,
   cookie: { maxAge: sessionTtl, httpOnly: true, sameSite: 'lax' }
 }));
+console.log('[Session] Middleware ready');
 
 // ─── Receipt Upload Config ────────────────────────────────────────────────────
 const receiptDir = path.join(__dirname, 'public', 'uploads', 'receipts');

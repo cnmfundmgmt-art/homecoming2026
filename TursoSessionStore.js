@@ -11,8 +11,14 @@ function getClient() {
   if (!_client) {
     const url = process.env.TURSO_DATABASE_URL;
     const token = process.env.TURSO_AUTH_TOKEN;
-    if (!url || !token) return null;
+    console.log('[TursoSessionStore] TURSO_DATABASE_URL:', url ? 'SET' : 'MISSING');
+    console.log('[TursoSessionStore] TURSO_AUTH_TOKEN:', token ? 'SET' : 'MISSING');
+    if (!url || !token) {
+      console.error('[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!');
+      return null;
+    }
     _client = createClient({ url, authToken: token });
+    console.log('[TursoSessionStore] Client created, URL:', url.substring(0, 50) + '...');
   }
   return _client;
 }
@@ -46,7 +52,10 @@ class TursoSessionStore extends session.Store {
   async get(sid, callback) {
     try {
       const client = getClient();
-      if (!client) return callback(null, null);
+      if (!client) {
+        console.warn('[TursoSessionStore] get() — no client, returning null session');
+        return callback(null, null);
+      }
       await this.ensureTable();
       const key = this.prefix + sid;
       const now = Date.now();
@@ -56,10 +65,13 @@ class TursoSessionStore extends session.Store {
       });
       if (rows.rows && rows.rows.length > 0) {
         const sess = JSON.parse(rows.rows[0].sess);
+        console.log('[TursoSessionStore] get() SESSION FOUND for sid:', sid);
         return callback(null, sess);
       }
+      console.log('[TursoSessionStore] get() no session found for sid:', sid);
       return callback(null, null);
     } catch (e) {
+      console.error('[TursoSessionStore] get() ERROR:', e.message);
       return callback(e);
     }
   }
@@ -67,7 +79,10 @@ class TursoSessionStore extends session.Store {
   async set(sid, session, callback) {
     try {
       const client = getClient();
-      if (!client) return callback(null);
+      if (!client) {
+        console.warn('[TursoSessionStore] set() — no client, session NOT saved!');
+        return callback(null);
+      }
       await this.ensureTable();
       const key = this.prefix + sid;
       const maxAge = session.cookie?.maxAge || this.ttl;
@@ -77,8 +92,10 @@ class TursoSessionStore extends session.Store {
         sql: 'INSERT OR REPLACE INTO sessions (sid, sess, expire) VALUES (?, ?, ?)',
         args: [key, sess, expire]
       });
+      console.log('[TursoSessionStore] set() SAVED session:', sid, 'expire:', expire);
       return callback(null);
     } catch (e) {
+      console.error('[TursoSessionStore] set() ERROR:', e.message);
       return callback(e);
     }
   }
