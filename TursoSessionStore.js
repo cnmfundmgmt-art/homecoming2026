@@ -26,6 +26,7 @@ class TursoSessionStore extends session.Store {
 
   async ensureTable() {
     const client = getClient();
+    console.log('[TursoSessionStore] getClient():', client ? 'CONNECTED' : 'NULL — TURSO vars may be missing!');
     if (!client) return;
     try {
       await client.execute(`
@@ -36,8 +37,9 @@ class TursoSessionStore extends session.Store {
         )
       `);
       await client.execute(`CREATE INDEX IF NOT EXISTS idx_sessions_expire ON sessions(expire)`);
+      console.log('[TursoSessionStore] sessions table ready');
     } catch (e) {
-      console.log('[TursoSessionStore] table init:', e.message);
+      console.log('[TursoSessionStore] table init ERROR:', e.message);
     }
   }
 
