@@ -8,6 +8,7 @@ let sponsorshipPerStudent = 42000;
 let currentRegId = null;
 let selectedTicket = null;
 let selectedMerch = {};
+let pendingRegData = null; // stores registration payload for deferred submission
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 (async function regInit() {
@@ -119,26 +120,25 @@ async function loadSponsorship() {
     const raised = data.raised || 0;
     const goal = data.goal || sponsorshipGoal;
     const perStudent = data.per_student || sponsorshipPerStudent;
+    const targetStudents = 10;
     const pct = Math.min((raised / goal) * 100, 100);
     const students = Math.floor(raised / perStudent);
 
     // Update homepage sponsor card (index.html)
-    const raisedEl = document.getElementById('sponsorRaisedHome');
-    const goalEl = document.getElementById('sponsorGoalHome');
     const countEl = document.getElementById('sponsorCountHome');
     const barEl = document.getElementById('sponsorBarFillHome');
-    if (raisedEl) raisedEl.textContent = `RM ${raised.toLocaleString()}`;
-    if (goalEl) goalEl.textContent = goal.toLocaleString();
-    if (countEl) countEl.textContent = `${students}位`;
+    const raisedEl = document.getElementById('sponsorRaisedHome');
+    const pctEl = document.getElementById('sponsorPctHome');
+    if (countEl) countEl.textContent = students;
     if (barEl) barEl.style.width = `${pct}%`;
+    if (raisedEl) raisedEl.textContent = `RM ${raised.toLocaleString()}`;
+    if (pctEl) pctEl.textContent = `${pct.toFixed(1)}%`;
 
     // Update book.html sponsor card if present
     const raisedEl2 = document.getElementById('sponsorRaised');
-    const goalEl2 = document.getElementById('sponsorGoal');
     const countEl2 = document.getElementById('sponsorCount');
     const barEl2 = document.getElementById('sponsorBarFill');
     if (raisedEl2) raisedEl2.textContent = `RM ${raised.toLocaleString()}`;
-    if (goalEl2) goalEl2.textContent = goal.toLocaleString();
     if (countEl2) countEl2.textContent = `${students}位`;
     if (barEl2) barEl2.style.width = `${pct}%`;
   } catch (e) {
@@ -389,7 +389,6 @@ function goToStep2() {
 }
 
 async function goToStep3() {
-  console.log('=== goToStep3 called ===', { selectedTicket, selectedMerch });
   hideErrors();
   updateMerchTotal();
   const name = (document.getElementById('buyerName') || document.getElementById('regBuyerName'))?.value.trim();
@@ -397,10 +396,8 @@ async function goToStep3() {
   const email = (document.getElementById('buyerEmail') || document.getElementById('regBuyerEmail'))?.value.trim();
   const intakeYear = (document.getElementById('intakeYear') || document.getElementById('regIntakeYear'))?.value;
   const studentId = (document.getElementById('studentId') || document.getElementById('regStudentId'))?.value.trim();
-  console.log('Form values:', { name, mobile, email, intakeYear, studentId });
-  if (!name || !mobile) { console.log('name or mobile missing, returning'); showError('regStep1Error', '请填写姓名和手机号'); return; }
+  if (!name || !mobile) { showError('regStep1Error', '请填写姓名和手机号'); return; }
   if (!selectedTicket || !selectedTicket.type) {
-    console.log('selectedTicket is null or invalid!', selectedTicket);
     showError('regStep2Error', '请选择票种');
     return;
   }
@@ -411,38 +408,24 @@ async function goToStep3() {
     if (!state?.checked) continue;
     merchandise.push({ item, size: state.size || null, quantity: state.quantity || 1 });
   }
-  console.log('Payload:', JSON.stringify({ studentId: studentId || null, name, mobile, email: email || null, intakeYear: intakeYear || null, tickets, merchandise }));
 
-  const btn = document.querySelector('#regStep2 .btn-next') || document.querySelector('#step2 .btn-next');
-  console.log('Next button found:', btn);
-  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 处理中...'; }
+  // Store payload — will only be sent to server when receipt is actually uploaded
+  pendingRegData = { studentId: studentId || null, name, mobile, email: email || null, intakeYear: intakeYear || null, tickets, merchandise };
 
-  try {
-    const res = await fetch(`${API}/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ studentId: studentId || null, name, mobile, email: email || null, intakeYear: intakeYear || null, tickets, merchandise })
-    });
-    console.log('API status:', res.status);
-    let data;
-    try { data = await res.json(); } catch(e) {
-      const text = await res.text();
-      console.error('Non-JSON response:', text.substring(0, 200));
-      showError('regStep2Error', '服务器错误 (' + res.status + '): ' + text.substring(0, 100));
-      if (btn) { btn.disabled = false; btn.textContent = '下一步 Next →'; }
-      return;
-    }
-    console.log('API response:', JSON.stringify(data));
-    console.log('Registration fields:', Object.keys(data.registration || {}));
-    if (!data.success) { showError('regStep2Error', data.message || '提交失败'); if (btn) { btn.disabled = false; btn.textContent = '下一步 Next →'; } return; }
-    if (!data.registration?.id) { showError('regStep2Error', '报名失败：未收到报名编号 (' + JSON.stringify(data.registration) + ')'); if (btn) { btn.disabled = false; btn.textContent = '下一步 Next →'; } return; }
-    currentRegId = data.registration.id;
-    (document.getElementById('payRef') || document.getElementById('regPayRef')).textContent = data.registration.ref_code;
-    const totalAmt = data.registration.total_amount ?? data.registration.totalAmount ?? 0;
-    (document.getElementById('payAmount') || document.getElementById('regPayAmount')).textContent = `RM ${Number(totalAmt).toFixed(0)}`;
-    console.log('currentRegId set to:', currentRegId, '— calling showStep(3)');
-    showStep(3);
-  } catch (e) { console.error('API error:', e); showError('regStep2Error', '网络错误: ' + e.message); } finally { if (btn) { btn.disabled = false; btn.textContent = '下一步 Next →'; } }
+  // Calculate preview amount for display
+  const tTotal = selectedTicket.unitPrice * selectedTicket.quantity;
+  let merchTotal = 0;
+  for (const [item, state] of Object.entries(selectedMerch)) {
+    if (!state?.checked) continue;
+    merchTotal += (merchConfig[item]?.price || 0) * (state.quantity || 1);
+  }
+  const totalAmt = tTotal + merchTotal;
+
+  // Show placeholder ref and amount — real values will be set after registration is created
+  (document.getElementById('payRef') || document.getElementById('regPayRef')).textContent = '—';
+  (document.getElementById('payAmount') || document.getElementById('regPayAmount')).textContent = `RM ${totalAmt.toFixed(0)}`;
+
+  showStep(3);
 }
 
 // ─── Receipt upload ───────────────────────────────────────────────────────────
@@ -461,8 +444,28 @@ async function submitRegistration() {
   const fileInput = document.getElementById('receiptInput') || document.getElementById('regReceiptInput');
   const file = fileInput?.files[0];
   if (!file) { showError('regStep3Error', '请上传付款凭证'); return; }
-  if (!currentRegId) { showError('regStep3Error', '报名未完成，请重新填写并提交 (currentRegId=' + currentRegId + ')'); return; }
 
+  // If registration hasn't been created yet (receipt not uploaded yet), create it now
+  if (!currentRegId) {
+    if (!pendingRegData) { showError('regStep3Error', '报名信息缺失，请重新填写'); return; }
+    const btn = document.getElementById('regBtnConfirm') || document.getElementById('btnConfirm');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 处理中...'; }
+    try {
+      const res = await fetch(`${API}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pendingRegData)
+      });
+      const data = await res.json();
+      if (!data.success || !data.registration?.id) { showError('regStep3Error', data.message || '创建报名失败'); if (btn) { btn.disabled = false; btn.textContent = '确认提交 Confirm'; } return; }
+      currentRegId = data.registration.id;
+      (document.getElementById('payRef') || document.getElementById('regPayRef')).textContent = data.registration.ref_code;
+      const totalAmt = data.registration.total_amount ?? data.registration.totalAmount ?? 0;
+      (document.getElementById('payAmount') || document.getElementById('regPayAmount')).textContent = `RM ${Number(totalAmt).toFixed(0)}`;
+    } catch (e) { showError('regStep3Error', '网络错误: ' + e.message); if (btn) { btn.disabled = false; btn.textContent = '确认提交 Confirm'; } return; }
+  }
+
+  // Now upload the receipt
   const btn = document.getElementById('regBtnConfirm') || document.getElementById('btnConfirm');
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 上传中...'; }
 
@@ -477,6 +480,7 @@ async function submitRegistration() {
       const refEl = document.getElementById('successRef') || document.getElementById('regSuccessRef');
       const payRefEl = document.getElementById('payRef') || document.getElementById('regPayRef');
       if (refEl && payRefEl) refEl.textContent = `Reference: ${payRefEl.textContent}`;
+      pendingRegData = null;
       showStep('success');
     } else { showError('regStep3Error', data.message || '上传失败'); }
   } catch (e) { showError('regStep3Error', '网络错误'); } finally { if (btn) { btn.disabled = false; btn.textContent = '确认提交 Confirm'; } }
@@ -485,6 +489,7 @@ async function submitRegistration() {
 // ─── Reset ────────────────────────────────────────────────────────────────────
 function resetForm() {
   currentRegId = null;
+  pendingRegData = null;
   selectedTicket = { type: 'single', quantity: 1, unitPrice: 200, seats: 1 };
   selectedMerch = {};
   ['buyerName','buyerMobile','buyerEmail','intakeYear','studentId','lookupResult','regBuyerName','regBuyerMobile','regBuyerEmail','regStudentId','regLookupResult'].forEach(id => {
