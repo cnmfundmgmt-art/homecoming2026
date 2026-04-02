@@ -1,5 +1,6 @@
 const express = require('express');
 const session = require('express-session');
+const FileStore = require('session-file-store')(session);
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
@@ -27,12 +28,15 @@ const q = () => database.getQueries();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Session
+// Session — use FileStore so sessions persist across server restarts/scales
+const sessionDir = path.join(__dirname, 'sessions');
+if (!fs.existsSync(sessionDir)) fs.mkdirSync(sessionDir, { recursive: true });
 app.use(session({
-  secret: 'homecoming2026-secret',
+  secret: process.env.SESSION_SECRET || 'homecoming2026-secret',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 24 * 60 * 60 * 1000 }
+  store: new FileStore({ path: sessionDir, ttl: 86400, retries: 2 }),
+  cookie: { maxAge: 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'lax' }
 }));
 
 // ─── Receipt Upload Config ────────────────────────────────────────────────────
