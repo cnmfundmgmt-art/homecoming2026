@@ -226,7 +226,7 @@ function renderTable(regs) {
       <td data-label="姓名"><strong>${r.name || '—'}</strong></td>
       <td data-label="学号" style="font-family:monospace;font-size:0.82rem;">${r.student_id || '—'}</td>
       <td data-label="手机">${r.mobile || '—'}</td>
-      <td data-label="年份">${r.intake_year || '—'}</td>
+      <td data-label="班别">${r.class || '—'}</td>
       <td data-label="票务">${ticketChips || '<span style="color:#ccc">—</span>'}</td>
       <td data-label="周边">${merchChips || '<span style="color:#ccc">—</span>'}</td>
       <td data-label="席位数"><strong style="color:#28a745;font-size:0.9rem;">${r.total_seats} 席</strong></td>
@@ -247,7 +247,7 @@ function renderTable(regs) {
             <p><strong>学号:</strong> ${r.student_id || '—'}</p>
             <p><strong>手机:</strong> ${r.mobile || '—'}</p>
             <p><strong>邮箱:</strong> ${r.email || '—'}</p>
-            <p><strong>入学年份:</strong> ${r.intake_year || '—'}</p>
+            <p><strong>班别:</strong> ${r.class || '—'}</p>
             <p><strong>总席位数:</strong> <span style="color:#28a745;font-weight:700;">${totalSeats} 席</span></p>
           </div>
           <div class="detail-section">
@@ -371,7 +371,7 @@ function viewReceipt(src) {
 // ─── CSV Export ───────────────────────────────────────────────────────────────
 function exportCSV() {
   const rows = [
-    ['Ref', '姓名', '学号', '手机', '邮箱', '入学年份', '票务', '周边', '席位数', '总额(RM)', '状态', '登记日期']
+    ['Ref', '姓名', '学号', '手机', '邮箱', '班别', '票务', '周边', '席位数', '总额(RM)', '状态', '登记日期']
   ];
   const filtered = getFilteredRegs();
   filtered.forEach(r => {
@@ -389,7 +389,7 @@ function exportCSV() {
       r.student_id || '',
       r.mobile || '',
       r.email || '',
-      r.intake_year || '',
+      r.class || '',
       tickets,
       merch,
       r.total_seats || 0,

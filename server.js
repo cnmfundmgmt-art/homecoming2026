@@ -102,7 +102,7 @@ app.get('/api/sponsorship', async (req, res) => {
 // ─── API: Create registration ─────────────────────────────────────────────────
 app.post('/api/register', async (req, res) => {
   try {
-    const { studentId, name, mobile, email, intakeYear, tickets, merchandise } = req.body;
+    const { studentId, name, mobile, email, tickets, merchandise } = req.body;
 
     if (!name || !tickets || !tickets.length) {
       return res.status(400).json({ success: false, message: 'Name and at least one ticket required' });
@@ -117,7 +117,7 @@ app.post('/api/register', async (req, res) => {
       }
     }
 
-    const reg = await q().createRegistration({ studentId, name, mobile, email, intakeYear, tickets, merchandise });
+    const reg = await q().createRegistration({ studentId, name, mobile, email, tickets, merchandise });
     await q().logAudit('registration_created', 'registration', reg.id, null, { ref_code: reg.ref_code, name, mobile, ticket_types: tickets.map(t => t.type), total: reg.total_amount });
     console.log('[Register] success, regId:', reg?.id, 'ref:', reg?.ref_code);
     res.json({ success: true, registration: reg });

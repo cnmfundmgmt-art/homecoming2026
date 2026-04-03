@@ -300,36 +300,16 @@
         <div class="form-error" id="errEmail">请输入有效邮箱</div>
       </div>
       <div class="form-group">
-        <label class="form-label">入学年份 Intake Year</label>
-        <select class="form-select" id="intakeYear">
+        <label class="form-label">班别 Class</label>
+        <select class="form-select" id="studentClass">
           <option value="">请选择 Select</option>
-          <option value="2000">2000</option>
-          <option value="2001">2001</option>
-          <option value="2002">2002</option>
-          <option value="2003">2003</option>
-          <option value="2004">2004</option>
-          <option value="2005">2005</option>
-          <option value="2006">2006</option>
-          <option value="2007">2007</option>
-          <option value="2008">2008</option>
-          <option value="2009">2009</option>
-          <option value="2010">2010</option>
-          <option value="2011">2011</option>
-          <option value="2012">2012</option>
-          <option value="2013">2013</option>
-          <option value="2014">2014</option>
-          <option value="2015">2015</option>
-          <option value="2016">2016</option>
-          <option value="2017">2017</option>
-          <option value="2018">2018</option>
-          <option value="2019">2019</option>
-          <option value="2020">2020</option>
-          <option value="2021">2021</option>
-          <option value="2022">2022</option>
-          <option value="2023">2023</option>
-          <option value="2024">2024</option>
-          <option value="2025">2025</option>
-          <option value="2026">2026</option>
+          <option value="J1">J1</option>
+          <option value="J2">J2</option>
+          <option value="J3">J3</option>
+          <option value="J4">J4</option>
+          <option value="J5">J5</option>
+          <option value="J6">J6</option>
+          <option value="Pre-U">Pre-U</option>
         </select>
       </div>
     </div>
@@ -733,7 +713,7 @@ async function goToStep3() {
   const name = document.getElementById('buyerName').value.trim();
   const mobile = document.getElementById('buyerMobile').value.trim();
   const email = document.getElementById('buyerEmail').value.trim();
-  const intakeYear = document.getElementById('intakeYear').value;
+  const studentClass = document.getElementById('studentClass').value;
   const studentId = document.getElementById('studentId').value.trim();
 
   // Build request payload
@@ -751,7 +731,7 @@ async function goToStep3() {
     const res = await fetch(`${API}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ studentId: studentId || null, name, mobile, email: email || null, intakeYear: intakeYear || null, tickets, merchandise })
+      body: JSON.stringify({ studentId: studentId || null, name, mobile, email: email || null, class: studentClass || null, tickets, merchandise })
     });
     const data = await res.json();
 
@@ -831,7 +811,7 @@ function resetForm() {
   document.getElementById('buyerName').value = '';
   document.getElementById('buyerMobile').value = '';
   document.getElementById('buyerEmail').value = '';
-  document.getElementById('intakeYear').value = '';
+  document.getElementById('studentClass').value = '';
   document.getElementById('studentId').value = '';
   document.getElementById('lookupResult').textContent = '';
   document.getElementById('receiptInput').value = '';

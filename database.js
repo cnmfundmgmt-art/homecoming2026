@@ -42,7 +42,7 @@ async function initTursoSchema(url, token) {
   const turso = createClient({ url, authToken: token });
   const stmts = [
     `CREATE TABLE IF NOT EXISTS students (student_id TEXT PRIMARY KEY, chinese_name TEXT NOT NULL, english_name TEXT, class TEXT)`,
-    `CREATE TABLE IF NOT EXISTS registrations (id INTEGER PRIMARY KEY AUTOINCREMENT, ref_code TEXT UNIQUE NOT NULL, student_id TEXT, name TEXT NOT NULL, mobile TEXT, email TEXT, intake_year TEXT, status TEXT DEFAULT 'pending', total_amount REAL DEFAULT 0, receipt_path TEXT, receipt_uploaded_at TEXT, checked_in_at TEXT, notes TEXT, created_at TEXT, updated_at TEXT)`,
+    `CREATE TABLE IF NOT EXISTS registrations (id INTEGER PRIMARY KEY AUTOINCREMENT, ref_code TEXT UNIQUE NOT NULL, student_id TEXT, name TEXT NOT NULL, mobile TEXT, email TEXT, status TEXT DEFAULT 'pending', total_amount REAL DEFAULT 0, receipt_path TEXT, receipt_uploaded_at TEXT, checked_in_at TEXT, notes TEXT, created_at TEXT, updated_at TEXT)`,
     `CREATE TABLE IF NOT EXISTS tickets (id INTEGER PRIMARY KEY AUTOINCREMENT, registration_id INTEGER NOT NULL, ticket_type TEXT NOT NULL, quantity INTEGER DEFAULT 1, unit_price REAL NOT NULL, seats INTEGER NOT NULL, created_at TEXT, FOREIGN KEY (registration_id) REFERENCES registrations(id))`,
     `CREATE TABLE IF NOT EXISTS merchandise (id INTEGER PRIMARY KEY AUTOINCREMENT, registration_id INTEGER NOT NULL, item_type TEXT NOT NULL, size TEXT, quantity INTEGER DEFAULT 1, unit_price REAL NOT NULL, created_at TEXT, FOREIGN KEY (registration_id) REFERENCES registrations(id))`,
     `CREATE TABLE IF NOT EXISTS receipts (id INTEGER PRIMARY KEY AUTOINCREMENT, registration_id INTEGER NOT NULL UNIQUE, file_path TEXT NOT NULL, file_name TEXT, file_size INTEGER, uploaded_at TEXT, FOREIGN KEY (registration_id) REFERENCES registrations(id))`,
@@ -118,11 +118,17 @@ function seedStudentsFromExcel(db) {
   // Ensure new columns exist in existing table (for migration from old schema)
   try { db.exec("ALTER TABLE students ADD COLUMN english_name TEXT"); } catch(e) {}
   try { db.exec("ALTER TABLE students ADD COLUMN class TEXT"); } catch(e) {}
+  const getExisting = db.prepare(`SELECT class FROM students WHERE student_id = ?`);
   const insert = db.prepare(`INSERT OR REPLACE INTO students (student_id, chinese_name, english_name, class) VALUES (?, ?, ?, ?)`);
   let count = 0;
   const insertMany = db.transaction((rows) => {
     for (const r of rows) {
-      insert.run(r.student_id, r.chinese_name, r.english_name, r.class);
+      // Prefer class starting with "6" (senior) over lower years
+      const existing = getExisting.get(r.student_id);
+      const finalClass = (existing?.class?.startsWith('6') && !r.class?.startsWith('6'))
+        ? existing.class
+        : r.class;
+      insert.run(r.student_id, r.chinese_name, r.english_name, finalClass);
       count++;
     }
   });
@@ -137,10 +143,15 @@ async function seedStudentsFromExcelTurso(url, token) {
   const turso = createClient({ url, authToken: token });
   // Ensure table exists
   await turso.execute(`CREATE TABLE IF NOT EXISTS students (student_id TEXT PRIMARY KEY, chinese_name TEXT NOT NULL, english_name TEXT, class TEXT)`);
-  // Insert in batches
+  // Insert in batches — prefer class starting with "6" (senior) over lower years
   let count = 0;
   for (const r of students) {
-    await turso.execute({ sql: `INSERT OR REPLACE INTO students (student_id, chinese_name, english_name, class) VALUES (?, ?, ?, ?)`, args: [r.student_id, r.chinese_name, r.english_name, r.class] });
+    const existingRows = await turso.execute({ sql: `SELECT class FROM students WHERE student_id = ?`, args: [r.student_id] });
+    const existing = existingRows.rows?.[0];
+    const finalClass = (existing?.class?.startsWith('6') && !r.class?.startsWith('6'))
+      ? existing.class
+      : r.class;
+    await turso.execute({ sql: `INSERT OR REPLACE INTO students (student_id, chinese_name, english_name, class) VALUES (?, ?, ?, ?)`, args: [r.student_id, r.chinese_name, r.english_name, finalClass] });
     count++;
   }
   console.log(`[seedStudents] Loaded ${count} students to Turso`);
@@ -166,7 +177,6 @@ function initLocal() {
       name        TEXT    NOT NULL,
       mobile      TEXT,
       email       TEXT,
-      intake_year TEXT,
       status      TEXT    DEFAULT 'pending'   CHECK(status IN ('pending','approved','cancelled')),
       total_amount REAL   DEFAULT 0,
       receipt_path TEXT,
@@ -226,16 +236,16 @@ function buildLocalQueries(db) {
     getStudent:        db.prepare(`SELECT * FROM students WHERE student_id = ?`),
     insertStudent:     db.prepare(`INSERT OR REPLACE INTO students (student_id, chinese_name, english_name, class) VALUES (?, ?, ?, ?)`),
     getAllStudents:    db.prepare(`SELECT * FROM students`),
-    insertReg:         db.prepare(`INSERT INTO registrations (ref_code, student_id, name, mobile, email, intake_year, status, total_amount, created_at, updated_at) VALUES (@ref_code, @student_id, @name, @mobile, @email, @intake_year, 'pending', @total_amount, @created_at, @updated_at)`),
+    insertReg:         db.prepare(`INSERT INTO registrations (ref_code, student_id, name, mobile, email, status, total_amount, created_at, updated_at) VALUES (@ref_code, @student_id, @name, @mobile, @email, 'pending', @total_amount, @created_at, @updated_at)`),
     getReg:            db.prepare(`SELECT * FROM registrations WHERE id = ?`),
     getRegByRef:       db.prepare(`SELECT * FROM registrations WHERE ref_code = ?`),
     getRegByStudent:   db.prepare(`SELECT * FROM registrations WHERE student_id = ? ORDER BY id DESC LIMIT 1`),
     updateRegStatus:   db.prepare(`UPDATE registrations SET status = ?, updated_at = ? WHERE id = ?`),
     updateRegReceipt:  db.prepare(`UPDATE registrations SET receipt_path = ?, receipt_uploaded_at = ?, updated_at = ? WHERE id = ?`),
-    getAllRegs:        db.prepare(`SELECT * FROM registrations ORDER BY created_at DESC`),
-    getPendingRegs:    db.prepare(`SELECT * FROM registrations WHERE status = 'pending' ORDER BY created_at DESC`),
-    getApprovedRegs:   db.prepare(`SELECT * FROM registrations WHERE status = 'approved' ORDER BY updated_at DESC`),
-    getRegsByStatus:   db.prepare(`SELECT * FROM registrations WHERE status = ? ORDER BY created_at DESC`),
+    getAllRegs:        db.prepare(`SELECT r.*, s.class FROM registrations r LEFT JOIN students s ON r.student_id = s.student_id ORDER BY r.created_at DESC`),
+    getPendingRegs:    db.prepare(`SELECT r.*, s.class FROM registrations r LEFT JOIN students s ON r.student_id = s.student_id WHERE r.status = 'pending' ORDER BY r.created_at DESC`),
+    getApprovedRegs:   db.prepare(`SELECT r.*, s.class FROM registrations r LEFT JOIN students s ON r.student_id = s.student_id WHERE r.status = 'approved' ORDER BY r.updated_at DESC`),
+    getRegsByStatus:   db.prepare(`SELECT r.*, s.class FROM registrations r LEFT JOIN students s ON r.student_id = s.student_id WHERE r.status = ? ORDER BY r.created_at DESC`),
     getStats:          db.prepare(`SELECT COUNT(*) as total, COUNT(*) FILTER(WHERE status='pending') as pending, COUNT(*) FILTER(WHERE status='approved') as approved, COUNT(*) FILTER(WHERE status='cancelled') as cancelled, COALESCE(SUM(total_amount) FILTER(WHERE status='approved'),0) as revenue FROM registrations`),
     insertTicket:      db.prepare(`INSERT INTO tickets (registration_id, ticket_type, quantity, unit_price, seats, created_at) VALUES (?, ?, ?, ?, ?, ?)`),
     getTicketsByReg:   db.prepare(`SELECT * FROM tickets WHERE registration_id = ?`),
@@ -273,13 +283,13 @@ function buildLocalQueries(db) {
     getStudent:           (id)  => stmts.getStudent.get(id),
     getAllStudents:       ()   => stmts.getAllStudents.all(),
 
-    createRegistration:   ({ studentId, name, mobile, email, intakeYear, tickets, merchandise }) => {
+    createRegistration:   ({ studentId, name, mobile, email, tickets, merchandise }) => {
       let total = 0;
       for (const t of tickets) total += TICKET_CONFIG[t.type].price * t.quantity;
       for (const m of merchandise) total += MERCH_CONFIG[m.item].price * m.quantity;
       const refCode = nextRef();
       const now = new Date().toISOString();
-      const res = stmts.insertReg.run({ ref_code: refCode, student_id: studentId||null, name, mobile: mobile||null, email: email||null, intake_year: intakeYear||null, total_amount: total, created_at: now, updated_at: now });
+      const res = stmts.insertReg.run({ ref_code: refCode, student_id: studentId||null, name, mobile: mobile||null, email: email||null, total_amount: total, created_at: now, updated_at: now });
       const regId = res.lastInsertRowid;
       const ticketRows = tickets.map(t => {
         const cfg = TICKET_CONFIG[t.type];
@@ -357,7 +367,7 @@ function buildTursoQueries(url, token) {
     getStudent:           async (id)  => tGetOne(`SELECT * FROM students WHERE student_id = ?`, [id]),
     getAllStudents:       ()   => tGetAll(`SELECT * FROM students`),
 
-    async createRegistration({ studentId, name, mobile, email, intakeYear, tickets, merchandise }) {
+    async createRegistration({ studentId, name, mobile, email, tickets, merchandise }) {
       let total = 0;
       for (const t of tickets) total += (TICKET_CONFIG[t.type]?.price || 0) * t.quantity;
       for (const m of merchandise) total += (MERCH_CONFIG[m.item]?.price || 0) * m.quantity;
@@ -365,8 +375,8 @@ function buildTursoQueries(url, token) {
       const now = new Date().toISOString();
       try {
         const res = await tRun(
-          `INSERT INTO registrations (ref_code, student_id, name, mobile, email, intake_year, status, total_amount, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?)`,
-          [refCode, studentId||null, name, mobile||null, email||null, intakeYear||null, total, now, now]
+          `INSERT INTO registrations (ref_code, student_id, name, mobile, email, status, total_amount, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?)`,
+          [refCode, studentId||null, name, mobile||null, email||null, total, now, now]
         );
         const regId = Number(res.lastInsertRowid);
         const ticketRows = await Promise.all(tickets.map(async t => {
@@ -419,15 +429,15 @@ function buildTursoQueries(url, token) {
     },
 
     async getAllRegistrations() {
-      const regs = await tGetAll(`SELECT * FROM registrations ORDER BY created_at DESC`);
+      const regs = await tGetAll(`SELECT r.*, s.class FROM registrations r LEFT JOIN students s ON r.student_id = s.student_id ORDER BY r.created_at DESC`);
       return Promise.all(regs.map(enrich));
     },
     async getPendingRegistrations() {
-      const regs = await tGetAll(`SELECT * FROM registrations WHERE status = 'pending' ORDER BY created_at DESC`);
+      const regs = await tGetAll(`SELECT r.*, s.class FROM registrations r LEFT JOIN students s ON r.student_id = s.student_id WHERE r.status = 'pending' ORDER BY r.created_at DESC`);
       return Promise.all(regs.map(enrich));
     },
     async getRegsByStatus(status) {
-      const regs = await tGetAll(`SELECT * FROM registrations WHERE status = ? ORDER BY created_at DESC`, [status]);
+      const regs = await tGetAll(`SELECT r.*, s.class FROM registrations r LEFT JOIN students s ON r.student_id = s.student_id WHERE r.status = ? ORDER BY r.created_at DESC`, [status]);
       return Promise.all(regs.map(enrich));
     },
 
