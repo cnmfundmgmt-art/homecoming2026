@@ -64,6 +64,8 @@ async function initTursoSchema(url, token) {
     `ALTER TABLE receipts ADD COLUMN file_name TEXT`,
     `ALTER TABLE receipts ADD COLUMN file_size INTEGER`,
     `ALTER TABLE receipts ADD COLUMN uploaded_at TEXT`,
+    `ALTER TABLE students ADD COLUMN english_name TEXT`,
+    `ALTER TABLE students ADD COLUMN class TEXT`,
     `CREATE TABLE IF NOT EXISTS audit_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, action TEXT NOT NULL, target_type TEXT NOT NULL, target_id INTEGER, actor TEXT, details TEXT, created_at TEXT)`,
     `CREATE INDEX IF NOT EXISTS idx_audit_target ON audit_logs(target_type, target_id)`,
   ];
