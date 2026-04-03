@@ -1,6 +1,6 @@
 const express = require('express');
 const session = require('express-session');
-const TursoSessionStore = require('./TursoSessionStore');
+const FileStore = require('session-file-store')(session);
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
@@ -28,18 +28,16 @@ const q = () => database.getQueries();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Session — use TursoSessionStore so sessions persist across ALL Render instances
-const sessionTtl = 24 * 60 * 60 * 1000; // 24h
-const sessionStore = new TursoSessionStore({ ttl: sessionTtl / 1000 });
-console.log('[Session] TursoSessionStore created — TURSO vars:', process.env.TURSO_DATABASE_URL ? 'PRESENT' : 'MISSING');
+// Session — use FileStore so sessions persist across server restarts
+const sessionDir = path.join(__dirname, 'sessions');
+if (!fs.existsSync(sessionDir)) fs.mkdirSync(sessionDir, { recursive: true });
 app.use(session({
   secret: process.env.SESSION_SECRET || 'homecoming2026-secret',
   resave: false,
   saveUninitialized: false,
-  store: sessionStore,
-  cookie: { maxAge: sessionTtl, httpOnly: true, sameSite: 'lax' }
+  store: new FileStore({ path: sessionDir, ttl: 86400, retries: 2 }),
+  cookie: { maxAge: 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'lax' }
 }));
-console.log('[Session] Middleware ready');
 
 // ─── Receipt Upload Config ────────────────────────────────────────────────────
 const receiptDir = path.join(__dirname, 'public', 'uploads', 'receipts');

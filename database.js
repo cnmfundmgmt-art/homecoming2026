@@ -41,7 +41,7 @@ async function initTursoSchema(url, token) {
   const { createClient } = require('@libsql/client');
   const turso = createClient({ url, authToken: token });
   const stmts = [
-    `CREATE TABLE IF NOT EXISTS students (student_id TEXT PRIMARY KEY, chinese_name TEXT NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS students (student_id TEXT PRIMARY KEY, chinese_name TEXT NOT NULL, english_name TEXT, class TEXT)`,
     `CREATE TABLE IF NOT EXISTS registrations (id INTEGER PRIMARY KEY AUTOINCREMENT, ref_code TEXT UNIQUE NOT NULL, student_id TEXT, name TEXT NOT NULL, mobile TEXT, email TEXT, intake_year TEXT, status TEXT DEFAULT 'pending', total_amount REAL DEFAULT 0, receipt_path TEXT, receipt_uploaded_at TEXT, checked_in_at TEXT, notes TEXT, created_at TEXT, updated_at TEXT)`,
     `CREATE TABLE IF NOT EXISTS tickets (id INTEGER PRIMARY KEY AUTOINCREMENT, registration_id INTEGER NOT NULL, ticket_type TEXT NOT NULL, quantity INTEGER DEFAULT 1, unit_price REAL NOT NULL, seats INTEGER NOT NULL, created_at TEXT, FOREIGN KEY (registration_id) REFERENCES registrations(id))`,
     `CREATE TABLE IF NOT EXISTS merchandise (id INTEGER PRIMARY KEY AUTOINCREMENT, registration_id INTEGER NOT NULL, item_type TEXT NOT NULL, size TEXT, quantity INTEGER DEFAULT 1, unit_price REAL NOT NULL, created_at TEXT, FOREIGN KEY (registration_id) REFERENCES registrations(id))`,
@@ -83,6 +83,7 @@ async function initTursoSchema(url, token) {
     const colNames = (cols.rows || []).map(r => r.name).join(', ');
     console.log(`[SchemaMigration] registrations columns: ${colNames}`);
   } catch(e) { console.log(`[SchemaMigration] could not inspect schema: ${e.message}`); }
+  await seedStudentsFromExcelTurso(url, token);
 }
 
 function getQueries() {
@@ -92,6 +93,57 @@ function getQueries() {
 
 function isTurso() { return _isTurso; }
 
+// ─── Seed students from Excel (shared helper) ─────────────────────────────────
+function loadStudentsFromExcel() {
+  try {
+    const XLSX = require('xlsx');
+    const xlsPath = path.join(__dirname, 'data', 'Student List.xlsx');
+    const workbook = XLSX.readFile(xlsPath);
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 }).slice(1); // skip header
+    return rows.map(row => {
+      const [cls, id, chineseName, englishName] = row;
+      return { student_id: String(id), chinese_name: chineseName, english_name: englishName || null, class: cls || null };
+    }).filter(r => r.student_id && r.chinese_name);
+  } catch (e) {
+    return null;
+  }
+}
+
+function seedStudentsFromExcel(db) {
+  const students = loadStudentsFromExcel();
+  if (!students) { console.log('[seedStudents] Skipped: could not load Excel'); return; }
+  // Ensure new columns exist in existing table (for migration from old schema)
+  try { db.exec("ALTER TABLE students ADD COLUMN english_name TEXT"); } catch(e) {}
+  try { db.exec("ALTER TABLE students ADD COLUMN class TEXT"); } catch(e) {}
+  const insert = db.prepare(`INSERT OR REPLACE INTO students (student_id, chinese_name, english_name, class) VALUES (?, ?, ?, ?)`);
+  let count = 0;
+  const insertMany = db.transaction((rows) => {
+    for (const r of rows) {
+      insert.run(r.student_id, r.chinese_name, r.english_name, r.class);
+      count++;
+    }
+  });
+  insertMany(students);
+  console.log(`[seedStudents] Loaded ${count} students from Excel`);
+}
+
+async function seedStudentsFromExcelTurso(url, token) {
+  const students = loadStudentsFromExcel();
+  if (!students) { console.log('[seedStudents] Skipped: could not load Excel'); return; }
+  const { createClient } = require('@libsql/client');
+  const turso = createClient({ url, authToken: token });
+  // Ensure table exists
+  await turso.execute(`CREATE TABLE IF NOT EXISTS students (student_id TEXT PRIMARY KEY, chinese_name TEXT NOT NULL, english_name TEXT, class TEXT)`);
+  // Insert in batches
+  let count = 0;
+  for (const r of students) {
+    await turso.execute({ sql: `INSERT OR REPLACE INTO students (student_id, chinese_name, english_name, class) VALUES (?, ?, ?, ?)`, args: [r.student_id, r.chinese_name, r.english_name, r.class] });
+    count++;
+  }
+  console.log(`[seedStudents] Loaded ${count} students to Turso`);
+}
+
 // ─── Local SQLite setup ───────────────────────────────────────────────────────
 function initLocal() {
   const dbPath = path.join(__dirname, 'homecoming.db');
@@ -100,9 +152,12 @@ function initLocal() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS students (
       student_id TEXT PRIMARY KEY,
-      chinese_name TEXT NOT NULL
+      chinese_name TEXT NOT NULL,
+      english_name TEXT,
+      class TEXT
     );
     CREATE TABLE IF NOT EXISTS registrations (
+
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
       ref_code    TEXT    UNIQUE NOT NULL,
       student_id  TEXT,
@@ -159,6 +214,7 @@ function initLocal() {
     );
     CREATE INDEX IF NOT EXISTS idx_audit_target ON audit_logs(target_type, target_id);
   `);
+  seedStudentsFromExcel(db);
   return db;
 }
 
@@ -166,7 +222,7 @@ function initLocal() {
 function buildLocalQueries(db) {
   const stmts = {
     getStudent:        db.prepare(`SELECT * FROM students WHERE student_id = ?`),
-    insertStudent:     db.prepare(`INSERT OR IGNORE INTO students (student_id, chinese_name) VALUES (?, ?)`),
+    insertStudent:     db.prepare(`INSERT OR REPLACE INTO students (student_id, chinese_name, english_name, class) VALUES (?, ?, ?, ?)`),
     getAllStudents:    db.prepare(`SELECT * FROM students`),
     insertReg:         db.prepare(`INSERT INTO registrations (ref_code, student_id, name, mobile, email, intake_year, status, total_amount, created_at, updated_at) VALUES (@ref_code, @student_id, @name, @mobile, @email, @intake_year, 'pending', @total_amount, @created_at, @updated_at)`),
     getReg:            db.prepare(`SELECT * FROM registrations WHERE id = ?`),
