@@ -210,20 +210,22 @@ function selectTicket(type) {
   document.querySelectorAll('.ticket-card').forEach(c => c.classList.remove('selected'));
   const selected = document.querySelector(`.ticket-card[data-type="${type}"]`);
   if (selected) selected.classList.add('selected');
-  const qtyEl = document.getElementById('singleQty');
-  const qty = type === 'single' ? parseInt(qtyEl?.textContent || '1') : 1;
+  const qtyEl = document.getElementById(type + 'Qty');
+  const qty = qtyEl ? parseInt(qtyEl.textContent || '1') : 1;
   selectedTicket = { type, quantity: qty, unitPrice: ticketConfig[type].price, seats: ticketConfig[type].seats };
   updateMerchTotal();
 }
 
 function changeQty(delta) {
-  const qtyEl = document.getElementById('singleQty');
+  if (!selectedTicket) return;
+  const qtyEl = document.getElementById(selectedTicket.type + 'Qty');
   if (!qtyEl) return;
   let qty = parseInt(qtyEl.textContent) + delta;
   if (qty < 1) qty = 1;
   if (qty > 10) qty = 10;
   qtyEl.textContent = qty;
-  if (selectedTicket) { selectedTicket.quantity = qty; updateMerchTotal(); }
+  selectedTicket.quantity = qty;
+  updateMerchTotal();
 }
 
 // ─── Render merch into a given container ─────────────────────────────────────

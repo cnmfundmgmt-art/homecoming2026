@@ -199,6 +199,17 @@
 
   <style>
     /* ── Hero, Countdown & Programme Timeline ── */
+@media (max-width: 480px) {
+  .hero-badge { font-size: 0.72rem; padding: 0.35rem 0.9rem; }
+  .hero-details { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .hero-detail-item { padding: 0.6rem 0.5rem; }
+  .hero-detail-item .detail-label { font-size: 0.58rem; }
+  .hero-detail-item .detail-value { font-size: 0.78rem; }
+  .countdown { gap: 0.3rem; }
+  .countdown-item { padding: 0.5rem 0.25rem; min-width: 52px; border-radius: 10px; }
+  .countdown-number { font-size: 1.2rem; }
+  .countdown-label { font-size: 0.55rem; }
+}
 /* ========== Hero Section ========== */
 .hero {
   min-height: 100vh;
@@ -208,7 +219,7 @@
   position: relative;
   background: linear-gradient(135deg, var(--dark-red) 0%, var(--primary-red) 50%, var(--dark-red) 100%);
   overflow: hidden;
-  padding: 6rem 2rem 4rem;
+  padding: 6rem 1rem 4rem;
 }
 
 .hero::before {
@@ -223,11 +234,12 @@
 }
 
 .hero-content {
-  text-align: left;
+  text-align: center;
   color: white;
   position: relative;
   z-index: 1;
   max-width: 900px;
+  width: 100%;
 }
 
 .hero-badge {
@@ -243,25 +255,28 @@
 }
 
 .hero-title {
-  font-size: clamp(3rem, 8vw, 5rem);
+  font-size: clamp(2.5rem, 10vw, 5rem);
   margin-bottom: 0.5rem;
   animation: fadeInUp 0.8s ease 0.2s both;
   text-shadow: 2px 4px 8px rgba(0,0,0,0.3);
+  text-align: center;
 }
 
 .hero-subtitle {
-  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-size: clamp(1.2rem, 4vw, 2rem);
   color: var(--bright-gold);
   margin-bottom: 1rem;
   animation: fadeInUp 0.8s ease 0.4s both;
+  text-align: center;
 }
 
 .hero-theme {
-  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  font-size: clamp(0.9rem, 2.5vw, 1.25rem);
   color: rgba(255,255,255,0.9);
   font-style: italic;
   margin-bottom: 2rem;
   animation: fadeInUp 0.8s ease 0.5s both;
+  text-align: center;
 }
 
 .hero-date {
@@ -272,6 +287,8 @@
   font-size: 1.25rem;
   margin-bottom: 2rem;
   animation: fadeInUp 0.8s ease 0.6s both;
+  text-align: center;
+  flex-wrap: wrap;
 }
 
 .hero-date-icon {
@@ -469,13 +486,18 @@
   <nav class="navbar">
     <div class="nav-container">
       <a href="/" class="nav-logo">🏠 Homecoming 2026</a>
-      <ul class="nav-links">
+      <ul class="nav-links" id="navLinks">
         <li><a href="#home">首页 Home</a></li>
         <li><a href="#activities">活动 Activities</a></li>
         <li><a href="#committee">筹委会 Committee</a></li>
         <li><a href="#register">报名 Register</a></li>
         <li><a href="/admin">管理 Admin</a></li>
       </ul>
+      <div class="nav-toggle" id="navToggle">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
     </div>
   </nav>
 
@@ -670,21 +692,18 @@
               </div>
               <div class="ticket-price">RM 200</div>
             </div>
-            <div class="ticket-card" id="ticket-family" data-type="family" onclick="regSelectTicket('family')">
-              <div class="ticket-radio"></div>
-              <div class="ticket-info">
-                <div class="ticket-name">家庭票 Family</div>
-                <div class="ticket-desc">4 人家庭套票</div>
-                <div class="ticket-seats">含 4 席 seats</div>
-              </div>
-              <div class="ticket-price">RM 800</div>
-            </div>
             <div class="ticket-card" id="ticket-table" data-type="table" onclick="regSelectTicket('table')">
               <div class="ticket-radio"></div>
               <div class="ticket-info">
                 <div class="ticket-name">桌席 Table</div>
                 <div class="ticket-desc">10 人桌席</div>
                 <div class="ticket-seats">含 10 席 seats</div>
+                <div class="qty-stepper">
+                  <span style="font-size:0.8rem;color:#888;">数量:</span>
+                  <button type="button" class="qty-btn" onclick="event.stopPropagation(); regChangeQty(-1)">-</button>
+                  <span class="qty-display" id="tableQty">1</span>
+                  <button type="button" class="qty-btn" onclick="event.stopPropagation(); regChangeQty(1)">+</button>
+                </div>
               </div>
               <div class="ticket-price">RM 1800</div>
             </div>
