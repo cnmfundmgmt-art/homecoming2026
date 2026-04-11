@@ -1,0 +1,10 @@
+const Database = require('better-sqlite3');
+const db = new Database('./homecoming.db');
+const rows = db.prepare('SELECT id, ref_code, name, created_at FROM registrations ORDER BY id DESC LIMIT 5').all();
+console.log('Recent registrations:');
+console.log(JSON.stringify(rows, null, 2));
+const now = db.prepare("SELECT datetime('now') as now").get();
+console.log('DB now():', now);
+const nowLocal = db.prepare("SELECT datetime('now', 'localtime') as now_local").get();
+console.log('DB now localtime:', nowLocal);
+db.close();

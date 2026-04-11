@@ -1,0 +1,157 @@
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] set() — no client, session NOT saved!
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] set() — no client, session NOT saved!
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] set() — no client, session NOT saved!
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] set() — no client, session NOT saved!
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] set() — no client, session NOT saved!
+SyntaxError: Expected property name or '}' in JSON at position 1 (line 1 column 2)
+    at JSON.parse (<anonymous>)
+    at parse (C:\Users\000\.openclaw\workspace\homecoming-2026\node_modules\body-parser\lib\types\json.js:92:19)
+    at C:\Users\000\.openclaw\workspace\homecoming-2026\node_modules\body-parser\lib\read.js:128:18
+    at AsyncResource.runInAsyncScope (node:async_hooks:214:14)
+    at invokeCallback (C:\Users\000\.openclaw\workspace\homecoming-2026\node_modules\raw-body\index.js:238:16)
+    at done (C:\Users\000\.openclaw\workspace\homecoming-2026\node_modules\raw-body\index.js:227:7)
+    at IncomingMessage.onEnd (C:\Users\000\.openclaw\workspace\homecoming-2026\node_modules\raw-body\index.js:287:7)
+    at IncomingMessage.emit (node:events:519:28)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+SyntaxError: Expected property name or '}' in JSON at position 1 (line 1 column 2)
+    at JSON.parse (<anonymous>)
+    at parse (C:\Users\000\.openclaw\workspace\homecoming-2026\node_modules\body-parser\lib\types\json.js:92:19)
+    at C:\Users\000\.openclaw\workspace\homecoming-2026\node_modules\body-parser\lib\read.js:128:18
+    at AsyncResource.runInAsyncScope (node:async_hooks:214:14)
+    at invokeCallback (C:\Users\000\.openclaw\workspace\homecoming-2026\node_modules\raw-body\index.js:238:16)
+    at done (C:\Users\000\.openclaw\workspace\homecoming-2026\node_modules\raw-body\index.js:227:7)
+    at IncomingMessage.onEnd (C:\Users\000\.openclaw\workspace\homecoming-2026\node_modules\raw-body\index.js:287:7)
+    at IncomingMessage.emit (node:events:519:28)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+SyntaxError: Expected property name or '}' in JSON at position 1 (line 1 column 2)
+    at JSON.parse (<anonymous>)
+    at parse (C:\Users\000\.openclaw\workspace\homecoming-2026\node_modules\body-parser\lib\types\json.js:92:19)
+    at C:\Users\000\.openclaw\workspace\homecoming-2026\node_modules\body-parser\lib\read.js:128:18
+    at AsyncResource.runInAsyncScope (node:async_hooks:214:14)
+    at invokeCallback (C:\Users\000\.openclaw\workspace\homecoming-2026\node_modules\raw-body\index.js:238:16)
+    at done (C:\Users\000\.openclaw\workspace\homecoming-2026\node_modules\raw-body\index.js:227:7)
+    at IncomingMessage.onEnd (C:\Users\000\.openclaw\workspace\homecoming-2026\node_modules\raw-body\index.js:287:7)
+    at IncomingMessage.emit (node:events:519:28)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] set() — no client, session NOT saved!
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] set() — no client, session NOT saved!
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] set() — no client, session NOT saved!
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] set() — no client, session NOT saved!
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] set() — no client, session NOT saved!
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] set() — no client, session NOT saved!
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
+[TursoSessionStore] FATAL: Turso env vars missing — sessions will NOT persist!
+[TursoSessionStore] get() — no client, returning null session
