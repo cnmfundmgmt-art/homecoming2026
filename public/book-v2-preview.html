@@ -4,22 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>报名 Register — Homecoming 2026</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Inter','Noto Sans SC',system-ui,sans-serif; background: #f5f5f5; color: #333; min-height: 100vh; }
     body.cart-open { overflow: hidden; }
 
     /* ── Page shell ── */
-    .book-page { max-width: 680px; margin: 0 auto; padding: 1.5rem 1rem 7rem; }
+    .book-page { max-width: 680px; margin: 0 auto; padding: 1.5rem 1rem 6rem; }
 
     /* ── Header ── */
     .book-header { text-align: center; margin-bottom: 1.5rem; }
     .book-header h1 { font-size: 1.6rem; color: #8B1A1A; margin-bottom: 0.2rem; }
     .book-header p { color: #888; font-size: 0.85rem; }
 
-    /* ── Step indicator ── */
+    /* ── Step indicator (2 steps) ── */
     .steps-bar { display: flex; align-items: center; justify-content: center; margin-bottom: 2rem; }
     .step-item { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
     .step-num {
@@ -64,8 +62,6 @@
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
     .error-msg { background: #fff3f3; border: 1px solid #fc8181; border-radius: 8px; padding: 0.75rem 1rem; color: #c53030; font-size: 0.88rem; margin-bottom: 1rem; display: none; }
     .error-msg.visible { display: block; }
-    .form-error { color: #e53e3e; font-size: 0.8rem; margin-top: 0.3rem; display: none; }
-    .form-error.visible { display: block; }
 
     /* ── Student lookup ── */
     .student-lookup { display: flex; gap: 0.5rem; align-items: flex-end; }
@@ -75,7 +71,6 @@
       border: none; border-radius: 10px; font-size: 0.85rem; font-weight: 600;
       cursor: pointer; white-space: nowrap;
     }
-    .btn-lookup:hover { background: #6B1010; }
     .lookup-result { margin-top: 0.4rem; font-size: 0.82rem; }
     .lookup-result.ok { color: #28a745; }
     .lookup-result.fail { color: #e53e3e; }
@@ -152,6 +147,13 @@
     .merch-subtotal { font-size: 0.88rem; font-weight: 700; color: #D4A853; margin-top: 0.1rem; }
     .merch-subtotal.zero { color: #ccc; font-weight: 400; }
     .merch-unit { font-size: 0.82rem; color: #8B1A1A; font-weight: 600; }
+    .merch-remove {
+      width: 28px; height: 28px; border-radius: 6px; border: none;
+      background: #f5f5f5; cursor: pointer; font-size: 0.9rem;
+      display: flex; align-items: center; justify-content: center;
+      color: #999; flex-shrink: 0; margin-left: 0.25rem;
+    }
+    .merch-remove:hover { background: #fee2e2; color: #e53e3e; }
 
     /* ── Donation ── */
     .donation-box {
@@ -179,7 +181,7 @@
     }
     .donation-input:focus { outline: none; border-color: #8B1A1A; }
 
-    /* ── Floating cart button ── */
+    /* ── Floating "View Order" button ── */
     .floating-order-btn {
       position: fixed; bottom: 1.5rem; right: 1.5rem;
       background: #8B1A1A; color: #fff;
@@ -199,7 +201,7 @@
       font-size: 0.75rem; font-weight: 800;
     }
 
-    /* ── Cart overlay ── */
+    /* ── Side Cart Overlay ── */
     .cart-overlay {
       position: fixed; inset: 0; z-index: 200;
       background: rgba(0,0,0,0.4);
@@ -221,6 +223,7 @@
     }
     .cart-panel.open { transform: translateX(0); }
 
+    /* Cart header */
     .cart-head {
       display: flex; align-items: center; justify-content: space-between;
       padding: 1.25rem 1.25rem 1rem;
@@ -235,8 +238,12 @@
     }
     .cart-close:hover { background: #eee; }
 
-    .cart-body { flex: 1; overflow-y: auto; padding: 0.5rem 1.25rem; }
+    /* Cart body — scrollable */
+    .cart-body {
+      flex: 1; overflow-y: auto; padding: 0.5rem 1.25rem;
+    }
 
+    /* Cart item rows */
     .cart-item {
       display: flex; align-items: center; gap: 0.75rem;
       padding: 0.875rem 0;
@@ -247,14 +254,10 @@
       background: #f5f5f5; border: 1px solid #eee;
       object-fit: cover; flex-shrink: 0;
     }
-    .cart-item-icon {
-      width: 52px; height: 52px; border-radius: 8px;
-      background: #f0f0f0; display: flex; align-items: center; justify-content: center;
-      font-size: 1.5rem; flex-shrink: 0;
-    }
     .cart-item-info { flex: 1; min-width: 0; }
     .cart-item-name { font-weight: 700; font-size: 0.9rem; color: #333; }
     .cart-item-meta { font-size: 0.78rem; color: #888; margin-top: 0.1rem; }
+    .cart-item-price { font-weight: 700; font-size: 0.88rem; color: #8B1A1A; margin-top: 0.2rem; }
     .cart-item-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem; }
     .cart-item-sub { font-weight: 800; font-size: 0.95rem; color: #333; }
     .cart-item-qty { display: flex; align-items: center; gap: 0.35rem; }
@@ -272,17 +275,21 @@
     }
     .cart-item-remove:hover { text-decoration: underline; }
 
+    /* Cart sections */
     .cart-section-label {
       font-size: 0.72rem; font-weight: 700; color: #aaa;
       text-transform: uppercase; letter-spacing: 0.5px;
       padding: 1rem 0 0.5rem;
     }
 
+    /* Empty state */
     .cart-empty {
       text-align: center; padding: 3rem 1rem; color: #aaa;
     }
     .cart-empty-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+    .cart-empty p { font-size: 0.9rem; }
 
+    /* Donation in cart */
     .cart-donation-row {
       display: flex; align-items: center; justify-content: space-between;
       padding: 0.75rem 0;
@@ -291,6 +298,7 @@
     .cart-donation-label { font-size: 0.88rem; font-weight: 600; color: #555; }
     .cart-donation-amount { font-weight: 700; color: #8B1A1A; font-size: 0.88rem; }
 
+    /* Cart footer */
     .cart-foot {
       padding: 1rem 1.25rem 1.25rem;
       border-top: 2px solid #8B1A1A;
@@ -304,6 +312,7 @@
       font-size: 1.05rem; font-weight: 800; color: #8B1A1A;
       border-top: 1.5px solid #eee; margin-top: 0.5rem; padding-top: 0.6rem;
     }
+    .cart-summary-row.discount { color: #28a745; }
     .cart-actions { display: flex; gap: 0.75rem; margin-top: 1rem; }
     .btn-continue {
       padding: 0.75rem 1rem; border-radius: 10px;
@@ -364,9 +373,8 @@
     .success-icon { font-size: 3.5rem; margin-bottom: 0.75rem; }
     .success-title { font-size: 1.4rem; font-weight: 700; color: #8B1A1A; margin-bottom: 0.4rem; }
     .success-msg { color: #666; font-size: 0.9rem; line-height: 1.6; margin-top: 1rem; }
-    .success-ref { background: #f5f5f5; border-radius: 10px; padding: 0.75rem 1rem; margin-top: 1rem; font-weight: 700; color: #8B1A1A; font-size: 1.1rem; }
 
-    /* ── Loading spinner ── */
+    /* ── Spinner ── */
     .spinner {
       display: inline-block; width: 18px; height: 18px;
       border: 3px solid rgba(255,255,255,0.3); border-radius: 50%;
@@ -431,21 +439,9 @@
           <input type="tel" class="form-input" id="buyerMobile" placeholder="012-3456789">
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">邮箱 Email</label>
-          <input type="email" class="form-input" id="buyerEmail" placeholder="abc@email.com">
-        </div>
-        <div class="form-group">
-          <label class="form-label">班别 Class</label>
-          <select class="form-select" id="studentClass">
-            <option value="">请选择 Select</option>
-            <option value="J1">J1</option><option value="J2">J2</option>
-            <option value="J3">J3</option><option value="J4">J4</option>
-            <option value="J5">J5</option><option value="J6">J6</option>
-            <option value="Pre-U">Pre-U</option>
-          </select>
-        </div>
+      <div class="form-group">
+        <label class="form-label">邮箱 Email</label>
+        <input type="email" class="form-input" id="buyerEmail" placeholder="abc@email.com">
       </div>
     </div>
 
@@ -454,9 +450,54 @@
       <div class="section-title">
         <span class="section-badge">A</span>
         票务选择 Ticket Selection
-        <span id="ticketSubtotal" class="section-subtotal">RM 0</span>
+        <span id="ticketSubtotal" class="section-subtotal">RM 200</span>
       </div>
-      <div class="ticket-grid" id="ticketGrid"><!-- built by JS --></div>
+      <div class="ticket-grid">
+        <!-- Single ticket -->
+        <div class="ticket-card selected" data-type="single" onclick="selectTicket('single')">
+          <div class="ticket-radio"></div>
+          <div class="ticket-info">
+            <div class="ticket-name-row">
+              <div class="ticket-name">Single Ticket 单人票</div>
+            </div>
+            <div class="ticket-desc">1人参加 · 含 1 席 seat</div>
+            <div class="ticket-row">
+              <div class="qty-stepper">
+                <label>数量:</label>
+                <button class="qty-btn" onclick="event.stopPropagation(); changeQty(-1)">−</button>
+                <span class="qty-display" id="singleQty">1</span>
+                <button class="qty-btn" onclick="event.stopPropagation(); changeQty(1)">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="ticket-right">
+            <div class="ticket-price">RM 200/位</div>
+            <div class="ticket-subtotal" id="singleSubtotal">= RM 200</div>
+          </div>
+        </div>
+        <!-- Table ticket -->
+        <div class="ticket-card" data-type="table" onclick="selectTicket('table')">
+          <div class="ticket-radio"></div>
+          <div class="ticket-info">
+            <div class="ticket-name-row">
+              <div class="ticket-name">Table 桌席</div>
+            </div>
+            <div class="ticket-desc">10人桌席 · 含 10 席 seats</div>
+            <div class="ticket-row">
+              <div class="qty-stepper">
+                <label>数量:</label>
+                <button class="qty-btn" onclick="event.stopPropagation(); changeQty(-1)">−</button>
+                <span class="qty-display" id="tableQty">1</span>
+                <button class="qty-btn" onclick="event.stopPropagation(); changeQty(1)">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="ticket-right">
+            <div class="ticket-price">RM 1,800/桌</div>
+            <div class="ticket-subtotal" id="tableSubtotal">= RM 1,800</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- SECTION B: Merchandise -->
@@ -466,7 +507,80 @@
         周边选择 Merchandise <span style="font-weight:400;font-size:0.8rem;color:#999">（可选 Optional）</span>
         <span id="merchSubtotal" class="section-subtotal">—</span>
       </div>
-      <div class="merch-grid" id="merchGrid"><!-- built by JS --></div>
+
+      <!-- T-shirt -->
+      <div class="merch-item" id="merch-tshirt">
+        <div class="merch-checkbox" id="merch-check-tshirt" onclick="toggleMerch('tshirt')"></div>
+        <img class="merch-img" src="/images/chkl_bank_qr.png" alt="T-shirt" onclick="toggleMerch('tshirt')" onerror="this.style.display='none'">
+        <div class="merch-info">
+          <div class="merch-name">T-shirt</div>
+          <div class="merch-price">RM 60/件</div>
+          <div class="merch-ctrl hidden" id="merch-ctrl-tshirt">
+            <div class="size-btns" id="merch-opts-tshirt">
+              <span class="size-label">尺码:</span>
+              <button class="size-btn" onclick="event.stopPropagation(); selectSize('tshirt','S')">S</button>
+              <button class="size-btn selected" onclick="event.stopPropagation(); selectSize('tshirt','M')">M</button>
+              <button class="size-btn" onclick="event.stopPropagation(); selectSize('tshirt','L')">L</button>
+              <button class="size-btn" onclick="event.stopPropagation(); selectSize('tshirt','XL')">XL</button>
+              <button class="size-btn" onclick="event.stopPropagation(); selectSize('tshirt','XXL')">XXL</button>
+            </div>
+            <div class="merch-qty" id="merch-qty-row-tshirt">
+              <span class="size-label">×</span>
+              <button class="qty-btn" onclick="event.stopPropagation(); changeMerchQty('tshirt',-1)">−</button>
+              <span class="qty-display" id="merch-qty-tshirt">1</span>
+              <button class="qty-btn" onclick="event.stopPropagation(); changeMerchQty('tshirt',1)">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="merch-right" id="merch-right-tshirt">
+          <div class="merch-unit">RM 60</div>
+          <div class="merch-subtotal zero" id="merch-sub-tshirt">—</div>
+        </div>
+      </div>
+
+      <!-- School Badge -->
+      <div class="merch-item" id="merch-badge">
+        <div class="merch-checkbox" id="merch-check-badge" onclick="toggleMerch('badge')"></div>
+        <img class="merch-img" src="/images/chkl_bank_qr.png" alt="School Badge" onclick="toggleMerch('badge')" onerror="this.style.display='none'">
+        <div class="merch-info">
+          <div class="merch-name">School Badge 校徽</div>
+          <div class="merch-price">RM 30/个</div>
+          <div class="merch-ctrl hidden" id="merch-ctrl-badge">
+            <div class="merch-qty">
+              <span class="size-label">数量:</span>
+              <button class="qty-btn" onclick="event.stopPropagation(); changeMerchQty('badge',-1)">−</button>
+              <span class="qty-display" id="merch-qty-badge">1</span>
+              <button class="qty-btn" onclick="event.stopPropagation(); changeMerchQty('badge',1)">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="merch-right" id="merch-right-badge">
+          <div class="merch-unit">RM 30</div>
+          <div class="merch-subtotal zero" id="merch-sub-badge">—</div>
+        </div>
+      </div>
+
+      <!-- Recycle Bag -->
+      <div class="merch-item" id="merch-bag">
+        <div class="merch-checkbox" id="merch-check-bag" onclick="toggleMerch('bag')"></div>
+        <img class="merch-img" src="/images/chkl_bank_qr.png" alt="Recycle Bag" onclick="toggleMerch('bag')" onerror="this.style.display='none'">
+        <div class="merch-info">
+          <div class="merch-name">Recycle Bag 环保袋</div>
+          <div class="merch-price">RM 15/个</div>
+          <div class="merch-ctrl hidden" id="merch-ctrl-bag">
+            <div class="merch-qty">
+              <span class="size-label">数量:</span>
+              <button class="qty-btn" onclick="event.stopPropagation(); changeMerchQty('bag',-1)">−</button>
+              <span class="qty-display" id="merch-qty-bag">1</span>
+              <button class="qty-btn" onclick="event.stopPropagation(); changeMerchQty('bag',1)">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="merch-right" id="merch-right-bag">
+          <div class="merch-unit">RM 15</div>
+          <div class="merch-subtotal zero" id="merch-sub-bag">—</div>
+        </div>
+      </div>
     </div>
 
     <!-- SECTION C: Donation -->
@@ -484,21 +598,21 @@
             <div class="donation-sub">您的捐款将帮助有需要的学生和老师</div>
           </div>
         </div>
-        <div class="donation-quick" id="donationQuick">
+        <div class="donation-quick">
           <button class="quick-btn" onclick="setDonation(100)">RM 100</button>
           <button class="quick-btn" onclick="setDonation(300)">RM 300</button>
           <button class="quick-btn" onclick="setDonation(500)">RM 500</button>
         </div>
         <div class="donation-field-wrap">
           <span class="donation-prefix">RM</span>
-          <input type="number" class="donation-input" id="donationInput" placeholder="输入其他金额" min="0" oninput="onDonationInput()">
+          <input type="number" class="donation-input" id="donationInput" placeholder="输入其他金额" min="0" oninput="updateTotal()">
         </div>
       </div>
     </div>
 
   </div><!-- /step1 -->
 
-  <!-- STEP 2 -->
+  <!-- STEP 2: Payment -->
   <div id="step2" style="display:none">
     <div class="book-card">
       <div class="section-title"><span>💳</span> 付款 Payment</div>
@@ -512,10 +626,8 @@
         <div class="bank-row"><span>户名 Account Name</span><strong>Chong Hwa Independent High School</strong></div>
         <div class="bank-row"><span>账号 Account Number</span><strong>888-106-966424-7</strong></div>
       </div>
-      <div class="qr-wrap" id="qrWrap">
-        <div style="width:200px;height:200px;background:#f5f5f5;border-radius:12px;margin:0 auto;display:flex;align-items:center;justify-content:center;border:3px solid #f0f0f0;">
-          <span style="color:#999;font-size:0.8rem;">QR Code</span>
-        </div>
+      <div class="qr-wrap">
+        <img src="/images/chkl_bank_qr.png" alt="Bank QR" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22><rect fill=%22%23f0f0f0%22 width=%22200%22 height=%22200%22/><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2212%22>QR</text></svg>'">
         <p style="font-size:0.78rem;color:#888;margin-top:0.4rem;">请扫描上方二维码完成付款<br>Scan QR to pay</p>
       </div>
       <div class="receipt-area">
@@ -538,14 +650,14 @@
           您的报名已收到，筹委会将审核后确认。<br>
           Your registration has been received.
         </div>
-        <div class="success-ref" id="successRef">Ref: —</div>
+        <div id="successRef" style="background:#f5f5f5;border-radius:10px;padding:0.75rem 1rem;margin-top:1rem;font-weight:700;color:#8B1A1A;font-size:1.1rem;"></div>
       </div>
     </div>
   </div>
 
 </div><!-- /book-page -->
 
-<!-- Floating cart button -->
+<!-- Floating "View Order" button -->
 <button class="floating-order-btn" id="floatingBtn" onclick="openCart()">
   🛒 查看报名
   <span class="cart-count" id="cartCount">0</span>
@@ -556,16 +668,21 @@
 
 <!-- Side Cart Panel -->
 <div class="cart-panel" id="cartPanel">
+  <!-- Header -->
   <div class="cart-head">
     <span class="cart-head-title">🛒 您的报名 Your Order</span>
     <button class="cart-close" onclick="closeCart()">✕</button>
   </div>
+
+  <!-- Cart body (populated by JS) -->
   <div class="cart-body" id="cartBody">
     <div class="cart-empty" id="cartEmpty">
       <div class="cart-empty-icon">📋</div>
       <p>您的报名还是空的<br>Your order is empty</p>
     </div>
   </div>
+
+  <!-- Footer -->
   <div class="cart-foot" id="cartFoot" style="display:none">
     <div class="cart-summary-row"><span>票务 Ticket</span><span id="cfTicket">—</span></div>
     <div class="cart-summary-row"><span>周边 Merchandise</span><span id="cfMerch">—</span></div>
@@ -578,157 +695,72 @@
   </div>
 </div>
 
-<script src="/js/booking.js"></script>
 <script>
-  // ── State ──────────────────────────────────────────────────────
+  // ── Config ──────────────────────────────────────────────────────
+  const TICKET_PRICES  = { single: 200, table: 1800 };
+  const TICKET_LABELS  = { single: 'Single Ticket 单人票', table: 'Table 桌席' };
+  const MERCH_PRICES   = { tshirt: 60, badge: 30, bag: 15 };
+  const MERCH_LABELS   = { tshirt: 'T-shirt', badge: 'School Badge 校徽', bag: 'Recycle Bag 环保袋' };
+  const API = ''; // relative URLs — same origin in production
+
+  // ── State ───────────────────────────────────────────────────────
   const state = {
-    ticketType: null,
+    ticketType: 'single',
     ticketQty:  1,
-    merch:      {},
-    merchQty:   {},
-    merchSize:  {},
+    merch:      { tshirt: false, badge: false, bag: false },
+    merchQty:   { tshirt: 1, badge: 1, bag: 1 },
+    merchSize:  { tshirt: 'M' },
     donation:   0,
-    config:      null,
   };
 
-  // ── Load config + build UI ──────────────────────────────────────
-  async function init() {
-    try {
-      const res = await fetch('/api/config');
-      const data = await res.json();
-      state.config = data;
-      buildTickets(data.tickets);
-      buildMerchandise(data.merchandise);
-    } catch (err) {
-      console.error('Failed to load config:', err);
-    }
-  }
+  // ── Init ────────────────────────────────────────────────────────
+  updateTotal();
 
-  function buildTickets(tickets) {
-    const grid = document.getElementById('ticketGrid');
-    grid.innerHTML = '';
-    tickets.forEach(t => {
-      const isSelected = state.ticketType === t.type;
-      const card = document.createElement('div');
-      card.className = 'ticket-card' + (isSelected ? ' selected' : '');
-      card.dataset.type = t.type;
-      card.onclick = () => selectTicket(t.type);
-      const perSeat = t.type === 'single' ? '/位' : '/桌';
-      card.innerHTML = `
-        <div class="ticket-radio"></div>
-        <div class="ticket-info">
-          <div class="ticket-name-row">
-            <div class="ticket-name">${t.label}</div>
-          </div>
-          <div class="ticket-desc">${t.seats}人桌席 · 含 ${t.seats} 席 seat${t.seats > 1 ? 's' : ''}</div>
-          <div class="ticket-row">
-            <div class="qty-stepper">
-              <label>数量:</label>
-              <button class="qty-btn" onclick="event.stopPropagation(); changeQty(-1)">−</button>
-              <span class="qty-display" id="qty-${t.type}">${state.ticketQty}</span>
-              <button class="qty-btn" onclick="event.stopPropagation(); changeQty(1)">+</button>
-            </div>
-          </div>
-        </div>
-        <div class="ticket-right">
-          <div class="ticket-price">RM ${t.price.toLocaleString()}${perSeat}</div>
-          <div class="ticket-subtotal" id="sub-${t.type}">—</div>
-        </div>
-      `;
-      grid.appendChild(card);
-    });
-    // Default to first ticket
-    if (!state.ticketType && tickets.length > 0) {
-      selectTicket(tickets[0].type);
-    }
-    updateTotal();
-  }
+  // ── Cart open/close ─────────────────────────────────────────────
+  function openCart()  { document.body.classList.add('cart-open'); document.getElementById('cartPanel').classList.add('open'); document.getElementById('cartOverlay').classList.add('open'); renderCart(); }
+  function closeCart() { document.body.classList.remove('cart-open'); document.getElementById('cartPanel').classList.remove('open'); document.getElementById('cartOverlay').classList.remove('open'); }
 
-  function buildMerchandise(merchItems) {
-    const grid = document.getElementById('merchGrid');
-    grid.innerHTML = '';
-    merchItems.forEach(m => {
-      if (!state.merch[m.item]) { state.merch[m.item] = false; state.merchQty[m.item] = 1; state.merchSize[m.item] = m.sizes ? (m.sizes[1] || m.sizes[0]) : 'M'; }
-      const item = document.createElement('div');
-      item.className = 'merch-item';
-      item.id = 'merch-' + m.item;
-      item.innerHTML = `
-        <div class="merch-checkbox" id="check-${m.item}" onclick="toggleMerch('${m.item}')"></div>
-        <div class="merch-img" id="img-${m.item}" onclick="toggleMerch('${m.item}')"></div>
-        <div class="merch-info">
-          <div class="merch-name">${m.label}</div>
-          <div class="merch-price">RM ${m.price}/件</div>
-          ${m.sizes ? `
-          <div class="merch-ctrl hidden" id="ctrl-${m.item}">
-            <div class="size-btns" id="sizes-${m.item}">
-              <span class="size-label">尺码:</span>
-              ${m.sizes.map(s => `<button class="size-btn${s === state.merchSize[m.item] ? ' selected' : ''}" onclick="event.stopPropagation(); selectSize('${m.item}','${s}')">${s}</button>`).join('')}
-            </div>
-          </div>` : ''}
-          <div class="merch-ctrl hidden" id="qty-ctrl-${m.item}">
-            <div class="merch-qty" id="merch-qty-row-${m.item}">
-              <span class="size-label">数量:</span>
-              <button class="qty-btn" onclick="event.stopPropagation(); changeMerchQty('${m.item}',-1)">−</button>
-              <span class="qty-display" id="mqty-${m.item}">1</span>
-              <button class="qty-btn" onclick="event.stopPropagation(); changeMerchQty('${m.item}',1)">+</button>
-            </div>
-          </div>
-        </div>
-        <div class="merch-right" id="mright-${m.item}">
-          <div class="merch-unit" id="munit-${m.item}">RM ${m.price}</div>
-          <div class="merch-subtotal zero" id="msub-${m.item}">—</div>
-        </div>
-      `;
-      grid.appendChild(item);
-    });
-    updateTotal();
-  }
-
-  // ── Ticket functions ────────────────────────────────────────────
+  // ── Ticket ─────────────────────────────────────────────────────
   function selectTicket(type) {
     state.ticketType = type;
     document.querySelectorAll('.ticket-card').forEach(c => c.classList.remove('selected'));
-    const el = document.querySelector(`.ticket-card[data-type="${type}"]`);
-    if (el) el.classList.add('selected');
+    document.querySelector(`.ticket-card[data-type="${type}"]`).classList.add('selected');
     updateTotal();
   }
 
   function changeQty(delta) {
-    state.ticketQty = Math.max(1, Math.min(20, state.ticketQty + delta));
-    const el = document.getElementById('qty-' + state.ticketType);
-    if (el) el.textContent = state.ticketQty;
+    state.ticketQty = Math.max(1, Math.min(10, state.ticketQty + delta));
+    const id = state.ticketType === 'single' ? 'singleQty' : 'tableQty';
+    document.getElementById(id).textContent = state.ticketQty;
     updateTotal();
   }
 
-  // ── Merch functions ────────────────────────────────────────────
+  // ── Merch ───────────────────────────────────────────────────────
   function toggleMerch(item) {
     state.merch[item] = !state.merch[item];
     const el = document.getElementById('merch-' + item);
-    if (el) el.classList.toggle('checked', state.merch[item]);
-    // Show/hide controls
-    const ctrl = document.getElementById('ctrl-' + item);
+    el.classList.toggle('checked', state.merch[item]);
+    const ctrl = document.getElementById('merch-ctrl-' + item);
     if (ctrl) ctrl.classList.toggle('hidden', !state.merch[item]);
-    const qtyCtrl = document.getElementById('qty-ctrl-' + item);
-    if (qtyCtrl) qtyCtrl.classList.toggle('hidden', !state.merch[item]);
-    // Unit vs subtotal on right
-    const unit = document.getElementById('munit-' + item);
-    const sub  = document.getElementById('msub-' + item);
+    const right = document.getElementById('merch-right-' + item);
+    const subEl = document.getElementById('merch-sub-' + item);
     if (!state.merch[item]) {
-      if (unit) unit.style.display = '';
-      if (sub) { sub.textContent = '—'; sub.className = 'merch-subtotal zero'; }
+      if (right) right.querySelector('.merch-unit').style.display = '';
+      if (subEl) { subEl.textContent = '—'; subEl.className = 'merch-subtotal zero'; }
     }
     updateTotal();
   }
 
   function selectSize(item, size) {
     state.merchSize[item] = size;
-    const opts = document.getElementById('sizes-' + item);
-    if (opts) opts.querySelectorAll('.size-btn').forEach(b => b.classList.toggle('selected', b.textContent.trim() === size));
+    const opts = document.getElementById('merch-opts-' + item);
+    if (opts) opts.querySelectorAll('.size-btn').forEach(b => b.classList.toggle('selected', b.dataset.size === size));
+    updateTotal();
   }
 
   function changeMerchQty(item, delta) {
-    state.merchQty[item] = Math.max(1, Math.min(20, (state.merchQty[item]||1) + delta));
-    const d = document.getElementById('mqty-' + item);
+    state.merchQty[item] = Math.max(1, Math.min(10, state.merchQty[item] + delta));
+    const d = document.getElementById('merch-qty-' + item);
     if (d) d.textContent = state.merchQty[item];
     updateTotal();
   }
@@ -742,90 +774,67 @@
     updateTotal();
   }
 
-  function onDonationInput() {
-    const val = parseInt(document.getElementById('donationInput').value) || 0;
-    state.donation = val;
-    if (val > 0) {
-      document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('selected'));
-    }
-    updateTotal();
-  }
-
-  // ── Total calculation ───────────────────────────────────────────
+  // ── Total ──────────────────────────────────────────────────────
   function updateTotal() {
-    if (!state.config) return 0;
-
-    // Ticket total
-    let ticketTotal = 0;
-    if (state.ticketType && state.config.tickets) {
-      const t = state.config.tickets.find(x => x.type === state.ticketType);
-      if (t) {
-        ticketTotal = t.price * state.ticketQty;
-        const subEl = document.getElementById('sub-' + state.ticketType);
-        if (subEl) { subEl.textContent = `= RM ${ticketTotal.toLocaleString()}`; subEl.className = 'ticket-subtotal'; }
-        // Other types
-        state.config.tickets.forEach(x => {
-          if (x.type !== state.ticketType) {
-            const other = document.getElementById('sub-' + x.type);
-            if (other) { other.textContent = `= RM ${(x.price * 1).toLocaleString()}`; other.className = 'ticket-subtotal'; }
-          }
-        });
-      }
-    }
-    document.getElementById('ticketSubtotal').textContent = ticketTotal > 0 ? `RM ${ticketTotal.toLocaleString()}` : 'RM 0';
-
-    // Merch total
+    const ticketTotal = TICKET_PRICES[state.ticketType] * state.ticketQty;
     let merchTotal = 0;
-    if (state.config.merchandise) {
-      state.config.merchandise.forEach(m => {
-        const subEl = document.getElementById('msub-' + m.item);
-        const unitEl = document.getElementById('munit-' + m.item);
-        const rightEl = document.getElementById('mright-' + m.item);
-        if (!state.merch[m.item]) {
-          if (unitEl) unitEl.style.display = '';
-          if (subEl) { subEl.textContent = '—'; subEl.className = 'merch-subtotal zero'; }
-        } else {
-          const qty = state.merchQty[m.item] || 1;
-          const sub = m.price * qty;
-          merchTotal += sub;
-          if (unitEl) unitEl.style.display = 'none';
-          if (subEl) { subEl.textContent = `= RM ${sub.toLocaleString()}`; subEl.className = 'merch-subtotal'; }
-        }
-      });
+    for (const [item, checked] of Object.entries(state.merch)) {
+      if (!checked) continue;
+      merchTotal += MERCH_PRICES[item] * (state.merchQty[item] || 1);
     }
-    document.getElementById('merchSubtotal').textContent = merchTotal > 0 ? `RM ${merchTotal.toLocaleString()}` : '—';
-
-    // Donation
-    const donation = state.donation || 0;
-    document.getElementById('donationSubtotal').textContent = donation > 0 ? `RM ${donation.toLocaleString()}` : '—';
-
+    const donation = parseInt(document.getElementById('donationInput')?.value) || 0;
     const grand = ticketTotal + merchTotal + donation;
 
+    // Section header subtotals
+    document.getElementById('ticketSubtotal').textContent = `RM ${ticketTotal.toLocaleString()}`;
+    document.getElementById('merchSubtotal').textContent  = merchTotal > 0 ? `RM ${merchTotal.toLocaleString()}` : '—';
+    document.getElementById('donationSubtotal').textContent = donation > 0 ? `RM ${donation.toLocaleString()}` : '—';
+
+    // Per-row ticket subtotals
+    if (state.ticketType === 'single') {
+      document.getElementById('singleSubtotal').textContent = `= RM ${ticketTotal.toLocaleString()}`;
+      document.getElementById('singleSubtotal').className  = 'ticket-subtotal';
+    } else {
+      document.getElementById('tableSubtotal').textContent = `= RM ${ticketTotal.toLocaleString()}`;
+      document.getElementById('tableSubtotal').className  = 'ticket-subtotal';
+    }
+
+    // Per-row merch subtotals
+    for (const [item, checked] of Object.entries(state.merch)) {
+      const subEl = document.getElementById('merch-sub-' + item);
+      const right = document.getElementById('merch-right-' + item);
+      if (!subEl) continue;
+      if (!checked) {
+        if (right) right.querySelector('.merch-unit').style.display = '';
+        subEl.textContent = '—'; subEl.className = 'merch-subtotal zero';
+      } else {
+        if (right) right.querySelector('.merch-unit').style.display = 'none';
+        const sub = MERCH_PRICES[item] * (state.merchQty[item] || 1);
+        subEl.textContent = `= RM ${sub.toLocaleString()}`; subEl.className = 'merch-subtotal';
+      }
+    }
+
     // Floating button badge
-    const itemCount = (ticketTotal > 0 ? state.ticketQty : 0) +
-      Object.entries(state.merch).reduce((n, [k, v]) => n + (v ? state.merchQty[k] || 1 : 0), 0);
+    const itemCount = state.ticketQty + Object.entries(state.merch).reduce((n, [k, v]) => n + (v ? state.merchQty[k] || 1 : 0), 0);
     document.getElementById('cartCount').textContent = itemCount;
 
     return grand;
   }
 
-  // ── Cart ────────────────────────────────────────────────────────
-  function openCart()  { document.body.classList.add('cart-open'); document.getElementById('cartPanel').classList.add('open'); document.getElementById('cartOverlay').classList.add('open'); renderCart(); }
-  function closeCart() { document.body.classList.remove('cart-open'); document.getElementById('cartPanel').classList.remove('open'); document.getElementById('cartOverlay').classList.remove('open'); }
-
+  // ── Render Cart ─────────────────────────────────────────────────
   function renderCart() {
-    if (!state.config) return;
-    const tickets   = state.config.tickets || [];
-    const merchItems = state.config.merchandise || [];
-    const ticket = tickets.find(t => t.type === state.ticketType);
-    const ticketTotal = ticket ? ticket.price * state.ticketQty : 0;
-    const merchTotal  = merchItems.reduce((sum, m) => sum + (state.merch[m.item] ? m.price * (state.merchQty[m.item]||1) : 0), 0);
-    const donation = state.donation || 0;
+    const ticketTotal = TICKET_PRICES[state.ticketType] * state.ticketQty;
+    let merchTotal = 0;
+    for (const [item, checked] of Object.entries(state.merch)) {
+      if (checked) merchTotal += MERCH_PRICES[item] * (state.merchQty[item] || 1);
+    }
+    const donation = parseInt(document.getElementById('donationInput')?.value) || 0;
     const grand    = ticketTotal + merchTotal + donation;
-    const hasItems = grand > 0;
+    const hasItems = ticketTotal > 0 || merchTotal > 0 || donation > 0;
 
-    const body  = document.getElementById('cartBody');
-    const foot  = document.getElementById('cartFoot');
+    const body = document.getElementById('cartBody');
+    const foot = document.getElementById('cartFoot');
+    const empty = document.getElementById('cartEmpty');
 
     if (!hasItems) {
       body.innerHTML = `<div class="cart-empty"><div class="cart-empty-icon">📋</div><p>您的报名还是空的<br>Your order is empty</p></div>`;
@@ -834,23 +843,27 @@
     }
 
     let html = '';
-    const iconMap = { single: '🎫', table: '🪑' };
 
     // Ticket
     if (ticketTotal > 0) {
-      const perSeat = ticket.type === 'single' ? '/位' : '/桌';
+      const type = state.ticketType;
+      const label = TICKET_LABELS[type];
+      const price = TICKET_PRICES[type];
+      const qty   = state.ticketQty;
+      const sub   = price * qty;
       html += `<div class="cart-section-label">票务 Ticket</div>`;
       html += `<div class="cart-item">
-        <div class="cart-item-icon">${iconMap[ticket.type] || '🎫'}</div>
+        <div style="width:52px;height:52px;border-radius:8px;background:#8B1A1A;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;">🎫</div>
         <div class="cart-item-info">
-          <div class="cart-item-name">${ticket.label}</div>
-          <div class="cart-item-meta">RM ${ticket.price}${perSeat} × ${state.ticketQty}</div>
+          <div class="cart-item-name">${label}</div>
+          <div class="cart-item-meta">RM ${price.toLocaleString()}/位 × ${qty}</div>
+          <div class="cart-item-price">RM ${price.toLocaleString()}/位</div>
         </div>
         <div class="cart-item-right">
-          <div class="cart-item-sub">RM ${ticketTotal.toLocaleString()}</div>
+          <div class="cart-item-sub">RM ${sub.toLocaleString()}</div>
           <div class="cart-item-qty">
             <button class="qty-btn" onclick="cartChangeTicketQty(-1)">−</button>
-            <span class="qty-display">${state.ticketQty}</span>
+            <span class="qty-display">${qty}</span>
             <button class="qty-btn" onclick="cartChangeTicketQty(1)">+</button>
           </div>
           <button class="cart-item-remove" onclick="cartRemoveTicket()">移除 Remove</button>
@@ -859,31 +872,33 @@
     }
 
     // Merch
-    const checkedMerch = merchItems.filter(m => state.merch[m.item]);
-    if (checkedMerch.length > 0) {
+    const merchChecked = Object.entries(state.merch).filter(([,v]) => v);
+    if (merchChecked.length > 0) {
       html += `<div class="cart-section-label">周边 Merchandise</div>`;
-      checkedMerch.forEach(m => {
-        const qty  = state.merchQty[m.item] || 1;
-        const sub  = m.price * qty;
-        const size = m.sizes ? ` (${state.merchSize[m.item] || 'M'})` : '';
-        const emoji = m.item === 'tshirt' ? '👕' : m.item === 'badge' ? '🏫' : '👜';
+      for (const [item, ] of merchChecked) {
+        const price = MERCH_PRICES[item];
+        const qty   = state.merchQty[item] || 1;
+        const sub   = price * qty;
+        const size  = item === 'tshirt' ? state.merchSize[item] : '';
+        const sizeStr = size ? ` (${size})` : '';
         html += `<div class="cart-item">
-          <div class="cart-item-icon">${emoji}</div>
+          <img class="cart-item-img" src="/images/chkl_bank_qr.png" onerror="this.style.display='none'" alt="${MERCH_LABELS[item]}">
           <div class="cart-item-info">
-            <div class="cart-item-name">${m.label}${size}</div>
-            <div class="cart-item-meta">RM ${m.price}/件 × ${qty}</div>
+            <div class="cart-item-name">${MERCH_LABELS[item]}${sizeStr}</div>
+            <div class="cart-item-meta">RM ${price}/个 × ${qty}</div>
+            <div class="cart-item-price">RM ${price}/个</div>
           </div>
           <div class="cart-item-right">
             <div class="cart-item-sub">RM ${sub.toLocaleString()}</div>
             <div class="cart-item-qty">
-              <button class="qty-btn" onclick="event.stopPropagation(); cartChangeMerchQty('${m.item}',-1)">−</button>
+              <button class="qty-btn" onclick="event.stopPropagation(); cartChangeMerchQty('${item}',-1)">−</button>
               <span class="qty-display">${qty}</span>
-              <button class="qty-btn" onclick="event.stopPropagation(); cartChangeMerchQty('${m.item}',1)">+</button>
+              <button class="qty-btn" onclick="event.stopPropagation(); cartChangeMerchQty('${item}',1)">+</button>
             </div>
-            <button class="cart-item-remove" onclick="cartRemoveMerch('${m.item}')">移除 Remove</button>
+            <button class="cart-item-remove" onclick="cartRemoveMerch('${item}')">移除 Remove</button>
           </div>
         </div>`;
-      });
+      }
     }
 
     // Donation
@@ -896,62 +911,57 @@
     }
 
     body.innerHTML = html;
-    document.getElementById('cfTicket').textContent  = ticketTotal > 0 ? `RM ${ticketTotal.toLocaleString()}` : '—';
-    document.getElementById('cfMerch').textContent   = merchTotal  > 0 ? `RM ${merchTotal.toLocaleString()}` : '—';
+
+    // Footer
+    document.getElementById('cfTicket').textContent = ticketTotal > 0 ? `RM ${ticketTotal.toLocaleString()}` : '—';
+    document.getElementById('cfMerch').textContent  = merchTotal > 0 ? `RM ${merchTotal.toLocaleString()}` : '—';
     const donRow = document.getElementById('cfDonationRow');
-    if (donation > 0) {
-      donRow.style.display = '';
-      document.getElementById('cfDonation').textContent = `RM ${donation.toLocaleString()}`;
-    } else {
-      donRow.style.display = 'none';
-    }
+    if (donation > 0) { donRow.style.display = ''; document.getElementById('cfDonation').textContent = `RM ${donation.toLocaleString()}`; }
+    else { donRow.style.display = 'none'; }
     document.getElementById('cfTotal').textContent = `RM ${grand.toLocaleString()}`;
     foot.style.display = '';
   }
 
+  // ── Cart actions ─────────────────────────────────────────────────
   function cartChangeTicketQty(delta) {
-    state.ticketQty = Math.max(1, Math.min(20, state.ticketQty + delta));
-    const el = document.getElementById('qty-' + state.ticketType);
-    if (el) el.textContent = state.ticketQty;
+    state.ticketQty = Math.max(1, Math.min(10, state.ticketQty + delta));
+    document.getElementById(state.ticketType === 'single' ? 'singleQty' : 'tableQty').textContent = state.ticketQty;
     updateTotal(); renderCart();
   }
-
   function cartRemoveTicket() {
     state.ticketQty = 1;
-    const el = document.getElementById('qty-' + state.ticketType);
-    if (el) el.textContent = 1;
+    document.getElementById('singleQty').textContent = 1;
+    document.getElementById('tableQty').textContent = 1;
     updateTotal(); renderCart();
   }
-
   function cartChangeMerchQty(item, delta) {
-    state.merchQty[item] = Math.max(1, Math.min(20, (state.merchQty[item]||1) + delta));
-    const d = document.getElementById('mqty-' + item);
+    state.merchQty[item] = Math.max(1, Math.min(10, (state.merchQty[item]||1) + delta));
+    const d = document.getElementById('merch-qty-' + item);
     if (d) d.textContent = state.merchQty[item];
     updateTotal(); renderCart();
   }
-
   function cartRemoveMerch(item) {
     state.merch[item] = false;
     const el = document.getElementById('merch-' + item);
     if (el) el.classList.remove('checked');
-    const ctrl = document.getElementById('ctrl-' + item);
+    const ctrl = document.getElementById('merch-ctrl-' + item);
     if (ctrl) ctrl.classList.add('hidden');
-    const qtyCtrl = document.getElementById('qty-ctrl-' + item);
-    if (qtyCtrl) qtyCtrl.classList.add('hidden');
-    const unit = document.getElementById('munit-' + item);
-    const sub  = document.getElementById('msub-' + item);
-    if (unit) unit.style.display = '';
-    if (sub) { sub.textContent = '—'; sub.className = 'merch-subtotal zero'; }
+    const right = document.getElementById('merch-right-' + item);
+    const subEl = document.getElementById('merch-sub-' + item);
+    if (right) right.querySelector('.merch-unit').style.display = '';
+    if (subEl) { subEl.textContent = '—'; subEl.className = 'merch-subtotal zero'; }
     updateTotal(); renderCart();
   }
 
-  // ── Steps ───────────────────────────────────────────────────────
+  // ── Step navigation ─────────────────────────────────────────────
   function showStep(n) {
     document.getElementById('step1').style.display        = n === 1 ? 'block' : 'none';
     document.getElementById('step2').style.display        = n === 2 ? 'block' : 'none';
     document.getElementById('successScreen').style.display = n === 'success' ? 'block' : 'none';
-    document.getElementById('floatingBtn').style.display   = (n === 1) ? '' : 'none';
-    closeCart();
+    document.getElementById('floatingBtn').style.display   = n === 1 ? '' : 'none';
+    document.getElementById('cartOverlay').classList.remove('open');
+    document.getElementById('cartPanel').classList.remove('open');
+    document.body.classList.remove('cart-open');
     if (n === 2) {
       const grand = updateTotal();
       document.getElementById('payAmount').textContent = `RM ${grand.toLocaleString()}`;
@@ -959,27 +969,19 @@
     document.querySelectorAll('.step-item').forEach(s => {
       const sn = parseInt(s.dataset.step);
       s.classList.remove('active','done');
-      if (sn === n || (n === 'success' && sn === 2)) s.classList.add('active');
-      else if ((n === 2 && sn < 2) || (n === 'success' && sn <= 2)) s.classList.add('done');
+      if (sn === n) s.classList.add('active');
+      else if (sn < n) s.classList.add('done');
     });
   }
 
   function goToPayment() {
     const name   = document.getElementById('buyerName').value.trim();
     const mobile = document.getElementById('buyerMobile').value.trim();
-    const errEl  = document.getElementById('step1Error');
-    if (!name) {
-      document.getElementById('buyerName').classList.add('error');
-      errEl.textContent = '请输入姓名 Name is required'; errEl.classList.add('visible');
-      return;
-    }
-    if (!mobile) {
-      errEl.textContent = '请输入手机号 Mobile is required'; errEl.classList.add('visible');
-      return;
-    }
-    errEl.classList.remove('visible');
+    if (!name) { document.getElementById('buyerName').classList.add('error'); return; }
+    if (!mobile) { document.getElementById('step1Error').textContent = '请输入手机号'; document.getElementById('step1Error').classList.add('visible'); return; }
+    document.getElementById('step1Error').classList.remove('visible');
     const grand = updateTotal();
-    if (grand <= 0) { errEl.textContent = '请至少选择一项（票务、周边或捐款）'; errEl.classList.add('visible'); return; }
+    if (grand <= 0) { alert('请至少选择一项'); return; }
     closeCart();
     showStep(2);
   }
@@ -992,6 +994,27 @@
     reader.readAsDataURL(input.files[0]);
   }
 
+  async function lookupStudent() {
+    const sid = document.getElementById('studentId').value.trim();
+    const result = document.getElementById('lookupResult');
+    if (!sid) { result.className = 'lookup-result fail'; result.textContent = '请输入学号'; return; }
+    result.className = ''; result.textContent = '查找中...';
+    try {
+      const res = await fetch(`${API}/api/student/${encodeURIComponent(sid)}`);
+      const data = await res.json();
+      if (data.success && data.student) {
+        result.className = 'lookup-result ok';
+        result.textContent = `✓ 找到: ${data.student.chinese_name} (${data.student.class || 'N/A'})`;
+        if (!document.getElementById('buyerName').value.trim()) {
+          document.getElementById('buyerName').value = data.student.chinese_name;
+        }
+      } else {
+        result.className = 'lookup-result fail';
+        result.textContent = '学号未找到 Student ID not found';
+      }
+    } catch { result.className = 'lookup-result fail'; result.textContent = '查找失败'; }
+  }
+
   async function submitRegistration() {
     const btn = document.getElementById('btnConfirm');
     const errEl = document.getElementById('step2Error');
@@ -1000,82 +1023,50 @@
       errEl.textContent = '请上传付款凭证 Please upload receipt'; errEl.classList.add('visible'); return;
     }
     errEl.classList.remove('visible');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> 提交中...';
+    btn.disabled = true; btn.textContent = '提交中...';
 
     try {
-      const formData = new FormData();
-      formData.append('name',        document.getElementById('buyerName').value.trim());
-      formData.append('mobile',      document.getElementById('buyerMobile').value.trim());
-      formData.append('email',       document.getElementById('buyerEmail').value.trim());
-      formData.append('studentId',   document.getElementById('studentId').value.trim());
-      formData.append('studentClass', document.getElementById('studentClass').value);
-      formData.append('donation',    state.donation || 0);
-      formData.append('receipt',     receiptInput.files[0]);
-
-      // Build tickets array
-      if (state.ticketType) {
-        formData.append('ticketType', state.ticketType);
-        formData.append('ticketQty',  state.ticketQty);
-      }
-
       // Build merch array
       const merchArr = [];
-      if (state.config && state.config.merchandise) {
-        state.config.merchandise.forEach(m => {
-          if (state.merch[m.item]) {
-            merchArr.push({ item: m.item, quantity: state.merchQty[m.item] || 1, size: m.sizes ? (state.merchSize[m.item] || 'M') : null });
-          }
-        });
-      }
-      formData.append('merchandise', JSON.stringify(merchArr));
+      ['tshirt','badge','bag'].forEach(item => {
+        if (state.merch[item]) {
+          merchArr.push({ item, quantity: state.merchQty[item] || 1, size: state.merchSize[item] || null });
+        }
+      });
 
-      const res = await fetch('/api/register', { method: 'POST', body: formData });
-      const data = await res.json();
+      // Step 1: Create registration
+      const regRes = await fetch(`${API}/api/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name:       document.getElementById('buyerName').value.trim(),
+          mobile:     document.getElementById('buyerMobile').value.trim(),
+          email:      document.getElementById('buyerEmail').value.trim(),
+          studentId:  document.getElementById('studentId').value.trim(),
+          tickets:    [{ type: state.ticketType, quantity: state.ticketQty }],
+          merchandise: merchArr,
+          donation:   state.donation || 0,
+        })
+      });
+      const regData = await regRes.json();
+      if (!regData.success) throw new Error(regData.message || 'Registration failed');
 
-      if (!data.success) throw new Error(data.message || 'Registration failed');
+      // Step 2: Upload receipt
+      const formData = new FormData();
+      formData.append('receipt', receiptInput.files[0]);
+      formData.append('registrationId', regData.registration.id);
+      const uploadRes = await fetch(`${API}/api/upload-receipt`, { method: 'POST', body: formData });
+      const uploadData = await uploadRes.json();
+      if (!uploadData.success) throw new Error(uploadData.message || 'Receipt upload failed');
 
-      // Upload receipt
-      if (receiptInput.files[0]) {
-        const rf = new FormData();
-        rf.append('receipt', receiptInput.files[0]);
-        rf.append('registrationId', data.registration.id);
-        await fetch('/api/upload-receipt', { method: 'POST', body: rf });
-      }
-
-      document.getElementById('successRef').textContent = `Ref: ${data.registration.ref_code}`;
+      // Success
+      document.getElementById('successRef').textContent = `Ref: ${regData.registration.ref_code}`;
       showStep('success');
-
     } catch (err) {
       errEl.textContent = err.message || '提交失败，请重试'; errEl.classList.add('visible');
-      btn.disabled = false;
-      btn.innerHTML = '✅ 确认提交 Confirm';
+      btn.disabled = false; btn.textContent = '✅ 确认 Submit';
     }
   }
-
-  // ── Student lookup ──────────────────────────────────────────────
-  async function lookupStudent() {
-    const sid  = document.getElementById('studentId').value.trim();
-    const result = document.getElementById('lookupResult');
-    if (!sid) { result.className = 'lookup-result fail'; result.textContent = '请输入学号'; return; }
-    result.className = 'lookup-result'; result.textContent = '查找中...';
-    try {
-      const res = await fetch(`/api/student/${sid}`);
-      const data = await res.json();
-      if (data.success && data.student) {
-        result.className = 'lookup-result ok';
-        result.textContent = `✓ 找到: ${data.student.chinese_name} (${data.student.class || 'N/A'})`;
-        if (!document.getElementById('buyerName').value.trim())
-          document.getElementById('buyerName').value = data.student.chinese_name;
-      } else {
-        result.className = 'lookup-result fail';
-        result.textContent = '学号未找到 Student ID not found';
-      }
-    } catch { result.className = 'lookup-result fail'; result.textContent = '查找失败'; }
-  }
-
-  // ── Boot ────────────────────────────────────────────────────────
-  init();
 </script>
 </body>
 </html>

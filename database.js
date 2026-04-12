@@ -10,12 +10,13 @@ const TURSO_TOKEN  = process.env.TURSO_AUTH_TOKEN;
 
 const TICKET_CONFIG = {
   single: { price: 200, seats: 1,  label: '单人票 Single' },
-  family: { price: 800, seats: 4,  label: '家庭票 Family' },
   table:  { price: 1800, seats: 10, label: '桌席 Table' }
 };
 const MERCH_CONFIG = {
-  tshirt:   { price: 60, label: 'T-恤 T-shirt', sizes: ['S','M','L','XL','XXL'] },
-  tumbler:  { price: 50, label: '保温瓶 Tumbler', sizes: null }
+  tshirt:   { price: 60,  label: 'T-shirt',              sizes: ['S','M','L','XL','XXL'] },
+  tumbler:  { price: 50,  label: '保温瓶 Tumbler',          sizes: null },
+  badge:    { price: 30,  label: 'School Badge 校徽',       sizes: null },
+  bag:      { price: 15,  label: 'Recycle Bag 环保袋',      sizes: null }
 };
 
 // ─── Init & export ────────────────────────────────────────────────────────────
@@ -42,7 +43,7 @@ async function initTursoSchema(url, token) {
   const turso = createClient({ url, authToken: token });
   const stmts = [
     `CREATE TABLE IF NOT EXISTS students (student_id TEXT PRIMARY KEY, chinese_name TEXT NOT NULL, english_name TEXT, class TEXT)`,
-    `CREATE TABLE IF NOT EXISTS registrations (id INTEGER PRIMARY KEY AUTOINCREMENT, ref_code TEXT UNIQUE NOT NULL, student_id TEXT, name TEXT NOT NULL, mobile TEXT, email TEXT, status TEXT DEFAULT 'pending', total_amount REAL DEFAULT 0, receipt_path TEXT, receipt_uploaded_at TEXT, checked_in_at TEXT, notes TEXT, created_at TEXT, updated_at TEXT)`,
+    `CREATE TABLE IF NOT EXISTS registrations (id INTEGER PRIMARY KEY AUTOINCREMENT, ref_code TEXT UNIQUE NOT NULL, student_id TEXT, name TEXT NOT NULL, mobile TEXT, email TEXT, status TEXT DEFAULT 'pending', total_amount REAL DEFAULT 0, donation REAL DEFAULT 0, receipt_path TEXT, receipt_uploaded_at TEXT, checked_in_at TEXT, notes TEXT, created_at TEXT, updated_at TEXT)`,
     `CREATE TABLE IF NOT EXISTS tickets (id INTEGER PRIMARY KEY AUTOINCREMENT, registration_id INTEGER NOT NULL, ticket_type TEXT NOT NULL, quantity INTEGER DEFAULT 1, unit_price REAL NOT NULL, seats INTEGER NOT NULL, created_at TEXT, FOREIGN KEY (registration_id) REFERENCES registrations(id))`,
     `CREATE TABLE IF NOT EXISTS merchandise (id INTEGER PRIMARY KEY AUTOINCREMENT, registration_id INTEGER NOT NULL, item_type TEXT NOT NULL, size TEXT, quantity INTEGER DEFAULT 1, unit_price REAL NOT NULL, created_at TEXT, FOREIGN KEY (registration_id) REFERENCES registrations(id))`,
     `CREATE TABLE IF NOT EXISTS receipts (id INTEGER PRIMARY KEY AUTOINCREMENT, registration_id INTEGER NOT NULL UNIQUE, file_path TEXT NOT NULL, file_name TEXT, file_size INTEGER, uploaded_at TEXT, FOREIGN KEY (registration_id) REFERENCES registrations(id))`,
@@ -58,6 +59,7 @@ async function initTursoSchema(url, token) {
     `ALTER TABLE registrations ADD COLUMN notes TEXT`,
     `ALTER TABLE registrations ADD COLUMN updated_at TEXT`,
     `ALTER TABLE registrations ADD COLUMN receipt_path TEXT`,
+    `ALTER TABLE registrations ADD COLUMN donation REAL DEFAULT 0`,
     `ALTER TABLE tickets ADD COLUMN seats INTEGER NOT NULL DEFAULT 1`,
     `ALTER TABLE tickets ADD COLUMN created_at TEXT`,
     `ALTER TABLE merchandise ADD COLUMN created_at TEXT`,
@@ -179,6 +181,7 @@ function initLocal() {
       email       TEXT,
       status      TEXT    DEFAULT 'pending'   CHECK(status IN ('pending','approved','cancelled')),
       total_amount REAL   DEFAULT 0,
+      donation      REAL   DEFAULT 0,
       receipt_path TEXT,
       receipt_uploaded_at TEXT,
       checked_in_at TEXT,
@@ -189,7 +192,7 @@ function initLocal() {
     CREATE TABLE IF NOT EXISTS tickets (
       id              INTEGER PRIMARY KEY AUTOINCREMENT,
       registration_id INTEGER NOT NULL,
-      ticket_type     TEXT    NOT NULL         CHECK(ticket_type IN ('single','family','table')),
+      ticket_type     TEXT    NOT NULL         CHECK(ticket_type IN ('single','table')),
       quantity        INTEGER DEFAULT 1,
       unit_price      REAL    NOT NULL,
       seats           INTEGER NOT NULL,
@@ -226,6 +229,20 @@ function initLocal() {
     );
     CREATE INDEX IF NOT EXISTS idx_audit_target ON audit_logs(target_type, target_id);
   `);
+
+  // Run migrations to add missing columns to existing tables
+  const localMigrations = [
+    `ALTER TABLE registrations ADD COLUMN donation REAL DEFAULT 0`,
+    `ALTER TABLE tickets ADD COLUMN seats INTEGER DEFAULT 1`,
+    `ALTER TABLE tickets ADD COLUMN created_at TEXT`,
+    `ALTER TABLE merchandise ADD COLUMN created_at TEXT`,
+  ];
+  for (const sql of localMigrations) {
+    try {
+      db.exec(sql);
+    } catch (e) { /* column may already exist — skip */ }
+  }
+
   seedStudentsFromExcel(db);
   return db;
 }
@@ -236,7 +253,7 @@ function buildLocalQueries(db) {
     getStudent:        db.prepare(`SELECT * FROM students WHERE student_id = ?`),
     insertStudent:     db.prepare(`INSERT OR REPLACE INTO students (student_id, chinese_name, english_name, class) VALUES (?, ?, ?, ?)`),
     getAllStudents:    db.prepare(`SELECT * FROM students`),
-    insertReg:         db.prepare(`INSERT INTO registrations (ref_code, student_id, name, mobile, email, status, total_amount, created_at, updated_at) VALUES (@ref_code, @student_id, @name, @mobile, @email, 'pending', @total_amount, @created_at, @updated_at)`),
+    insertReg:         db.prepare(`INSERT INTO registrations (ref_code, student_id, name, mobile, email, status, total_amount, donation, created_at, updated_at) VALUES (@ref_code, @student_id, @name, @mobile, @email, 'pending', @total_amount, @donation, @created_at, @updated_at)`),
     getReg:            db.prepare(`SELECT * FROM registrations WHERE id = ?`),
     getRegByRef:       db.prepare(`SELECT * FROM registrations WHERE ref_code = ?`),
     getRegByStudent:   db.prepare(`SELECT * FROM registrations WHERE student_id = ? ORDER BY id DESC LIMIT 1`),
@@ -283,13 +300,15 @@ function buildLocalQueries(db) {
     getStudent:           (id)  => stmts.getStudent.get(id),
     getAllStudents:       ()   => stmts.getAllStudents.all(),
 
-    createRegistration:   ({ studentId, name, mobile, email, tickets, merchandise }) => {
+    createRegistration:   ({ studentId, name, mobile, email, tickets, merchandise, donation }) => {
       let total = 0;
       for (const t of tickets) total += TICKET_CONFIG[t.type].price * t.quantity;
       for (const m of merchandise) total += MERCH_CONFIG[m.item].price * m.quantity;
+      donation = donation || 0;
+      total += donation;
       const refCode = nextRef();
       const now = new Date().toISOString();
-      const res = stmts.insertReg.run({ ref_code: refCode, student_id: studentId||null, name, mobile: mobile||null, email: email||null, total_amount: total, created_at: now, updated_at: now });
+      const res = stmts.insertReg.run({ ref_code: refCode, student_id: studentId||null, name, mobile: mobile||null, email: email||null, total_amount: total, donation, created_at: now, updated_at: now });
       const regId = res.lastInsertRowid;
       const ticketRows = tickets.map(t => {
         const cfg = TICKET_CONFIG[t.type];
@@ -301,7 +320,7 @@ function buildLocalQueries(db) {
         const r = stmts.insertMerch.run(regId, m.item, m.size||null, m.quantity, price, now);
         return { id: r.lastInsertRowid, ...m, unitPrice: price, created_at: now };
       });
-      return { id: regId, ref_code: refCode, name, mobile, email, tickets: ticketRows, merchandise: merchRows, total_amount: total, status: 'pending', created_at: now };
+      return { id: regId, ref_code: refCode, name, mobile, email, tickets: ticketRows, merchandise: merchRows, donation, total_amount: total, status: 'pending', created_at: now };
     },
 
     getRegistration:      (id) => { const r = stmts.getReg.get(id); return r ? enrich(r) : null; },
@@ -367,16 +386,18 @@ function buildTursoQueries(url, token) {
     getStudent:           async (id)  => tGetOne(`SELECT * FROM students WHERE student_id = ?`, [id]),
     getAllStudents:       ()   => tGetAll(`SELECT * FROM students`),
 
-    async createRegistration({ studentId, name, mobile, email, tickets, merchandise }) {
+    async createRegistration({ studentId, name, mobile, email, tickets, merchandise, donation }) {
       let total = 0;
       for (const t of tickets) total += (TICKET_CONFIG[t.type]?.price || 0) * t.quantity;
       for (const m of merchandise) total += (MERCH_CONFIG[m.item]?.price || 0) * m.quantity;
+      donation = donation || 0;
+      total += donation;
       const refCode = await nextRef();
       const now = new Date().toISOString();
       try {
         const res = await tRun(
-          `INSERT INTO registrations (ref_code, student_id, name, mobile, email, status, total_amount, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?)`,
-          [refCode, studentId||null, name, mobile||null, email||null, total, now, now]
+          `INSERT INTO registrations (ref_code, student_id, name, mobile, email, status, total_amount, donation, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)`,
+          [refCode, studentId||null, name, mobile||null, email||null, total, donation, now, now]
         );
         const regId = Number(res.lastInsertRowid);
         const ticketRows = await Promise.all(tickets.map(async t => {
@@ -391,7 +412,7 @@ function buildTursoQueries(url, token) {
             [regId, m.item, m.size||null, m.quantity, price, now]);
           return { id: Number(r.lastInsertRowid), ...m, unitPrice: price, created_at: now };
         }));
-        return { id: regId, ref_code: refCode, name, mobile, email, tickets: ticketRows, merchandise: merchRows, total_amount: total, status: 'pending', created_at: now };
+        return { id: regId, ref_code: refCode, name, mobile, email, tickets: ticketRows, merchandise: merchRows, donation, total_amount: total, status: 'pending', created_at: now };
       } catch (err) {
         console.error('[createRegistration] ERROR:', err.message, err.stack);
         throw err;

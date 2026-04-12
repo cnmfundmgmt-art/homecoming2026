@@ -646,203 +646,1083 @@
   </section>
 
   <!-- Registration Section -->
-  <section id="register" class="section booking-section">
-    <div class="section-container" style="max-width:720px;margin:0 auto;">
-      <div class="section-header">
-        <h2 class="section-title">📝 报名参加 Register</h2>
-        <p class="section-subtitle">名额有限，请尽早报名 Limited Slots — Register Early!</p>
+<section id="register" class="section booking-section">
+  <div class="section-container" style="max-width:720px;margin:0 auto;">
+    <div class="section-header">
+      <h2 class="section-title">📝 报名参加 Register</h2>
+      <p class="section-subtitle">名额有限，请尽早报名 Limited Slots — Register Early!</p>
+    </div>
+
+<div class="book-page">
+
+  <!-- Header -->
+  <div class="book-header">
+    <h1>📋 Homecoming 2026 报名</h1>
+    <p>吉隆坡中华独立中学 · 20周年校友回校日 · 2026年10月10日</p>
+  </div>
+
+  <!-- Step indicator -->
+  <div class="steps-bar">
+    <div class="step-item active" data-step="1">
+      <div class="step-num">1</div>
+      <div class="step-label">报名信息<br><small>Registration</small></div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-item" data-step="2">
+      <div class="step-num">2</div>
+      <div class="step-label">付款<br><small>Payment</small></div>
+    </div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div id="step1">
+
+    <!-- User Info -->
+    <div class="book-card">
+      <div class="section-title"><span>📝</span> 报名信息 Registration Info</div>
+      <div class="error-msg" id="step1Error"></div>
+      <div class="form-group">
+        <label class="form-label">学号 Student ID <span class="hint">（选填 optional）</span></label>
+        <div class="student-lookup">
+          <div class="form-group" style="margin-bottom:0">
+            <input type="text" class="form-input" id="studentId" placeholder="例如: 200101" maxlength="20">
+          </div>
+          <button class="btn-lookup" onclick="lookupStudent()">查找</button>
+        </div>
+        <div class="lookup-result" id="lookupResult"></div>
       </div>
-
-      <!-- Steps Bar -->
-      <div class="steps-bar" id="regStepsBar">
-        <div class="step-item active" data-step="1">
-          <div class="step-num">1</div>
-          <div class="step-label">报名信息<br><small>Registration</small></div>
-        </div>
-        <div class="step-connector"></div>
-        <div class="step-item" data-step="2">
-          <div class="step-num">2</div>
-          <div class="step-label">选购周边<br><small>Merchandise</small></div>
-        </div>
-        <div class="step-connector"></div>
-        <div class="step-item" data-step="3">
-          <div class="step-num">3</div>
-          <div class="step-label">付款<br><small>Payment</small></div>
-        </div>
-      </div>
-
-      <!-- Step 1: Registration -->
-      <div class="book-card" id="regStep1">
-        <div class="card-title"><span>📝</span> 报名信息 Registration</div>
-        <div class="error-msg" id="regStep1Error"></div>
-
+      <div class="form-row">
         <div class="form-group">
-          <label class="form-label">学号 Student ID <span class="hint">（选填 optional）</span></label>
-          <div class="student-lookup">
-            <div class="form-group" style="margin-bottom:0;flex:1;">
-              <input type="text" class="form-input" id="regStudentId" placeholder="例如: 200101" maxlength="20">
-            </div>
-            <button class="btn-lookup" id="regBtnLookup" type="button" onclick="regLookupStudent()">查找 Lookup</button>
-          </div>
-          <div class="lookup-result" id="regLookupResult"></div>
+          <label class="form-label">姓名 Name *</label>
+          <input type="text" class="form-input" id="buyerName" placeholder="请输入姓名">
         </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">姓名 Name *</label>
-            <input type="text" class="form-input" id="regBuyerName" placeholder="请输入姓名" required>
-            <div class="form-error" id="regErrName">请输入姓名</div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">手机 Mobile *</label>
-            <input type="tel" class="form-input" id="regBuyerMobile" placeholder="例如: 012-3456789">
-            <div class="form-error" id="regErrMobile">请输入手机号</div>
-          </div>
-        </div>
-
         <div class="form-group">
-          <label class="form-label">邮箱 Email</label>
-          <input type="email" class="form-input" id="regBuyerEmail" placeholder="例如: abc@email.com">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">票种 Ticket Type *</label>
-          <div class="ticket-grid" id="regTicketGrid">
-            <div class="ticket-card selected" id="ticket-single" data-type="single" onclick="regSelectTicket('single')">
-              <div class="ticket-radio"></div>
-              <div class="ticket-info">
-                <div class="ticket-name">单人票 Single</div>
-                <div class="ticket-desc">1 人参加</div>
-                <div class="ticket-seats">含 1 席 seat</div>
-                <div class="qty-stepper">
-                  <span style="font-size:0.8rem;color:#888;">数量:</span>
-                  <button type="button" class="qty-btn" onclick="event.stopPropagation(); regChangeQty(-1)">−</button>
-                  <span class="qty-display" id="singleQty">1</span>
-                  <button type="button" class="qty-btn" onclick="event.stopPropagation(); regChangeQty(1)">+</button>
-                </div>
-              </div>
-              <div class="ticket-price">RM 200</div>
-            </div>
-            <div class="ticket-card" id="ticket-table" data-type="table" onclick="regSelectTicket('table')">
-              <div class="ticket-radio"></div>
-              <div class="ticket-info">
-                <div class="ticket-name">桌席 Table</div>
-                <div class="ticket-desc">10 人桌席</div>
-                <div class="ticket-seats">含 10 席 seats</div>
-                <div class="qty-stepper">
-                  <span style="font-size:0.8rem;color:#888;">数量:</span>
-                  <button type="button" class="qty-btn" onclick="event.stopPropagation(); regChangeQty(-1)">-</button>
-                  <span class="qty-display" id="tableQty">1</span>
-                  <button type="button" class="qty-btn" onclick="event.stopPropagation(); regChangeQty(1)">+</button>
-                </div>
-              </div>
-              <div class="ticket-price">RM 1800</div>
-            </div>
-          </div>
-          <div class="form-error" id="regErrTicket">请选择票种</div>
-        </div>
-
-        <div class="book-nav" style="margin-top:1.5rem;">
-          <div></div>
-          <button class="btn-next" id="regBtnStep1Next" type="button">下一步 Next →</button>
+          <label class="form-label">手机 Mobile *</label>
+          <input type="tel" class="form-input" id="buyerMobile" placeholder="012-3456789">
         </div>
       </div>
+      <div class="form-group">
+        <label class="form-label">邮箱 Email</label>
+        <input type="email" class="form-input" id="buyerEmail" placeholder="abc@email.com">
+      </div>
+    </div>
 
-      <!-- Step 2: Merchandise -->
-      <div class="book-card" id="regStep2" style="display:none;">
-        <div class="card-title"><span>🎽</span> 选购周边 Merchandise <span class="hint" style="font-weight:400;font-size:0.8rem;">（可选）Optional</span></div>
-        <div class="merch-grid" id="regMerchGrid">
-          <div class="merch-item" id="merch-tshirt" onclick="regToggleMerch('tshirt')">
-            <div class="merch-header">
-              <div class="merch-checkbox" id="merch-check-tshirt"></div>
-              <div class="merch-info">
-                <div class="merch-name">T-恤 T-shirt</div>
-                <div class="merch-price">RM 60</div>
+    <!-- SECTION A: Tickets -->
+    <div class="book-card">
+      <div class="section-title">
+        <span class="section-badge">A</span>
+        票务选择 Ticket Selection
+        <span id="ticketSubtotal" class="section-subtotal">RM 200</span>
+      </div>
+      <div class="ticket-grid">
+        <!-- Single ticket -->
+        <div class="ticket-card selected" data-type="single" onclick="selectTicket('single')">
+          <div class="ticket-radio"></div>
+          <div class="ticket-info">
+            <div class="ticket-name-row">
+              <div class="ticket-name">Single Ticket 单人票</div>
+            </div>
+            <div class="ticket-desc">1人参加 · 含 1 席 seat</div>
+            <div class="ticket-row">
+              <div class="qty-stepper">
+                <label>数量:</label>
+                <button class="qty-btn" onclick="event.stopPropagation(); changeQty(-1)">−</button>
+                <span class="qty-display" id="singleQty">1</span>
+                <button class="qty-btn" onclick="event.stopPropagation(); changeQty(1)">+</button>
               </div>
             </div>
-            <div class="merch-options" id="merch-opts-tshirt">
-              <span style="font-size:0.8rem;color:#666;">尺码 Size:</span>
-              <button type="button" class="size-btn" onclick="event.stopPropagation(); regSelectSize('tshirt','S')">S</button>
-              <button type="button" class="size-btn selected" onclick="event.stopPropagation(); regSelectSize('tshirt','M')">M</button>
-              <button type="button" class="size-btn" onclick="event.stopPropagation(); regSelectSize('tshirt','L')">L</button>
-              <button type="button" class="size-btn" onclick="event.stopPropagation(); regSelectSize('tshirt','XL')">XL</button>
-              <button type="button" class="size-btn" onclick="event.stopPropagation(); regSelectSize('tshirt','XXL')">XXL</button>
-            </div>
           </div>
-          <div class="merch-item" id="merch-tumbler" onclick="regToggleMerch('tumbler')">
-            <div class="merch-header">
-              <div class="merch-checkbox" id="merch-check-tumbler"></div>
-              <div class="merch-info">
-                <div class="merch-name">保温瓶 Tumbler</div>
-                <div class="merch-price">RM 50</div>
+          <div class="ticket-right">
+            <div class="ticket-price">RM 200/位</div>
+            <div class="ticket-subtotal" id="singleSubtotal">= RM 200</div>
+          </div>
+        </div>
+        <!-- Table ticket -->
+        <div class="ticket-card" data-type="table" onclick="selectTicket('table')">
+          <div class="ticket-radio"></div>
+          <div class="ticket-info">
+            <div class="ticket-name-row">
+              <div class="ticket-name">Table 桌席</div>
+            </div>
+            <div class="ticket-desc">10人桌席 · 含 10 席 seats</div>
+            <div class="ticket-row">
+              <div class="qty-stepper">
+                <label>数量:</label>
+                <button class="qty-btn" onclick="event.stopPropagation(); changeQty(-1)">−</button>
+                <span class="qty-display" id="tableQty">1</span>
+                <button class="qty-btn" onclick="event.stopPropagation(); changeQty(1)">+</button>
               </div>
             </div>
-            <div class="merch-options" id="merch-opts-tumbler">
-              <span style="font-size:0.8rem;color:#666;">数量 Qty:</span>
-              <button type="button" class="qty-btn" onclick="event.stopPropagation(); regChangeMerchQty('tumbler',-1)">−</button>
-              <span class="qty-display" id="merch-qty-tumbler">1</span>
-              <button type="button" class="qty-btn" onclick="event.stopPropagation(); regChangeMerchQty('tumbler',1)">+</button>
-            </div>
           </div>
-        </div>
-
-        <div class="summary-box">
-          <div class="summary-row" id="regSummaryTickets"><span>票务 Ticket</span><span>—</span></div>
-          <div class="summary-row" id="regSummaryMerch"><span>周边 Merchandise</span><span>—</span></div>
-          <div class="summary-row total"><span>总计 Total</span><span id="regSummaryTotal">RM 0</span></div>
-        </div>
-
-        <div class="book-nav">
-          <button class="btn-prev" type="button" onclick="regGoToStep1()">← 上一步 Prev</button>
-          <button class="btn-next" type="button">下一步 Next →</button>
-        </div>
-      </div>
-
-      <!-- Step 3: Payment -->
-      <div class="book-card" id="regStep3" style="display:none;">
-        <div class="card-title"><span>💳</span> 付款 Payment</div>
-        <div class="error-msg" id="regStep3Error"></div>
-        <div class="payment-ref-box">
-          <div style="font-size:0.9rem;opacity:0.8;">参考码 Reference</div>
-          <div class="payment-ref-code" id="regPayRef">—</div>
-          <div class="payment-amount" id="regPayAmount">RM 0</div>
-        </div>
-        <div class="qr-wrap">
-          <img src="/images/chkl_bank_qr.png" alt="Bank QR Code" style="width:220px;border-radius:12px;border:3px solid #f0f0f0;">
-          <p style="font-size:0.8rem;color:#888;margin-top:0.5rem;">请扫描上方二维码完成付款<br>Scan QR code above to pay</p>
-        </div>
-        <div class="receipt-area">
-          <label class="receipt-upload-label" for="regReceiptInput">
-            📤 上传付款凭证 / Upload Payment Receipt <span style="color:#e53e3e">*</span>
-          </label>
-          <input type="file" id="regReceiptInput" class="receipt-input" accept="image/*,.pdf">
-          <div class="receipt-preview" id="regReceiptPreview"></div>
-        </div>
-        <div class="book-nav">
-          <button class="btn-prev" type="button" onclick="regGoToStep2()">← 上一步 Prev</button>
-          <button class="btn-next" id="regBtnConfirm" type="button" style="background:#28a745;">✅ 确认提交 Confirm</button>
-        </div>
-      </div>
-
-      <!-- Success Screen -->
-      <div class="book-card" id="regSuccess" style="display:none;">
-        <div class="success-screen">
-          <div class="success-icon">🎉</div>
-          <div class="success-title">提交成功！</div>
-          <div class="success-ref" id="regSuccessRef">Reference: —</div>
-          <p class="success-msg">
-            您的报名已收到，筹委会将审核后确认。<br>
-            付款凭证已上传，请耐心等待批准。<br><br>
-            Your registration has been received.<br>
-            The committee will review and approve shortly.
-          </p>
-          <button class="btn-next" type="button" style="max-width:300px;margin:2rem auto 0;display:block;" onclick="regReset()">← 返回重新报名</button>
+          <div class="ticket-right">
+            <div class="ticket-price">RM 1,800/桌</div>
+            <div class="ticket-subtotal" id="tableSubtotal">= RM 1,800</div>
+          </div>
         </div>
       </div>
     </div>
-  </section>
 
-  <!-- Sponsorship Section -->
+    <!-- SECTION B: Merchandise -->
+    <div class="book-card">
+      <div class="section-title">
+        <span class="section-badge">B</span>
+        周边选择 Merchandise <span style="font-weight:400;font-size:0.8rem;color:#999">（可选 Optional）</span>
+        <span id="merchSubtotal" class="section-subtotal">—</span>
+      </div>
+
+      <!-- T-shirt -->
+      <div class="merch-item" id="merch-tshirt">
+        <div class="merch-checkbox" id="merch-check-tshirt" onclick="toggleMerch('tshirt')"></div>
+        <img class="merch-img" src="/images/chkl_bank_qr.png" alt="T-shirt" onclick="toggleMerch('tshirt')" onerror="this.style.display='none'">
+        <div class="merch-info">
+          <div class="merch-name">T-shirt</div>
+          <div class="merch-price">RM 60/件</div>
+          <div class="merch-ctrl hidden" id="merch-ctrl-tshirt">
+            <div class="size-btns" id="merch-opts-tshirt">
+              <span class="size-label">尺码:</span>
+              <button class="size-btn" onclick="event.stopPropagation(); selectSize('tshirt','S')">S</button>
+              <button class="size-btn selected" onclick="event.stopPropagation(); selectSize('tshirt','M')">M</button>
+              <button class="size-btn" onclick="event.stopPropagation(); selectSize('tshirt','L')">L</button>
+              <button class="size-btn" onclick="event.stopPropagation(); selectSize('tshirt','XL')">XL</button>
+              <button class="size-btn" onclick="event.stopPropagation(); selectSize('tshirt','XXL')">XXL</button>
+            </div>
+            <div class="merch-qty" id="merch-qty-row-tshirt">
+              <span class="size-label">×</span>
+              <button class="qty-btn" onclick="event.stopPropagation(); changeMerchQty('tshirt',-1)">−</button>
+              <span class="qty-display" id="merch-qty-tshirt">1</span>
+              <button class="qty-btn" onclick="event.stopPropagation(); changeMerchQty('tshirt',1)">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="merch-right" id="merch-right-tshirt">
+          <div class="merch-unit">RM 60</div>
+          <div class="merch-subtotal zero" id="merch-sub-tshirt">—</div>
+        </div>
+      </div>
+
+      <!-- School Badge -->
+      <div class="merch-item" id="merch-badge">
+        <div class="merch-checkbox" id="merch-check-badge" onclick="toggleMerch('badge')"></div>
+        <img class="merch-img" src="/images/chkl_bank_qr.png" alt="School Badge" onclick="toggleMerch('badge')" onerror="this.style.display='none'">
+        <div class="merch-info">
+          <div class="merch-name">School Badge 校徽</div>
+          <div class="merch-price">RM 30/个</div>
+          <div class="merch-ctrl hidden" id="merch-ctrl-badge">
+            <div class="merch-qty">
+              <span class="size-label">数量:</span>
+              <button class="qty-btn" onclick="event.stopPropagation(); changeMerchQty('badge',-1)">−</button>
+              <span class="qty-display" id="merch-qty-badge">1</span>
+              <button class="qty-btn" onclick="event.stopPropagation(); changeMerchQty('badge',1)">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="merch-right" id="merch-right-badge">
+          <div class="merch-unit">RM 30</div>
+          <div class="merch-subtotal zero" id="merch-sub-badge">—</div>
+        </div>
+      </div>
+
+      <!-- Recycle Bag -->
+      <div class="merch-item" id="merch-bag">
+        <div class="merch-checkbox" id="merch-check-bag" onclick="toggleMerch('bag')"></div>
+        <img class="merch-img" src="/images/chkl_bank_qr.png" alt="Recycle Bag" onclick="toggleMerch('bag')" onerror="this.style.display='none'">
+        <div class="merch-info">
+          <div class="merch-name">Recycle Bag 环保袋</div>
+          <div class="merch-price">RM 15/个</div>
+          <div class="merch-ctrl hidden" id="merch-ctrl-bag">
+            <div class="merch-qty">
+              <span class="size-label">数量:</span>
+              <button class="qty-btn" onclick="event.stopPropagation(); changeMerchQty('bag',-1)">−</button>
+              <span class="qty-display" id="merch-qty-bag">1</span>
+              <button class="qty-btn" onclick="event.stopPropagation(); changeMerchQty('bag',1)">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="merch-right" id="merch-right-bag">
+          <div class="merch-unit">RM 15</div>
+          <div class="merch-subtotal zero" id="merch-sub-bag">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION C: Donation -->
+    <div class="book-card">
+      <div class="section-title">
+        <span class="section-badge">C</span>
+        捐款 Donation <span style="font-weight:400;font-size:0.8rem;color:#999">（可选 Optional）</span>
+        <span id="donationSubtotal" class="section-subtotal">—</span>
+      </div>
+      <div class="donation-box">
+        <div class="donation-header">
+          <div class="donation-icon">🎓</div>
+          <div>
+            <div class="donation-title">赞助清寒学生 · 回馈老师</div>
+            <div class="donation-sub">您的捐款将帮助有需要的学生和老师</div>
+          </div>
+        </div>
+        <div class="donation-quick">
+          <button class="quick-btn" onclick="setDonation(100)">RM 100</button>
+          <button class="quick-btn" onclick="setDonation(300)">RM 300</button>
+          <button class="quick-btn" onclick="setDonation(500)">RM 500</button>
+        </div>
+        <div class="donation-field-wrap">
+          <span class="donation-prefix">RM</span>
+          <input type="number" class="donation-input" id="donationInput" placeholder="输入其他金额" min="0" oninput="updateTotal()">
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /step1 -->
+
+  <!-- STEP 2: Payment -->
+  <div id="step2" style="display:none">
+    <div class="book-card">
+      <div class="section-title"><span>💳</span> 付款 Payment</div>
+      <div class="error-msg" id="step2Error"></div>
+      <div class="payment-ref-box">
+        <div style="font-size:0.85rem;opacity:0.85;">总额 Total Amount</div>
+        <div class="payment-amount" id="payAmount">RM 0</div>
+      </div>
+      <div class="bank-box">
+        <div class="bank-row"><span>银行 Bank</span><strong>AmBank</strong></div>
+        <div class="bank-row"><span>户名 Account Name</span><strong>Chong Hwa Independent High School</strong></div>
+        <div class="bank-row"><span>账号 Account Number</span><strong>888-106-966424-7</strong></div>
+      </div>
+      <div class="qr-wrap">
+        <img src="/images/chkl_bank_qr.png" alt="Bank QR" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22><rect fill=%22%23f0f0f0%22 width=%22200%22 height=%22200%22/><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2212%22>QR</text></svg>'">
+        <p style="font-size:0.78rem;color:#888;margin-top:0.4rem;">请扫描上方二维码完成付款<br>Scan QR to pay</p>
+      </div>
+      <div class="receipt-area">
+        <label class="receipt-upload-label" for="receiptInput">📤 上传付款凭证 / Upload Receipt <span style="color:#e53e3e">*</span></label>
+        <input type="file" id="receiptInput" class="receipt-input" accept="image/*,.pdf" onchange="previewReceipt(this)">
+        <div class="receipt-preview" id="receiptPreview"></div>
+      </div>
+      <button class="btn-confirm" id="btnConfirm" onclick="submitRegistration()">✅ 确认提交 Confirm</button>
+      <button class="btn-back" onclick="showStep(1)">← 返回修改 Return</button>
+    </div>
+  </div>
+
+  <!-- Success -->
+  <div id="successScreen" style="display:none">
+    <div class="book-card">
+      <div class="success-screen">
+        <div class="success-icon">🎉</div>
+        <div class="success-title">提交成功！</div>
+        <div class="success-msg">
+          您的报名已收到，筹委会将审核后确认。<br>
+          Your registration has been received.
+        </div>
+        <div id="successRef" style="background:#f5f5f5;border-radius:10px;padding:0.75rem 1rem;margin-top:1rem;font-weight:700;color:#8B1A1A;font-size:1.1rem;"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /book-page -->
+
+<!-- Floating "View Order" button -->
+<button class="floating-order-btn" id="floatingBtn" onclick="openCart()">
+  🛒 查看报名
+  <span class="cart-count" id="cartCount">0</span>
+</button>
+
+<!-- Cart overlay -->
+<div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+
+<!-- Side Cart Panel -->
+<div class="cart-panel" id="cartPanel">
+  <!-- Header -->
+  <div class="cart-head">
+    <span class="cart-head-title">🛒 您的报名 Your Order</span>
+    <button class="cart-close" onclick="closeCart()">✕</button>
+  </div>
+
+  <!-- Cart body (populated by JS) -->
+  <div class="cart-body" id="cartBody">
+    <div class="cart-empty" id="cartEmpty">
+      <div class="cart-empty-icon">📋</div>
+      <p>您的报名还是空的<br>Your order is empty</p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="cart-foot" id="cartFoot" style="display:none">
+    <div class="cart-summary-row"><span>票务 Ticket</span><span id="cfTicket">—</span></div>
+    <div class="cart-summary-row"><span>周边 Merchandise</span><span id="cfMerch">—</span></div>
+    <div class="cart-summary-row" id="cfDonationRow" style="display:none"><span>捐款 Donation</span><span id="cfDonation">—</span></div>
+    <div class="cart-summary-row total"><span>总计 Total</span><span id="cfTotal">RM 0</span></div>
+    <div class="cart-actions">
+      <button class="btn-continue" onclick="closeCart()">← 返回修改</button>
+      <button class="btn-confirm-cart" id="btnConfirmCart" onclick="goToPayment()">确认报名 →</button>
+    </div>
+  </div>
+</div>
+  </div>
+
+  <!-- New booking form styles (book-v2) -->
+  <style>
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter','Noto Sans SC',system-ui,sans-serif; background: #f5f5f5; color: #333; min-height: 100vh; }
+    body.cart-open { overflow: hidden; }
+
+    /* ── Page shell ── */
+    .book-page { max-width: 680px; margin: 0 auto; padding: 1.5rem 1rem 6rem; }
+
+    /* ── Header ── */
+    .book-header { text-align: center; margin-bottom: 1.5rem; }
+    .book-header h1 { font-size: 1.6rem; color: #8B1A1A; margin-bottom: 0.2rem; }
+    .book-header p { color: #888; font-size: 0.85rem; }
+
+    /* ── Step indicator (2 steps) ── */
+    .steps-bar { display: flex; align-items: center; justify-content: center; margin-bottom: 2rem; }
+    .step-item { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
+    .step-num {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.9rem;
+      background: #ddd; color: #fff; transition: all 0.3s;
+    }
+    .step-label { font-size: 0.72rem; color: #aaa; font-weight: 500; text-align: center; }
+    .step-connector { width: 60px; height: 3px; background: #ddd; margin: 0 0.5rem; margin-bottom: 22px; }
+    .step-item.active .step-num { background: #8B1A1A; box-shadow: 0 0 0 4px rgba(139,26,26,0.15); }
+    .step-item.active .step-label { color: #8B1A1A; font-weight: 600; }
+    .step-item.done .step-num { background: #28a745; }
+    .step-item.done + .step-connector { background: #28a745; }
+    .step-item.done .step-label { color: #28a745; }
+
+    /* ── Card ── */
+    .book-card { background: white; border-radius: 16px; box-shadow: 0 2px 16px rgba(0,0,0,0.08); padding: 1.5rem; margin-bottom: 1rem; }
+    .section-title {
+      font-size: 1rem; font-weight: 700; color: #8B1A1A;
+      margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;
+      padding-bottom: 0.6rem; border-bottom: 2px solid rgba(139,26,26,0.1);
+    }
+    .section-badge {
+      background: #8B1A1A; color: #fff; font-size: 0.65rem; font-weight: 700;
+      padding: 0.15rem 0.5rem; border-radius: 20px;
+    }
+    .section-subtotal { margin-left: auto; font-size: 0.92rem; font-weight: 700; color: #D4A853; white-space: nowrap; }
+
+    /* ── Form fields ── */
+    .form-group { margin-bottom: 1rem; }
+    .form-label { display: block; font-weight: 600; font-size: 0.88rem; color: #444; margin-bottom: 0.35rem; }
+    .form-label .hint { font-weight: 400; color: #999; font-size: 0.78rem; }
+    .form-input, .form-select {
+      width: 100%; padding: 0.7rem 0.9rem;
+      border: 2px solid #e0e0e0; border-radius: 10px;
+      font-size: 0.95rem; transition: border-color 0.2s;
+      background: #fff; color: #333;
+    }
+    .form-input:focus, .form-select:focus { outline: none; border-color: #8B1A1A; }
+    .form-input.error { border-color: #e53e3e; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .error-msg { background: #fff3f3; border: 1px solid #fc8181; border-radius: 8px; padding: 0.75rem 1rem; color: #c53030; font-size: 0.88rem; margin-bottom: 1rem; display: none; }
+    .error-msg.visible { display: block; }
+
+    /* ── Student lookup ── */
+    .student-lookup { display: flex; gap: 0.5rem; align-items: flex-end; }
+    .student-lookup .form-group { flex: 1; margin-bottom: 0; }
+    .btn-lookup {
+      height: 44px; padding: 0 1rem; background: #8B1A1A; color: #fff;
+      border: none; border-radius: 10px; font-size: 0.85rem; font-weight: 600;
+      cursor: pointer; white-space: nowrap;
+    }
+    .lookup-result { margin-top: 0.4rem; font-size: 0.82rem; }
+    .lookup-result.ok { color: #28a745; }
+    .lookup-result.fail { color: #e53e3e; }
+
+    /* ── Ticket cards ── */
+    .ticket-card {
+      border: 2px solid #e0e0e0; border-radius: 12px;
+      padding: 0.75rem 1rem; cursor: pointer;
+      transition: all 0.2s; display: flex; align-items: center; gap: 0.75rem;
+    }
+    .ticket-card:hover { border-color: #c0a060; }
+    .ticket-card.selected { border-color: #8B1A1A; background: rgba(139,26,26,0.04); }
+    .ticket-radio {
+      width: 20px; height: 20px; border-radius: 50%;
+      border: 2px solid #ccc; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+    }
+    .ticket-card.selected .ticket-radio { border-color: #8B1A1A; background: #8B1A1A; }
+    .ticket-card.selected .ticket-radio::after { content: '✓'; color: white; font-size: 0.7rem; }
+    .ticket-info { flex: 1; display: flex; flex-direction: column; gap: 0.2rem; }
+    .ticket-name-row { display: flex; align-items: center; gap: 0.5rem; }
+    .ticket-name { font-weight: 700; font-size: 0.95rem; color: #333; }
+    .ticket-desc { font-size: 0.75rem; color: #888; }
+    .ticket-row { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.2rem; }
+    .qty-stepper { display: flex; align-items: center; gap: 0.3rem; }
+    .qty-stepper label { font-size: 0.75rem; color: #888; }
+    .qty-btn {
+      width: 24px; height: 24px; border-radius: 5px;
+      border: 1.5px solid #ddd; background: #fff;
+      font-size: 0.9rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; user-select: none;
+    }
+    .qty-btn:hover { border-color: #8B1A1A; color: #8B1A1A; }
+    .qty-display { font-weight: 700; font-size: 0.88rem; min-width: 16px; text-align: center; }
+    .ticket-right { text-align: right; flex-shrink: 0; }
+    .ticket-price { font-weight: 800; font-size: 1rem; color: #8B1A1A; white-space: nowrap; }
+    .ticket-subtotal { font-size: 0.8rem; color: #555; margin-top: 0.1rem; }
+
+    /* ── Merchandise ── */
+    .merch-item {
+      border: 2px solid #e0e0e0; border-radius: 12px;
+      padding: 0.75rem 1rem; transition: all 0.2s;
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .merch-item.checked { border-color: #D4A853; background: rgba(212,168,83,0.04); }
+    .merch-checkbox {
+      width: 22px; height: 22px; border-radius: 6px;
+      border: 2px solid #ccc; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; font-size: 0.8rem; cursor: pointer;
+    }
+    .merch-item.checked .merch-checkbox { border-color: #D4A853; background: #D4A853; color: #fff; }
+    .merch-img {
+      width: 52px; height: 52px; border-radius: 8px; object-fit: cover;
+      background: #f5f5f5; border: 1px solid #eee; flex-shrink: 0; cursor: pointer;
+    }
+    .merch-info { flex: 1; min-width: 0; }
+    .merch-name { font-weight: 700; font-size: 0.9rem; }
+    .merch-price { font-size: 0.82rem; color: #8B1A1A; font-weight: 600; margin-top: 0.1rem; }
+    .merch-ctrl { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.4rem; }
+    .size-btns { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+    .size-btns.hidden { display: none; }
+    .size-label { font-size: 0.72rem; color: #888; }
+    .size-btn {
+      padding: 0.2rem 0.5rem; border-radius: 5px;
+      border: 1.5px solid #ddd; background: #fff;
+      font-size: 0.72rem; font-weight: 600; cursor: pointer;
+    }
+    .size-btn:hover { border-color: #D4A853; }
+    .size-btn.selected { border-color: #8B1A1A; background: #8B1A1A; color: #fff; }
+    .merch-qty { display: flex; align-items: center; gap: 0.3rem; }
+    .merch-qty.hidden { display: none; }
+    .merch-right { text-align: right; flex-shrink: 0; }
+    .merch-subtotal { font-size: 0.88rem; font-weight: 700; color: #D4A853; margin-top: 0.1rem; }
+    .merch-subtotal.zero { color: #ccc; font-weight: 400; }
+    .merch-unit { font-size: 0.82rem; color: #8B1A1A; font-weight: 600; }
+    .merch-remove {
+      width: 28px; height: 28px; border-radius: 6px; border: none;
+      background: #f5f5f5; cursor: pointer; font-size: 0.9rem;
+      display: flex; align-items: center; justify-content: center;
+      color: #999; flex-shrink: 0; margin-left: 0.25rem;
+    }
+    .merch-remove:hover { background: #fee2e2; color: #e53e3e; }
+
+    /* ── Donation ── */
+    .donation-box {
+      background: #FDF6E3; border: 1.5px dashed #D4A853;
+      border-radius: 14px; padding: 1rem 1.25rem;
+    }
+    .donation-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.875rem; }
+    .donation-icon { font-size: 1.8rem; }
+    .donation-title { font-size: 0.92rem; font-weight: 700; color: #5C1717; }
+    .donation-sub { font-size: 0.75rem; color: #B45309; margin-top: 0.1rem; }
+    .donation-quick { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+    .quick-btn {
+      padding: 0.4rem 0.875rem; border-radius: 20px;
+      border: 2px solid #D4A853; background: #fff;
+      font-size: 0.82rem; font-weight: 700; color: #8B1A1A; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .quick-btn:hover, .quick-btn.selected { background: #D4A853; color: #fff; }
+    .donation-field-wrap { display: flex; align-items: center; gap: 0.5rem; }
+    .donation-prefix { font-weight: 700; color: #8B1A1A; font-size: 1rem; }
+    .donation-input {
+      flex: 1; padding: 0.6rem 0.75rem;
+      border: 2px solid #e0e0e0; border-radius: 10px;
+      font-size: 0.95rem; font-weight: 600;
+    }
+    .donation-input:focus { outline: none; border-color: #8B1A1A; }
+
+    /* ── Floating "View Order" button ── */
+    .floating-order-btn {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      background: #8B1A1A; color: #fff;
+      border: none; border-radius: 50px;
+      padding: 0.875rem 1.5rem;
+      font-size: 0.92rem; font-weight: 700;
+      cursor: pointer; z-index: 50;
+      box-shadow: 0 4px 20px rgba(139,26,26,0.35);
+      display: flex; align-items: center; gap: 0.5rem;
+      transition: all 0.2s;
+    }
+    .floating-order-btn:hover { background: #6B1010; transform: translateY(-1px); }
+    .floating-order-btn .cart-count {
+      background: #D4A853; color: #5C1717;
+      border-radius: 50%; width: 22px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 800;
+    }
+
+    /* ── Side Cart Overlay ── */
+    .cart-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.4);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .cart-overlay.open { opacity: 1; pointer-events: all; }
+
+    /* ── Side Cart Panel ── */
+    .cart-panel {
+      position: fixed; top: 0; right: 0; bottom: 0;
+      width: min(400px, 95vw);
+      background: #fff;
+      z-index: 201;
+      display: flex; flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: -4px 0 30px rgba(0,0,0,0.15);
+    }
+    .cart-panel.open { transform: translateX(0); }
+
+    /* Cart header */
+    .cart-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 1.25rem 1rem;
+      border-bottom: 1px solid #eee;
+    }
+    .cart-head-title { font-size: 1.1rem; font-weight: 800; color: #8B1A1A; }
+    .cart-close {
+      width: 34px; height: 34px; border-radius: 50%;
+      border: none; background: #f5f5f5; cursor: pointer;
+      font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
+      color: #666;
+    }
+    .cart-close:hover { background: #eee; }
+
+    /* Cart body — scrollable */
+    .cart-body {
+      flex: 1; overflow-y: auto; padding: 0.5rem 1.25rem;
+    }
+
+    /* Cart item rows */
+    .cart-item {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.875rem 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .cart-item-img {
+      width: 52px; height: 52px; border-radius: 8px;
+      background: #f5f5f5; border: 1px solid #eee;
+      object-fit: cover; flex-shrink: 0;
+    }
+    .cart-item-info { flex: 1; min-width: 0; }
+    .cart-item-name { font-weight: 700; font-size: 0.9rem; color: #333; }
+    .cart-item-meta { font-size: 0.78rem; color: #888; margin-top: 0.1rem; }
+    .cart-item-price { font-weight: 700; font-size: 0.88rem; color: #8B1A1A; margin-top: 0.2rem; }
+    .cart-item-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem; }
+    .cart-item-sub { font-weight: 800; font-size: 0.95rem; color: #333; }
+    .cart-item-qty { display: flex; align-items: center; gap: 0.35rem; }
+    .cart-item-qty .qty-btn {
+      width: 22px; height: 22px; border-radius: 5px;
+      border: 1.5px solid #ddd; background: #fff;
+      font-size: 0.8rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .cart-item-qty .qty-btn:hover { border-color: #8B1A1A; color: #8B1A1A; }
+    .cart-item-qty .qty-display { font-weight: 700; font-size: 0.85rem; min-width: 18px; text-align: center; }
+    .cart-item-remove {
+      font-size: 0.72rem; color: #e53e3e; cursor: pointer;
+      border: none; background: none; padding: 0;
+    }
+    .cart-item-remove:hover { text-decoration: underline; }
+
+    /* Cart sections */
+    .cart-section-label {
+      font-size: 0.72rem; font-weight: 700; color: #aaa;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      padding: 1rem 0 0.5rem;
+    }
+
+    /* Empty state */
+    .cart-empty {
+      text-align: center; padding: 3rem 1rem; color: #aaa;
+    }
+    .cart-empty-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+    .cart-empty p { font-size: 0.9rem; }
+
+    /* Donation in cart */
+    .cart-donation-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .cart-donation-label { font-size: 0.88rem; font-weight: 600; color: #555; }
+    .cart-donation-amount { font-weight: 700; color: #8B1A1A; font-size: 0.88rem; }
+
+    /* Cart footer */
+    .cart-foot {
+      padding: 1rem 1.25rem 1.25rem;
+      border-top: 2px solid #8B1A1A;
+      background: #fff;
+    }
+    .cart-summary-row {
+      display: flex; justify-content: space-between;
+      padding: 0.25rem 0; font-size: 0.88rem; color: #555;
+    }
+    .cart-summary-row.total {
+      font-size: 1.05rem; font-weight: 800; color: #8B1A1A;
+      border-top: 1.5px solid #eee; margin-top: 0.5rem; padding-top: 0.6rem;
+    }
+    .cart-summary-row.discount { color: #28a745; }
+    .cart-actions { display: flex; gap: 0.75rem; margin-top: 1rem; }
+    .btn-continue {
+      padding: 0.75rem 1rem; border-radius: 10px;
+      border: 2px solid #8B1A1A; background: #fff;
+      font-size: 0.88rem; font-weight: 700; color: #8B1A1A;
+      cursor: pointer; flex: 1;
+    }
+    .btn-continue:hover { background: rgba(139,26,26,0.05); }
+    .btn-confirm-cart {
+      padding: 0.75rem 1rem; border-radius: 10px;
+      border: none; background: #8B1A1A; color: #fff;
+      font-size: 0.88rem; font-weight: 700; cursor: pointer; flex: 2;
+    }
+    .btn-confirm-cart:hover { background: #6B1010; }
+    .btn-confirm-cart:disabled { background: #ccc; cursor: not-allowed; }
+
+    /* ── Payment step ── */
+    .payment-ref-box {
+      background: linear-gradient(135deg, #8B1A1A, #c0352a);
+      color: white; border-radius: 16px; padding: 1.5rem;
+      text-align: center; margin-bottom: 1.25rem;
+    }
+    .payment-amount { font-size: 2rem; font-weight: 800; color: #D4A853; margin-top: 0.25rem; }
+    .bank-box {
+      background: #f9f9f9; border-radius: 12px; padding: 1rem 1.25rem;
+      margin-bottom: 1rem; border: 1px solid #eee;
+    }
+    .bank-row { display: flex; justify-content: space-between; padding: 0.35rem 0; font-size: 0.9rem; }
+    .bank-row strong { color: #333; }
+    .qr-wrap { text-align: center; margin: 1rem 0; }
+    .qr-wrap img { width: 200px; border-radius: 12px; border: 3px solid #f0f0f0; }
+    .receipt-area {
+      border: 2px dashed #ccc; border-radius: 12px;
+      padding: 1.25rem; text-align: center;
+    }
+    .receipt-upload-label {
+      display: block; font-weight: 600; margin-bottom: 0.6rem; font-size: 0.92rem;
+    }
+    .receipt-input { width: 100%; padding: 0.5rem; border-radius: 8px; font-size: 0.85rem; }
+    .receipt-preview { margin-top: 0.6rem; }
+    .receipt-preview img { max-width: 180px; border-radius: 8px; }
+    .btn-confirm {
+      width: 100%; padding: 0.9rem; border-radius: 10px;
+      background: #8B1A1A; color: #fff;
+      border: none; font-size: 1rem; font-weight: 700; cursor: pointer;
+      margin-top: 1rem; transition: background 0.2s;
+    }
+    .btn-confirm:hover { background: #6B1010; }
+    .btn-back {
+      background: #e0e0e0; color: #555;
+      border: none; border-radius: 10px;
+      padding: 0.75rem 1.5rem; font-size: 0.9rem; font-weight: 600;
+      cursor: pointer; width: 100%; margin-top: 0.75rem;
+    }
+
+    /* ── Success ── */
+    .success-screen { text-align: center; padding: 2rem 1.5rem; }
+    .success-icon { font-size: 3.5rem; margin-bottom: 0.75rem; }
+    .success-title { font-size: 1.4rem; font-weight: 700; color: #8B1A1A; margin-bottom: 0.4rem; }
+    .success-msg { color: #666; font-size: 0.9rem; line-height: 1.6; margin-top: 1rem; }
+
+    /* ── Spinner ── */
+    .spinner {
+      display: inline-block; width: 18px; height: 18px;
+      border: 3px solid rgba(255,255,255,0.3); border-radius: 50%;
+      border-top-color: #fff; animation: spin 0.7s linear infinite; vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Responsive ── */
+    @media (max-width: 500px) {
+      .form-row { grid-template-columns: 1fr; }
+      .step-connector { width: 30px; }
+    }
+  
+  </style>
+
+  <!-- New booking form scripts -->
+  <script>
+// ── Config ──────────────────────────────────────────────────────
+  const TICKET_PRICES  = { single: 200, table: 1800 };
+  const TICKET_LABELS  = { single: 'Single Ticket 单人票', table: 'Table 桌席' };
+  const MERCH_PRICES   = { tshirt: 60, badge: 30, bag: 15 };
+  const MERCH_LABELS   = { tshirt: 'T-shirt', badge: 'School Badge 校徽', bag: 'Recycle Bag 环保袋' };
+  const API = ''; // relative URLs — same origin in production
+
+  // ── State ───────────────────────────────────────────────────────
+  const state = {
+    ticketType: 'single',
+    ticketQty:  1,
+    merch:      { tshirt: false, badge: false, bag: false },
+    merchQty:   { tshirt: 1, badge: 1, bag: 1 },
+    merchSize:  { tshirt: 'M' },
+    donation:   0,
+  };
+
+  // ── Init ────────────────────────────────────────────────────────
+  updateTotal();
+
+  // ── Cart open/close ─────────────────────────────────────────────
+  function openCart()  { document.body.classList.add('cart-open'); document.getElementById('cartPanel').classList.add('open'); document.getElementById('cartOverlay').classList.add('open'); renderCart(); }
+  function closeCart() { document.body.classList.remove('cart-open'); document.getElementById('cartPanel').classList.remove('open'); document.getElementById('cartOverlay').classList.remove('open'); }
+
+  // ── Ticket ─────────────────────────────────────────────────────
+  function selectTicket(type) {
+    state.ticketType = type;
+    document.querySelectorAll('.ticket-card').forEach(c => c.classList.remove('selected'));
+    document.querySelector(`.ticket-card[data-type="${type}"]`).classList.add('selected');
+    updateTotal();
+  }
+
+  function changeQty(delta) {
+    state.ticketQty = Math.max(1, Math.min(10, state.ticketQty + delta));
+    const id = state.ticketType === 'single' ? 'singleQty' : 'tableQty';
+    document.getElementById(id).textContent = state.ticketQty;
+    updateTotal();
+  }
+
+  // ── Merch ───────────────────────────────────────────────────────
+  function toggleMerch(item) {
+    state.merch[item] = !state.merch[item];
+    const el = document.getElementById('merch-' + item);
+    el.classList.toggle('checked', state.merch[item]);
+    const ctrl = document.getElementById('merch-ctrl-' + item);
+    if (ctrl) ctrl.classList.toggle('hidden', !state.merch[item]);
+    const right = document.getElementById('merch-right-' + item);
+    const subEl = document.getElementById('merch-sub-' + item);
+    if (!state.merch[item]) {
+      if (right) right.querySelector('.merch-unit').style.display = '';
+      if (subEl) { subEl.textContent = '—'; subEl.className = 'merch-subtotal zero'; }
+    }
+    updateTotal();
+  }
+
+  function selectSize(item, size) {
+    state.merchSize[item] = size;
+    const opts = document.getElementById('merch-opts-' + item);
+    if (opts) opts.querySelectorAll('.size-btn').forEach(b => b.classList.toggle('selected', b.dataset.size === size));
+    updateTotal();
+  }
+
+  function changeMerchQty(item, delta) {
+    state.merchQty[item] = Math.max(1, Math.min(10, state.merchQty[item] + delta));
+    const d = document.getElementById('merch-qty-' + item);
+    if (d) d.textContent = state.merchQty[item];
+    updateTotal();
+  }
+
+  // ── Donation ────────────────────────────────────────────────────
+  function setDonation(amount) {
+    state.donation = amount;
+    document.getElementById('donationInput').value = amount;
+    document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('selected'));
+    event.target.classList.add('selected');
+    updateTotal();
+  }
+
+  // ── Total ──────────────────────────────────────────────────────
+  function updateTotal() {
+    const ticketTotal = TICKET_PRICES[state.ticketType] * state.ticketQty;
+    let merchTotal = 0;
+    for (const [item, checked] of Object.entries(state.merch)) {
+      if (!checked) continue;
+      merchTotal += MERCH_PRICES[item] * (state.merchQty[item] || 1);
+    }
+    const donation = parseInt(document.getElementById('donationInput')?.value) || 0;
+    const grand = ticketTotal + merchTotal + donation;
+
+    // Section header subtotals
+    document.getElementById('ticketSubtotal').textContent = `RM ${ticketTotal.toLocaleString()}`;
+    document.getElementById('merchSubtotal').textContent  = merchTotal > 0 ? `RM ${merchTotal.toLocaleString()}` : '—';
+    document.getElementById('donationSubtotal').textContent = donation > 0 ? `RM ${donation.toLocaleString()}` : '—';
+
+    // Per-row ticket subtotals
+    if (state.ticketType === 'single') {
+      document.getElementById('singleSubtotal').textContent = `= RM ${ticketTotal.toLocaleString()}`;
+      document.getElementById('singleSubtotal').className  = 'ticket-subtotal';
+    } else {
+      document.getElementById('tableSubtotal').textContent = `= RM ${ticketTotal.toLocaleString()}`;
+      document.getElementById('tableSubtotal').className  = 'ticket-subtotal';
+    }
+
+    // Per-row merch subtotals
+    for (const [item, checked] of Object.entries(state.merch)) {
+      const subEl = document.getElementById('merch-sub-' + item);
+      const right = document.getElementById('merch-right-' + item);
+      if (!subEl) continue;
+      if (!checked) {
+        if (right) right.querySelector('.merch-unit').style.display = '';
+        subEl.textContent = '—'; subEl.className = 'merch-subtotal zero';
+      } else {
+        if (right) right.querySelector('.merch-unit').style.display = 'none';
+        const sub = MERCH_PRICES[item] * (state.merchQty[item] || 1);
+        subEl.textContent = `= RM ${sub.toLocaleString()}`; subEl.className = 'merch-subtotal';
+      }
+    }
+
+    // Floating button badge
+    const itemCount = state.ticketQty + Object.entries(state.merch).reduce((n, [k, v]) => n + (v ? state.merchQty[k] || 1 : 0), 0);
+    document.getElementById('cartCount').textContent = itemCount;
+
+    return grand;
+  }
+
+  // ── Render Cart ─────────────────────────────────────────────────
+  function renderCart() {
+    const ticketTotal = TICKET_PRICES[state.ticketType] * state.ticketQty;
+    let merchTotal = 0;
+    for (const [item, checked] of Object.entries(state.merch)) {
+      if (checked) merchTotal += MERCH_PRICES[item] * (state.merchQty[item] || 1);
+    }
+    const donation = parseInt(document.getElementById('donationInput')?.value) || 0;
+    const grand    = ticketTotal + merchTotal + donation;
+    const hasItems = ticketTotal > 0 || merchTotal > 0 || donation > 0;
+
+    const body = document.getElementById('cartBody');
+    const foot = document.getElementById('cartFoot');
+    const empty = document.getElementById('cartEmpty');
+
+    if (!hasItems) {
+      body.innerHTML = `<div class="cart-empty"><div class="cart-empty-icon">📋</div><p>您的报名还是空的<br>Your order is empty</p></div>`;
+      foot.style.display = 'none';
+      return;
+    }
+
+    let html = '';
+
+    // Ticket
+    if (ticketTotal > 0) {
+      const type = state.ticketType;
+      const label = TICKET_LABELS[type];
+      const price = TICKET_PRICES[type];
+      const qty   = state.ticketQty;
+      const sub   = price * qty;
+      html += `<div class="cart-section-label">票务 Ticket</div>`;
+      html += `<div class="cart-item">
+        <div style="width:52px;height:52px;border-radius:8px;background:#8B1A1A;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;">🎫</div>
+        <div class="cart-item-info">
+          <div class="cart-item-name">${label}</div>
+          <div class="cart-item-meta">RM ${price.toLocaleString()}/位 × ${qty}</div>
+          <div class="cart-item-price">RM ${price.toLocaleString()}/位</div>
+        </div>
+        <div class="cart-item-right">
+          <div class="cart-item-sub">RM ${sub.toLocaleString()}</div>
+          <div class="cart-item-qty">
+            <button class="qty-btn" onclick="cartChangeTicketQty(-1)">−</button>
+            <span class="qty-display">${qty}</span>
+            <button class="qty-btn" onclick="cartChangeTicketQty(1)">+</button>
+          </div>
+          <button class="cart-item-remove" onclick="cartRemoveTicket()">移除 Remove</button>
+        </div>
+      </div>`;
+    }
+
+    // Merch
+    const merchChecked = Object.entries(state.merch).filter(([,v]) => v);
+    if (merchChecked.length > 0) {
+      html += `<div class="cart-section-label">周边 Merchandise</div>`;
+      for (const [item, ] of merchChecked) {
+        const price = MERCH_PRICES[item];
+        const qty   = state.merchQty[item] || 1;
+        const sub   = price * qty;
+        const size  = item === 'tshirt' ? state.merchSize[item] : '';
+        const sizeStr = size ? ` (${size})` : '';
+        html += `<div class="cart-item">
+          <img class="cart-item-img" src="/images/chkl_bank_qr.png" onerror="this.style.display='none'" alt="${MERCH_LABELS[item]}">
+          <div class="cart-item-info">
+            <div class="cart-item-name">${MERCH_LABELS[item]}${sizeStr}</div>
+            <div class="cart-item-meta">RM ${price}/个 × ${qty}</div>
+            <div class="cart-item-price">RM ${price}/个</div>
+          </div>
+          <div class="cart-item-right">
+            <div class="cart-item-sub">RM ${sub.toLocaleString()}</div>
+            <div class="cart-item-qty">
+              <button class="qty-btn" onclick="event.stopPropagation(); cartChangeMerchQty('${item}',-1)">−</button>
+              <span class="qty-display">${qty}</span>
+              <button class="qty-btn" onclick="event.stopPropagation(); cartChangeMerchQty('${item}',1)">+</button>
+            </div>
+            <button class="cart-item-remove" onclick="cartRemoveMerch('${item}')">移除 Remove</button>
+          </div>
+        </div>`;
+      }
+    }
+
+    // Donation
+    if (donation > 0) {
+      html += `<div class="cart-section-label">捐款 Donation</div>`;
+      html += `<div class="cart-donation-row">
+        <span class="cart-donation-label">🎓 赞助清寒学生</span>
+        <span class="cart-donation-amount">RM ${donation.toLocaleString()}</span>
+      </div>`;
+    }
+
+    body.innerHTML = html;
+
+    // Footer
+    document.getElementById('cfTicket').textContent = ticketTotal > 0 ? `RM ${ticketTotal.toLocaleString()}` : '—';
+    document.getElementById('cfMerch').textContent  = merchTotal > 0 ? `RM ${merchTotal.toLocaleString()}` : '—';
+    const donRow = document.getElementById('cfDonationRow');
+    if (donation > 0) { donRow.style.display = ''; document.getElementById('cfDonation').textContent = `RM ${donation.toLocaleString()}`; }
+    else { donRow.style.display = 'none'; }
+    document.getElementById('cfTotal').textContent = `RM ${grand.toLocaleString()}`;
+    foot.style.display = '';
+  }
+
+  // ── Cart actions ─────────────────────────────────────────────────
+  function cartChangeTicketQty(delta) {
+    state.ticketQty = Math.max(1, Math.min(10, state.ticketQty + delta));
+    document.getElementById(state.ticketType === 'single' ? 'singleQty' : 'tableQty').textContent = state.ticketQty;
+    updateTotal(); renderCart();
+  }
+  function cartRemoveTicket() {
+    state.ticketQty = 1;
+    document.getElementById('singleQty').textContent = 1;
+    document.getElementById('tableQty').textContent = 1;
+    updateTotal(); renderCart();
+  }
+  function cartChangeMerchQty(item, delta) {
+    state.merchQty[item] = Math.max(1, Math.min(10, (state.merchQty[item]||1) + delta));
+    const d = document.getElementById('merch-qty-' + item);
+    if (d) d.textContent = state.merchQty[item];
+    updateTotal(); renderCart();
+  }
+  function cartRemoveMerch(item) {
+    state.merch[item] = false;
+    const el = document.getElementById('merch-' + item);
+    if (el) el.classList.remove('checked');
+    const ctrl = document.getElementById('merch-ctrl-' + item);
+    if (ctrl) ctrl.classList.add('hidden');
+    const right = document.getElementById('merch-right-' + item);
+    const subEl = document.getElementById('merch-sub-' + item);
+    if (right) right.querySelector('.merch-unit').style.display = '';
+    if (subEl) { subEl.textContent = '—'; subEl.className = 'merch-subtotal zero'; }
+    updateTotal(); renderCart();
+  }
+
+  // ── Step navigation ─────────────────────────────────────────────
+  function showStep(n) {
+    document.getElementById('step1').style.display        = n === 1 ? 'block' : 'none';
+    document.getElementById('step2').style.display        = n === 2 ? 'block' : 'none';
+    document.getElementById('successScreen').style.display = n === 'success' ? 'block' : 'none';
+    document.getElementById('floatingBtn').style.display   = n === 1 ? '' : 'none';
+    document.getElementById('cartOverlay').classList.remove('open');
+    document.getElementById('cartPanel').classList.remove('open');
+    document.body.classList.remove('cart-open');
+    if (n === 2) {
+      const grand = updateTotal();
+      document.getElementById('payAmount').textContent = `RM ${grand.toLocaleString()}`;
+    }
+    document.querySelectorAll('.step-item').forEach(s => {
+      const sn = parseInt(s.dataset.step);
+      s.classList.remove('active','done');
+      if (sn === n) s.classList.add('active');
+      else if (sn < n) s.classList.add('done');
+    });
+  }
+
+  function goToPayment() {
+    const name   = document.getElementById('buyerName').value.trim();
+    const mobile = document.getElementById('buyerMobile').value.trim();
+    if (!name) { document.getElementById('buyerName').classList.add('error'); return; }
+    if (!mobile) { document.getElementById('step1Error').textContent = '请输入手机号'; document.getElementById('step1Error').classList.add('visible'); return; }
+    document.getElementById('step1Error').classList.remove('visible');
+    const grand = updateTotal();
+    if (grand <= 0) { alert('请至少选择一项'); return; }
+    closeCart();
+    showStep(2);
+  }
+
+  function previewReceipt(input) {
+    const preview = document.getElementById('receiptPreview');
+    if (!input.files[0] || !preview) return;
+    const reader = new FileReader();
+    reader.onload = e => { preview.innerHTML = `<img src="${e.target.result}" alt="Receipt">`; };
+    reader.readAsDataURL(input.files[0]);
+  }
+
+  async function lookupStudent() {
+    const sid = document.getElementById('studentId').value.trim();
+    const result = document.getElementById('lookupResult');
+    if (!sid) { result.className = 'lookup-result fail'; result.textContent = '请输入学号'; return; }
+    result.className = ''; result.textContent = '查找中...';
+    try {
+      const res = await fetch(`${API}/api/student/${encodeURIComponent(sid)}`);
+      const data = await res.json();
+      if (data.success && data.student) {
+        result.className = 'lookup-result ok';
+        result.textContent = `✓ 找到: ${data.student.chinese_name} (${data.student.class || 'N/A'})`;
+        if (!document.getElementById('buyerName').value.trim()) {
+          document.getElementById('buyerName').value = data.student.chinese_name;
+        }
+      } else {
+        result.className = 'lookup-result fail';
+        result.textContent = '学号未找到 Student ID not found';
+      }
+    } catch { result.className = 'lookup-result fail'; result.textContent = '查找失败'; }
+  }
+
+  async function submitRegistration() {
+    const btn = document.getElementById('btnConfirm');
+    const errEl = document.getElementById('step2Error');
+    const receiptInput = document.getElementById('receiptInput');
+    if (!receiptInput.files[0]) {
+      errEl.textContent = '请上传付款凭证 Please upload receipt'; errEl.classList.add('visible'); return;
+    }
+    errEl.classList.remove('visible');
+    btn.disabled = true; btn.textContent = '提交中...';
+
+    try {
+      // Build merch array
+      const merchArr = [];
+      ['tshirt','badge','bag'].forEach(item => {
+        if (state.merch[item]) {
+          merchArr.push({ item, quantity: state.merchQty[item] || 1, size: state.merchSize[item] || null });
+        }
+      });
+
+      // Step 1: Create registration
+      const regRes = await fetch(`${API}/api/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name:       document.getElementById('buyerName').value.trim(),
+          mobile:     document.getElementById('buyerMobile').value.trim(),
+          email:      document.getElementById('buyerEmail').value.trim(),
+          studentId:  document.getElementById('studentId').value.trim(),
+          tickets:    [{ type: state.ticketType, quantity: state.ticketQty }],
+          merchandise: merchArr,
+          donation:   state.donation || 0,
+        })
+      });
+      const regData = await regRes.json();
+      if (!regData.success) throw new Error(regData.message || 'Registration failed');
+
+      // Step 2: Upload receipt
+      const formData = new FormData();
+      formData.append('receipt', receiptInput.files[0]);
+      formData.append('registrationId', regData.registration.id);
+      const uploadRes = await fetch(`${API}/api/upload-receipt`, { method: 'POST', body: formData });
+      const uploadData = await uploadRes.json();
+      if (!uploadData.success) throw new Error(uploadData.message || 'Receipt upload failed');
+
+      // Success
+      document.getElementById('successRef').textContent = `Ref: ${regData.registration.ref_code}`;
+      showStep('success');
+    } catch (err) {
+      errEl.textContent = err.message || '提交失败，请重试'; errEl.classList.add('visible');
+      btn.disabled = false; btn.textContent = '✅ 确认 Submit';
+    }
+  }
+  </script>
+</section>
+
+<!-- Sponsorship Section -->
   <section id="sponsorship">
     <div class="sponsor-wrap">
       <div class="sponsor-top">
@@ -941,3 +1821,4 @@
   <script src="/js/app.js"></script>
 </body>
 </html>
+

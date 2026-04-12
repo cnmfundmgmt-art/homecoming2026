@@ -1,6 +1,7 @@
 const API = '/api';
 const TICKET_LABELS = { single: '单人票 Single', family: '家庭票 Family', table: '桌席 Table' };
 const STATUS_LABELS = { pending: '待审核', approved: '已批准', cancelled: '已取消' };
+const MERCH_LABELS = { tshirt: 'T-恤', tumbler: '保温瓶', badge: '校徽', bag: '环保袋' };
 const AUDIT_ACTION_LABELS = {
   registration_created: '📝 报名创建',
   receipt_uploaded: '🧾 凭证上传',
@@ -198,7 +199,7 @@ function renderTable(regs) {
 
     // Merch chips
     const merchChips = (r.merchandise || []).map(m => {
-      const label = m.item_type === 'tshirt' ? 'T-恤' : '保温瓶';
+      const label = MERCH_LABELS[m.item_type] || m.item_type;
       const size = m.size ? `(${m.size})` : '';
       const qty = m.quantity > 1 ? `×${m.quantity}` : '';
       return `<span class="item-chip merch">${label}${size} ${qty}</span>`;
@@ -260,7 +261,7 @@ function renderTable(regs) {
           <div class="detail-section">
             <h4>周边详情</h4>
             ${(r.merchandise || []).length ? (r.merchandise || []).map(m => {
-              const label = m.item_type === 'tshirt' ? 'T-恤' : '保温瓶';
+              const label = MERCH_LABELS[m.item_type] || m.item_type;
               return `<p><strong>${label}${m.size ? ' (' + m.size + ')' : ''}:</strong> ×${m.quantity} RM ${(m.unit_price * m.quantity).toLocaleString('en-MY')}</p>`;
             }).join('') : '<p class="detail-empty">无周边</p>'}
           </div>
@@ -380,7 +381,7 @@ function exportCSV() {
       return `${label}×${t.quantity}`;
     }).join('; ');
     const merch = (r.merchandise || []).map(m => {
-      const label = m.item_type === 'tshirt' ? 'T-恤' : '保温瓶';
+      const label = MERCH_LABELS[m.item_type] || m.item_type;
       return `${label}${m.size ? '(' + m.size + ')' : ''}×${m.quantity}`;
     }).join('; ');
     rows.push([

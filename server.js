@@ -28,9 +28,17 @@ const q = () => database.getQueries();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Session — use TursoSessionStore so sessions persist across Render instances
+// Session — use TursoSessionStore in production, MemoryStore locally
 const sessionTtl = 24 * 60 * 60 * 1000; // 24h
-const sessionStore = new TursoSessionStore({ ttl: sessionTtl / 1000 });
+let sessionStore;
+if (process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN) {
+  sessionStore = new TursoSessionStore({ ttl: sessionTtl / 1000 });
+  console.log('📦 Session store: Turso (persistent)');
+} else {
+  const MemoryStore = require('express-session').MemoryStore;
+  sessionStore = new MemoryStore();
+  console.log('📦 Session store: Memory (local dev only)');
+}
 app.use(session({
   secret: process.env.SESSION_SECRET || 'homecoming2026-secret',
   resave: false,
@@ -100,9 +108,24 @@ app.get('/api/sponsorship', async (req, res) => {
 });
 
 // ─── API: Create registration ─────────────────────────────────────────────────
+// Supports both JSON (original) and multipart/form-data (new book.html)
 app.post('/api/register', async (req, res) => {
   try {
-    const { studentId, name, mobile, email, tickets, merchandise } = req.body;
+    let { studentId, name, mobile, email, tickets, merchandise, donation } = req.body;
+
+    // Support FormData: ticketType + ticketQty fields → build tickets array
+    if (typeof tickets === 'undefined' && req.body.ticketType) {
+      const tc = { single: { price: 200, seats: 1 }, table: { price: 1800, seats: 10 } };
+      const tType = req.body.ticketType;
+      const tQty  = parseInt(req.body.ticketQty) || 1;
+      tickets = [{ type: tType, quantity: tQty }];
+
+      // Support FormData: merchandise as JSON string
+      if (req.body.merchandise) {
+        try { merchandise = JSON.parse(req.body.merchandise); } catch {}
+      }
+      donation = parseInt(req.body.donation) || 0;
+    }
 
     if (!name || !tickets || !tickets.length) {
       return res.status(400).json({ success: false, message: 'Name and at least one ticket required' });
@@ -117,7 +140,7 @@ app.post('/api/register', async (req, res) => {
       }
     }
 
-    const reg = await q().createRegistration({ studentId, name, mobile, email, tickets, merchandise });
+    const reg = await q().createRegistration({ studentId, name, mobile, email, tickets, merchandise, donation: donation || 0 });
     await q().logAudit('registration_created', 'registration', reg.id, null, { ref_code: reg.ref_code, name, mobile, ticket_types: tickets.map(t => t.type), total: reg.total_amount });
     console.log('[Register] success, regId:', reg?.id, 'ref:', reg?.ref_code);
     res.json({ success: true, registration: reg });
@@ -335,15 +358,14 @@ app.post('/api/checkin', async (req, res) => {
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-// ─── Root → index.html (landing page with embedded booking form) ─────────────
+// ─── Root → landing page ──────────────────────────────────────────
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ─── /book → redirect to landing page ───────────────────────────────────────
+// ─── /book → new registration page ──────────────────────────────────
 app.get('/book', (req, res) => {
-  res.redirect('/');
-  return;
+  res.sendFile(path.join(__dirname, 'public', 'book.html'));
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────
