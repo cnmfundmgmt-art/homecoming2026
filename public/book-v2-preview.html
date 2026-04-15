@@ -464,9 +464,9 @@
             <div class="ticket-row">
               <div class="qty-stepper">
                 <label>数量:</label>
-                <button class="qty-btn" onclick="event.stopPropagation(); changeQty(-1)">−</button>
+                <button class="qty-btn" onclick="event.stopPropagation(); changeQty('single', -1)">−</button>
                 <span class="qty-display" id="singleQty">1</span>
-                <button class="qty-btn" onclick="event.stopPropagation(); changeQty(1)">+</button>
+                <button class="qty-btn" onclick="event.stopPropagation(); changeQty('single', 1)">+</button>
               </div>
             </div>
           </div>
@@ -486,9 +486,9 @@
             <div class="ticket-row">
               <div class="qty-stepper">
                 <label>数量:</label>
-                <button class="qty-btn" onclick="event.stopPropagation(); changeQty(-1)">−</button>
+                <button class="qty-btn" onclick="event.stopPropagation(); changeQty('table', -1)">−</button>
                 <span class="qty-display" id="tableQty">1</span>
-                <button class="qty-btn" onclick="event.stopPropagation(); changeQty(1)">+</button>
+                <button class="qty-btn" onclick="event.stopPropagation(); changeQty('table', 1)">+</button>
               </div>
             </div>
           </div>
@@ -706,7 +706,8 @@
   // ── State ───────────────────────────────────────────────────────
   const state = {
     ticketType: 'single',
-    ticketQty:  1,
+    singleQty:  1,
+    tableQty:   1,
     merch:      { tshirt: false, badge: false, bag: false },
     merchQty:   { tshirt: 1, badge: 1, bag: 1 },
     merchSize:  { tshirt: 'M' },
@@ -728,10 +729,14 @@
     updateTotal();
   }
 
-  function changeQty(delta) {
-    state.ticketQty = Math.max(1, Math.min(10, state.ticketQty + delta));
-    const id = state.ticketType === 'single' ? 'singleQty' : 'tableQty';
-    document.getElementById(id).textContent = state.ticketQty;
+  function changeQty(type, delta) {
+    if (type === 'single') {
+      state.singleQty = Math.max(1, Math.min(10, state.singleQty + delta));
+      document.getElementById('singleQty').textContent = state.singleQty;
+    } else {
+      state.tableQty = Math.max(1, Math.min(10, state.tableQty + delta));
+      document.getElementById('tableQty').textContent = state.tableQty;
+    }
     updateTotal();
   }
 
@@ -776,7 +781,8 @@
 
   // ── Total ──────────────────────────────────────────────────────
   function updateTotal() {
-    const ticketTotal = TICKET_PRICES[state.ticketType] * state.ticketQty;
+    const selectedQty   = state.ticketType === 'single' ? state.singleQty : state.tableQty;
+    const ticketTotal   = TICKET_PRICES[state.ticketType] * selectedQty;
     let merchTotal = 0;
     for (const [item, checked] of Object.entries(state.merch)) {
       if (!checked) continue;
@@ -790,14 +796,11 @@
     document.getElementById('merchSubtotal').textContent  = merchTotal > 0 ? `RM ${merchTotal.toLocaleString()}` : '—';
     document.getElementById('donationSubtotal').textContent = donation > 0 ? `RM ${donation.toLocaleString()}` : '—';
 
-    // Per-row ticket subtotals
-    if (state.ticketType === 'single') {
-      document.getElementById('singleSubtotal').textContent = `= RM ${ticketTotal.toLocaleString()}`;
-      document.getElementById('singleSubtotal').className  = 'ticket-subtotal';
-    } else {
-      document.getElementById('tableSubtotal').textContent = `= RM ${ticketTotal.toLocaleString()}`;
-      document.getElementById('tableSubtotal').className  = 'ticket-subtotal';
-    }
+    // Per-row ticket subtotals — always show both (unselected qty still updates visually)
+    const singleSub = state.singleQty * TICKET_PRICES.single;
+    const tableSub  = state.tableQty  * TICKET_PRICES.table;
+    document.getElementById('singleSubtotal').textContent = `= RM ${singleSub.toLocaleString()}`;
+    document.getElementById('tableSubtotal').textContent  = `= RM ${tableSub.toLocaleString()}`;
 
     // Per-row merch subtotals
     for (const [item, checked] of Object.entries(state.merch)) {
@@ -815,7 +818,7 @@
     }
 
     // Floating button badge
-    const itemCount = state.ticketQty + Object.entries(state.merch).reduce((n, [k, v]) => n + (v ? state.merchQty[k] || 1 : 0), 0);
+    const itemCount = selectedQty + Object.entries(state.merch).reduce((n, [k, v]) => n + (v ? state.merchQty[k] || 1 : 0), 0);
     document.getElementById('cartCount').textContent = itemCount;
 
     return grand;
@@ -823,7 +826,8 @@
 
   // ── Render Cart ─────────────────────────────────────────────────
   function renderCart() {
-    const ticketTotal = TICKET_PRICES[state.ticketType] * state.ticketQty;
+    const selectedQty = state.ticketType === 'single' ? state.singleQty : state.tableQty;
+    const ticketTotal = TICKET_PRICES[state.ticketType] * selectedQty;
     let merchTotal = 0;
     for (const [item, checked] of Object.entries(state.merch)) {
       if (checked) merchTotal += MERCH_PRICES[item] * (state.merchQty[item] || 1);
@@ -849,7 +853,7 @@
       const type = state.ticketType;
       const label = TICKET_LABELS[type];
       const price = TICKET_PRICES[type];
-      const qty   = state.ticketQty;
+      const qty   = type === 'single' ? state.singleQty : state.tableQty;
       const sub   = price * qty;
       html += `<div class="cart-section-label">票务 Ticket</div>`;
       html += `<div class="cart-item">
@@ -924,12 +928,18 @@
 
   // ── Cart actions ─────────────────────────────────────────────────
   function cartChangeTicketQty(delta) {
-    state.ticketQty = Math.max(1, Math.min(10, state.ticketQty + delta));
-    document.getElementById(state.ticketType === 'single' ? 'singleQty' : 'tableQty').textContent = state.ticketQty;
+    if (state.ticketType === 'single') {
+      state.singleQty = Math.max(1, Math.min(10, state.singleQty + delta));
+      document.getElementById('singleQty').textContent = state.singleQty;
+    } else {
+      state.tableQty = Math.max(1, Math.min(10, state.tableQty + delta));
+      document.getElementById('tableQty').textContent = state.tableQty;
+    }
     updateTotal(); renderCart();
   }
   function cartRemoveTicket() {
-    state.ticketQty = 1;
+    state.singleQty = 1;
+    state.tableQty  = 1;
     document.getElementById('singleQty').textContent = 1;
     document.getElementById('tableQty').textContent = 1;
     updateTotal(); renderCart();
@@ -1043,7 +1053,7 @@
           mobile:     document.getElementById('buyerMobile').value.trim(),
           email:      document.getElementById('buyerEmail').value.trim(),
           studentId:  document.getElementById('studentId').value.trim(),
-          tickets:    [{ type: state.ticketType, quantity: state.ticketQty }],
+          tickets:    [{ type: state.ticketType, quantity: state.ticketType === 'single' ? state.singleQty : state.tableQty }],
           merchandise: merchArr,
           donation:   state.donation || 0,
         })
