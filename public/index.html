@@ -877,28 +877,37 @@
   <!-- STEP 2: Payment -->
   <div id="step2" style="display:none">
     <div class="book-card">
-      <div class="section-title"><span>💳</span> 付款 Payment</div>
+      <div class="section-title" id="step2Title"><span>💳</span> 付款 Payment</div>
       <div class="error-msg" id="step2Error"></div>
-      <div class="payment-ref-box">
-        <div style="font-size:0.85rem;opacity:0.85;">总额 Total Amount</div>
-        <div class="payment-amount" id="payAmount">RM 0</div>
+
+      <!-- Normal payment content (hidden after success) -->
+      <div id="step2Normal">
+        <div class="payment-ref-box">
+          <div style="font-size:0.85rem;opacity:0.85;">总额 Total Amount</div>
+          <div class="payment-amount" id="payAmount">RM 0</div>
+        </div>
+        <div class="bank-box">
+          <div class="bank-row"><span>银行 Bank</span><strong>AmBank</strong></div>
+          <div class="bank-row"><span>户名 Account Name</span><strong>Chong Hwa Independent High School</strong></div>
+          <div class="bank-row"><span>账号 Account Number</span><strong>888-106-966424-7</strong></div>
+        </div>
+        <div class="qr-wrap">
+          <img src="/images/chkl_bank_qr.png" alt="Bank QR" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22><rect fill=%22%23f0f0f0%22 width=%22200%22 height=%22200%22/><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2212%22>QR</text></svg>'">
+          <p style="font-size:0.78rem;color:#888;margin-top:0.4rem;">请扫描上方二维码完成付款<br>Scan QR to pay</p>
+        </div>
+        <div class="receipt-area">
+          <label class="receipt-upload-label" for="receiptInput">📤 上传付款凭证 / Upload Receipt <span style="color:#e53e3e">*</span></label>
+          <input type="file" id="receiptInput" class="receipt-input" accept="image/*,.pdf" onchange="previewReceipt(this)">
+          <div class="receipt-preview" id="receiptPreview"></div>
+        </div>
+        <button class="btn-confirm" id="btnConfirm" onclick="submitRegistration()">✅ 确认提交 Confirm</button>
+        <button class="btn-back" onclick="showStep(1)">← 返回修改 Return</button>
       </div>
-      <div class="bank-box">
-        <div class="bank-row"><span>银行 Bank</span><strong>AmBank</strong></div>
-        <div class="bank-row"><span>户名 Account Name</span><strong>Chong Hwa Independent High School</strong></div>
-        <div class="bank-row"><span>账号 Account Number</span><strong>888-106-966424-7</strong></div>
+
+      <!-- Success content (shown after submit) -->
+      <div id="step2Success" style="display:none;">
+        <div id="refReminderBox"></div>
       </div>
-      <div class="qr-wrap">
-        <img src="/images/chkl_bank_qr.png" alt="Bank QR" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22><rect fill=%22%23f0f0f0%22 width=%22200%22 height=%22200%22/><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2212%22>QR</text></svg>'">
-        <p style="font-size:0.78rem;color:#888;margin-top:0.4rem;">请扫描上方二维码完成付款<br>Scan QR to pay</p>
-      </div>
-      <div class="receipt-area">
-        <label class="receipt-upload-label" for="receiptInput">📤 上传付款凭证 / Upload Receipt <span style="color:#e53e3e">*</span></label>
-        <input type="file" id="receiptInput" class="receipt-input" accept="image/*,.pdf" onchange="previewReceipt(this)">
-        <div class="receipt-preview" id="receiptPreview"></div>
-      </div>
-      <button class="btn-confirm" id="btnConfirm" onclick="submitRegistration()">✅ 确认提交 Confirm</button>
-      <button class="btn-back" onclick="showStep(1)">← 返回修改 Return</button>
     </div>
   </div>
 
@@ -1346,7 +1355,10 @@
   
   </style>
 
-  <!-- New booking form scripts -->
+  <!-- App scripts (countdown, nav, scroll animations) — safe to keep, no conflict -->
+  <script src="/js/app.js"></script>
+
+  <!-- Booking form inline scripts -->
   <script>
 // ── Config ──────────────────────────────────────────────────────
   const TICKET_PRICES  = { single: 200, table: 1800 };
@@ -1721,9 +1733,22 @@
       const uploadData = await uploadRes.json();
       if (!uploadData.success) throw new Error(uploadData.message || 'Receipt upload failed');
 
-      // Success
-      document.getElementById('successRef').textContent = `Ref: ${regData.registration.ref_code}`;
-      showStep('success');
+      // ── Success: hide normal content, show success card ──
+      document.getElementById('step2Normal').style.display = 'none';
+      document.getElementById('step2Title').style.display = 'none';
+      document.getElementById('step2Error').style.display = 'none';
+      const successDiv = document.getElementById('step2Success');
+      successDiv.style.display = '';
+      successDiv.innerHTML = `
+        <div style="text-align:center;padding:0.5rem 0 1rem;">
+          <div style="font-size:3rem;margin-bottom:0.75rem;">🎉</div>
+          <div style="font-weight:800;color:#8B1A1A;font-size:1.3rem;margin-bottom:0.5rem;">提交成功！</div>
+          <div style="color:#555;font-size:0.9rem;line-height:1.7;margin-bottom:0.25rem;">您的报名已收到，筹委会将审核后确认。请保留您的报名编号</div>
+          <div style="color:#888;font-size:0.88rem;line-height:1.6;margin-bottom:1rem;">Submission successful! Your registration has been received and please keep your Reference No. for future verification purpose.</div>
+          <div style="background:#f5f5f5;border-radius:10px;padding:0.75rem 1rem;font-weight:700;color:#8B1A1A;font-size:1.1rem;letter-spacing:2px;">Ref: ${regData.registration.ref_code}</div>
+        </div>
+      `;
+
     } catch (err) {
       errEl.textContent = err.message || '提交失败，请重试'; errEl.classList.add('visible');
       btn.disabled = false; btn.textContent = '✅ 确认 Submit';
@@ -1826,9 +1851,7 @@
     </div>
   </footer>
 
-    <!-- Booking Form JS -->
-  <script src="/js/booking.js"></script>
-  <script src="/js/app.js"></script>
+
 </body>
 </html>
 

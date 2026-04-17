@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initCountdown();
   initNavigation();
   initScrollAnimations();
+  loadSponsorship();
 });
 
 // ─── Countdown ────────────────────────────────────────────────────────────────
@@ -95,4 +96,31 @@ function initScrollAnimations() {
     el.style.transform = 'translateY(20px)';
     observer.observe(el);
   });
+}
+
+// ─── Sponsorship Stats ─────────────────────────────────────────────────────────
+async function loadSponsorship() {
+  try {
+    const res = await fetch('/api/sponsorship');
+    const data = await res.json();
+    if (!data.success) return;
+
+    const raised = data.raised || 0;
+    const goal = data.goal || 500000;
+    const perStudent = data.per_student || 42000;
+    const count = Math.floor(raised / perStudent);
+    const pct = Math.min(Math.round((raised / goal) * 100), 100);
+
+    const countEl = document.getElementById('sponsorCountHome');
+    const raisedEl = document.getElementById('sponsorRaisedHome');
+    const barEl = document.getElementById('sponsorBarFillHome');
+    const pctEl = document.getElementById('sponsorPctHome');
+
+    if (countEl) countEl.textContent = count;
+    if (raisedEl) raisedEl.textContent = `RM ${raised.toLocaleString()}`;
+    if (barEl) barEl.style.width = `${pct}%`;
+    if (pctEl) pctEl.textContent = `${pct}%`;
+  } catch (e) {
+    console.error('Failed to load sponsorship stats:', e);
+  }
 }

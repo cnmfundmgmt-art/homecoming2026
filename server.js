@@ -21,8 +21,16 @@ if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && proce
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Lazy query accessor — queries are only accessed after init() completes
+// DB ready flag — set true after database.init() completes
+let dbReady = false;
 const q = () => database.getQueries();
+
+// ─── Middleware: hold requests until DB is ready ─────────────────────────────
+app.use((req, res, next) => {
+  if (dbReady) return next();
+  res.set('Retry-After', '3');
+  res.status(503).send('<h1>Starting up...</h1><p>Please retry in a few seconds.</p>');
+});
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(express.json());
@@ -369,13 +377,22 @@ app.get('/book', (req, res) => {
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────
-(async () => {
-// --- Start ---
-await database.init(); // init BEFORE server starts accepting connections
-app.listen(PORT, () => {
-  console.log("\n🏠 Homecoming 2026 running on http://localhost:" + PORT);
-  console.log("   Landing Page:  http://localhost:" + PORT + "/");
-  console.log("   Admin:        http://localhost:" + PORT + "/admin");
-  console.log("   Check-in:     http://localhost:" + PORT + "/checkin\n");
+// Start the HTTP server immediately so Render's port health check passes
+// without waiting for async DB init (Turso schema + student seeding takes time)
+const server = app.listen(PORT, () => {
+  console.log(`\n🏠 Homecoming 2026 starting on http://localhost:${PORT}`);
 });
+
+// Init DB in background — once complete, the server is fully ready
+(async () => {
+  try {
+    await database.init();
+    dbReady = true;
+    console.log(`   ✅ Database ready — all systems go`);
+    console.log(`   Landing Page:  http://localhost:${PORT}/`);
+    console.log(`   Admin:        http://localhost:${PORT}/admin`);
+    console.log(`   Check-in:     http://localhost:${PORT}/checkin\n`);
+  } catch (err) {
+    console.error(`   ❌ Database init failed: ${err.message}`);
+  }
 })();

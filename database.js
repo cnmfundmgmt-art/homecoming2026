@@ -263,7 +263,7 @@ function buildLocalQueries(db) {
     getPendingRegs:    db.prepare(`SELECT r.*, s.class FROM registrations r LEFT JOIN students s ON r.student_id = s.student_id WHERE r.status = 'pending' ORDER BY r.created_at DESC`),
     getApprovedRegs:   db.prepare(`SELECT r.*, s.class FROM registrations r LEFT JOIN students s ON r.student_id = s.student_id WHERE r.status = 'approved' ORDER BY r.updated_at DESC`),
     getRegsByStatus:   db.prepare(`SELECT r.*, s.class FROM registrations r LEFT JOIN students s ON r.student_id = s.student_id WHERE r.status = ? ORDER BY r.created_at DESC`),
-    getStats:          db.prepare(`SELECT COUNT(*) as total, COUNT(*) FILTER(WHERE status='pending') as pending, COUNT(*) FILTER(WHERE status='approved') as approved, COUNT(*) FILTER(WHERE status='cancelled') as cancelled, COALESCE(SUM(total_amount) FILTER(WHERE status='approved'),0) as revenue FROM registrations`),
+    getStats:          db.prepare(`SELECT COUNT(*) as total, COUNT(*) FILTER(WHERE status='pending') as pending, COUNT(*) FILTER(WHERE status='approved') as approved, COUNT(*) FILTER(WHERE status='cancelled') as cancelled, COALESCE(SUM(total_amount) FILTER(WHERE status='approved'),0) as revenue, COALESCE(SUM(donation) FILTER(WHERE status='approved'),0) as sponsorship_raised FROM registrations`),
     insertTicket:      db.prepare(`INSERT INTO tickets (registration_id, ticket_type, quantity, unit_price, seats, created_at) VALUES (?, ?, ?, ?, ?, ?)`),
     getTicketsByReg:   db.prepare(`SELECT * FROM tickets WHERE registration_id = ?`),
     insertMerch:       db.prepare(`INSERT INTO merchandise (registration_id, item_type, size, quantity, unit_price, created_at) VALUES (?, ?, ?, ?, ?, ?)`),
@@ -345,8 +345,7 @@ function buildLocalQueries(db) {
         return { ...r, tickets };
       });
       const approvedSeats = approved.reduce((sum, r) => sum + r.tickets.reduce((s, t) => s + t.seats, 0), 0);
-      const sponsorshipRaised = s.revenue || 0;
-      return { ...s, approved_seats: approvedSeats, sponsorship_raised: sponsorshipRaised };
+      return { ...s, approved_seats: approvedSeats };
     }
   };
 }
@@ -463,11 +462,10 @@ function buildTursoQueries(url, token) {
     },
 
     async getStats() {
-      const s = await tGetOne(`SELECT COUNT(*) as total, COUNT(*) FILTER(WHERE status='pending') as pending, COUNT(*) FILTER(WHERE status='approved') as approved, COUNT(*) FILTER(WHERE status='cancelled') as cancelled, COALESCE(SUM(total_amount) FILTER(WHERE status='approved'),0) as revenue FROM registrations`);
+      const s = await tGetOne(`SELECT COUNT(*) as total, COUNT(*) FILTER(WHERE status='pending') as pending, COUNT(*) FILTER(WHERE status='approved') as approved, COUNT(*) FILTER(WHERE status='cancelled') as cancelled, COALESCE(SUM(total_amount) FILTER(WHERE status='approved'),0) as revenue, COALESCE(SUM(donation) FILTER(WHERE status='approved'),0) as sponsorship_raised FROM registrations`);
       const approvedRegs = await tGetAll(`SELECT * FROM registrations WHERE status = 'approved'`);
       const approvedSeats = approvedRegs.reduce((sum, r) => sum + (r.total_seats || 0), 0);
-      const sponsorshipRaised = s.revenue || 0;
-      return { ...s, approved_seats: approvedSeats, sponsorship_raised: sponsorshipRaised };
+      return { ...s, approved_seats: approvedSeats };
     }
   };
 }
