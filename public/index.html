@@ -1148,6 +1148,8 @@
 
     /* ── Floating "View Order" button ── */
     .floating-order-btn {
+      z-index: 9998;
+
       position: fixed; bottom: 1.5rem; right: 1.5rem;
       background: #8B1A1A; color: #fff;
       border: none; border-radius: 50px;
@@ -1178,7 +1180,8 @@
     /* ── Side Cart Panel ── */
     .cart-panel {
       position: fixed; top: 0; right: 0; bottom: 0;
-      width: min(400px, 95vw);
+      width: 340px;
+      max-width: 85vw;
       background: #fff;
       z-index: 201;
       display: flex; flex-direction: column;
@@ -1187,25 +1190,136 @@
       box-shadow: -4px 0 30px rgba(0,0,0,0.15);
     }
     .cart-panel.open { transform: translateX(0); }
+    .cart-close {
+      position: absolute; top: 10px; right: 10px;
+      border: none; background: #FFD700; cursor: pointer;
+      font-size: 0.9rem; width: 26px; height: 26px;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      z-index: 202; color: #333; font-weight: bold;
+    }
+    .cart-close:hover { background: #FFC107; }
+
+    /* Cart items - cleaner layout like preview */
+    .cart-item {
+      display: grid; grid-template-columns: auto 1fr auto; gap: 0.75rem;
+      align-items: center; padding: 0.75rem 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .cart-item-icon {
+      width: 44px; height: 44px; border-radius: 10px; background: #8B1A1A;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem; flex-shrink: 0;
+    }
+    .cart-item-info { min-width: 0; }
+    .cart-item-name { font-weight: 600; font-size: 0.95rem; color: #333; margin-bottom: 0.15rem; }
+    .cart-item-price { font-size: 0.85rem; color: #666; }
+    .cart-item-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem; }
+    .cart-item-sub { font-weight: 700; font-size: 1rem; color: #8B1A1A; }
+    .cart-item-qty { display: flex; align-items: center; gap: 0.4rem; }
+    .cart-item-img { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; }
+    .cart-item-remove { display: none; } /* Hide remove button for cleaner look */
+
+    .cart-section-label { display: block; font-weight: 700; font-size: 0.72rem; color: #8B1A1A; margin: 0; padding: 0.15rem 0; border-bottom: 2px solid #8B1A1A; line-height: 1.2; }
+
+    /* Donation row */
+    .cart-donation-row { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-top: 1px dashed #eee; margin-top: 0.5rem; }
+    .cart-donation-label { font-size: 0.9rem; color: #555; }
+    .cart-donation-amount { font-weight: 700; font-size: 1rem; color: #8B1A1A; }
+
+    /* Footer summary */
+    .cart-foot { padding: 1rem; border-top: 1px solid #eee; background: #fafafa; }
+    .cart-summary-row { display: flex; justify-content: space-between; font-size: 0.9rem; padding: 0.4rem 0; }
+    .cart-summary-row.total { border-top: 2px solid #8B1A1A; margin-top: 0.5rem; padding-top: 0.75rem; font-weight: 700; font-size: 1.1rem; color: #8B1A1A; }
+    .cart-summary-row span:first-child { color: #555; }
+    .cart-summary-row.total span:first-child { color: #333; }
+
+    /* Actions */
+    .cart-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1rem; }
+    .btn-continue { padding: 0.85rem; border: 2px solid #8B1A1A; background: #fff; color: #8B1A1A; font-weight: 600; border-radius: 10px; cursor: pointer; font-size: 0.95rem; }
+    .btn-continue:hover { background: #fff5f5; }
+    .btn-confirm-cart { padding: 0.85rem; background: #8B1A1A; color: #fff; font-weight: 600; border-radius: 10px; border: none; cursor: pointer; font-size: 0.95rem; }
+    .btn-confirm-cart:hover { background: #6B1010; }
+
+    /* Mobile responsive */
+    @media (max-width: 500px) {
+      .cart-panel { width: 90vw; max-width: 360px; }
+      .cart-body { padding: 0.75rem 1rem; }
+      .cart-actions { grid-template-columns: 1fr; }
+    }
 
     /* Cart header */
     .cart-head {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 1.25rem 1.25rem 1rem;
+      padding: 0.5rem 0.75rem;
       border-bottom: 1px solid #eee;
+      flex-shrink: 0;
     }
-    .cart-head-title { font-size: 1.1rem; font-weight: 800; color: #8B1A1A; }
+    .cart-head-title { font-size: 0.9rem; font-weight: 800; color: #8B1A1A; }
     .cart-close {
       width: 34px; height: 34px; border-radius: 50%;
-      border: none; background: #f5f5f5; cursor: pointer;
+      border: none; background: #FFD700; cursor: pointer;
       font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
-      color: #666;
+      color: #333; font-weight: bold;
     }
-    .cart-close:hover { background: #eee; }
+    .cart-close:hover { background: #FFC107; transform: scale(1.1); }
 
     /* Cart body — scrollable */
     .cart-body {
-      flex: 1; overflow-y: auto; padding: 0.5rem 1.25rem;
+      flex: 1; overflow-y: auto; padding: 0 1rem;
+    }
+
+    /* Cart items - cleaner layout like preview */
+    .cart-item {
+      display: grid; grid-template-columns: 34px 1fr auto; gap: 0.4rem;
+      align-items: center; padding: 0.25rem 0; margin: 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .cart-item-icon {
+      width: 34px; height: 34px; border-radius: 6px; background: #8B1A1A;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem; flex-shrink: 0;
+    }
+    .cart-item-info { min-width: 0; }
+    .cart-item-name { font-weight: 600; font-size: 0.85rem; color: #333; }
+    .cart-item-price { font-size: 0.75rem; color: #666; }
+    .cart-item-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.2rem; }
+    .cart-item-sub { font-weight: 700; font-size: 0.9rem; color: #8B1A1A; }
+    .cart-item-qty { display: flex; align-items: center; gap: 0.3rem; }
+    .cart-item-img { width: 34px; height: 34px; border-radius: 6px; object-fit: cover; }
+    .cart-item-remove { display: none; }
+
+    .cart-section-label { display: block; font-weight: 700; font-size: 0.72rem; color: #8B1A1A; margin: 0; padding: 0.15rem 0; border-bottom: 2px solid #8B1A1A; line-height: 1.2; }
+
+    /* Donation row */
+    .cart-donation-row { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-top: 1px dashed #eee; margin-top: 0.5rem; }
+    .cart-donation-label { font-size: 0.85rem; color: #555; }
+    .cart-donation-amount { font-weight: 700; font-size: 0.9rem; color: #8B1A1A; }
+
+    /* Footer summary */
+    .cart-foot { padding: 0.6rem; border-top: 1px solid #eee; background: #fafafa; flex-shrink: 0; }
+    .cart-summary-row { display: flex; justify-content: space-between; font-size: 0.8rem; padding: 0.25rem 0; }
+    .cart-summary-row.total { border-top: 2px solid #8B1A1A; margin-top: 0.3rem; padding-top: 0.4rem; font-weight: 700; font-size: 0.95rem; color: #8B1A1A; }
+    .cart-summary-row span:first-child { color: #555; }
+    .cart-summary-row.total span:first-child { color: #333; }
+
+    /* Actions */
+    .cart-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-top: 0.6rem; }
+    .btn-continue { padding: 0.6rem; border: 2px solid #8B1A1A; background: #fff; color: #8B1A1A; font-weight: 600; border-radius: 8px; cursor: pointer; font-size: 0.8rem; }
+    .btn-continue:hover { background: #fff5f5; }
+    .btn-confirm-cart { padding: 0.6rem; background: #8B1A1A; color: #fff; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; font-size: 0.8rem; }
+    .btn-confirm-cart:hover { background: #6B1010; }
+
+    /* Mobile responsive */
+    @media (max-width: 500px) {
+      .cart-panel { width: 90vw; max-width: 380px; }
+      .cart-body { padding: 0.75rem 1rem; }
+      .cart-actions { grid-template-columns: 1fr; }
+    }
+
+    /* Cart body mobile */
+    @media (max-width: 500px) {
+      .cart-body {
+        max-height: 60vh;
+        overflow-y: auto;
+      }
     }
 
     /* Cart item rows */
@@ -1519,13 +1633,12 @@
       const price = TICKET_PRICES[type];
       const qty   = type === 'single' ? state.singleQty : state.tableQty;
       const sub   = price * qty;
-      html += `<div class="cart-section-label">票务 Ticket</div>`;
+      html += `<div class="cart-section-label">票务</div>`;
       html += `<div class="cart-item">
-        <div style="width:52px;height:52px;border-radius:8px;background:#8B1A1A;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;">🎫</div>
+        <div class="cart-item-icon">🎫</div>
         <div class="cart-item-info">
           <div class="cart-item-name">${label}</div>
-          <div class="cart-item-meta">RM ${price.toLocaleString()}/位 × ${qty}</div>
-          <div class="cart-item-price">RM ${price.toLocaleString()}/位</div>
+          <div class="cart-item-price">RM ${price} × ${qty}</div>
         </div>
         <div class="cart-item-right">
           <div class="cart-item-sub">RM ${sub.toLocaleString()}</div>
@@ -1534,7 +1647,6 @@
             <span class="qty-display">${qty}</span>
             <button class="qty-btn" onclick="cartChangeTicketQty(1)">+</button>
           </div>
-          <button class="cart-item-remove" onclick="cartRemoveTicket()">移除 Remove</button>
         </div>
       </div>`;
     }
@@ -1542,7 +1654,7 @@
     // Merch
     const merchChecked = Object.entries(state.merch).filter(([,v]) => v);
     if (merchChecked.length > 0) {
-      html += `<div class="cart-section-label">周边 Merchandise</div>`;
+      html += `<div class="cart-section-label">周边</div>`;
       for (const [item, ] of merchChecked) {
         const price = MERCH_PRICES[item];
         const qty   = state.merchQty[item] || 1;
@@ -1550,11 +1662,10 @@
         const size  = item === 'tshirt' ? state.merchSize[item] : '';
         const sizeStr = size ? ` (${size})` : '';
         html += `<div class="cart-item">
-          <img class="cart-item-img" src="/images/chkl_bank_qr.png" onerror="this.style.display='none'" alt="${MERCH_LABELS[item]}">
+          <div class="cart-item-icon">🎁</div>
           <div class="cart-item-info">
             <div class="cart-item-name">${MERCH_LABELS[item]}${sizeStr}</div>
-            <div class="cart-item-meta">RM ${price}/个 × ${qty}</div>
-            <div class="cart-item-price">RM ${price}/个</div>
+            <div class="cart-item-price">RM ${price} × ${qty}</div>
           </div>
           <div class="cart-item-right">
             <div class="cart-item-sub">RM ${sub.toLocaleString()}</div>
@@ -1563,7 +1674,6 @@
               <span class="qty-display">${qty}</span>
               <button class="qty-btn" onclick="event.stopPropagation(); cartChangeMerchQty('${item}',1)">+</button>
             </div>
-            <button class="cart-item-remove" onclick="cartRemoveMerch('${item}')">移除 Remove</button>
           </div>
         </div>`;
       }
@@ -1571,7 +1681,7 @@
 
     // Donation
     if (donation > 0) {
-      html += `<div class="cart-section-label">捐款 Donation</div>`;
+      html += `<div class="cart-section-label">捐款</div>`;
       html += `<div class="cart-donation-row">
         <span class="cart-donation-label">🎓 赞助清寒学生</span>
         <span class="cart-donation-amount">RM ${donation.toLocaleString()}</span>
