@@ -866,7 +866,7 @@
       </div>
     </div>
 
-    <button class="btn-next" onclick="goToPayment()" style="width:100%;max-width:none;margin-top:1rem;">提交 Submit</button>
+    <button id="btnSubmit" class="btn-next" onclick="goToPayment()" style="width:100%;max-width:none;margin-top:1rem;">提交 Submit</button>
 
   </div><!-- /step1 -->
 
@@ -924,11 +924,7 @@
 
 </div><!-- /book-page -->
 
-<!-- Floating "View Order" button -->
-<button class="floating-order-btn" id="floatingBtn" onclick="openCart()">
-  🛒 查看报名
-  <span class="cart-count" id="cartCount">0</span>
-</button>
+
 
 <!-- Cart overlay -->
 <div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
@@ -1595,7 +1591,8 @@
 
     // Floating button badge
     const itemCount = selectedQty + Object.entries(state.merch).reduce((n, [k, v]) => n + (v ? state.merchQty[k] || 1 : 0), 0);
-    document.getElementById('cartCount').textContent = itemCount;
+    const cartCountEl = document.getElementById('cartCount');
+    if (cartCountEl) cartCountEl.textContent = itemCount;
 
     return grand;
   }
@@ -1740,8 +1737,7 @@
     document.getElementById('step1').style.display        = n === 1 ? 'block' : 'none';
     document.getElementById('step2').style.display        = n === 2 ? 'block' : 'none';
     document.getElementById('successScreen').style.display = n === 'success' ? 'block' : 'none';
-    document.getElementById('floatingBtn').style.display   = n === 1 ? '' : 'none';
-    document.getElementById('cartOverlay').classList.remove('open');
+        document.getElementById('cartOverlay').classList.remove('open');
     document.getElementById('cartPanel').classList.remove('open');
     document.body.classList.remove('cart-open');
     // Scroll to top of booking form
