@@ -106,7 +106,7 @@
       .btn-next { max-width: 100%; }
       .book-card { padding: 1.25rem; }
       .payment-ref-box { padding: 1rem; }
-      .qr-wrap img { width: 160px; }
+      .qr-wrap img { width: 320px; }
       .ticket-card { padding: 0.75rem 1rem; }
       .receipt-area { padding: 1rem; }
       .section-container { padding-left: 1rem; padding-right: 1rem; }
@@ -778,19 +778,13 @@
           <div class="merch-name">T-shirt</div>
           <div class="merch-price">RM 60/件</div>
           <div class="merch-ctrl hidden" id="merch-ctrl-tshirt">
-            <div class="size-btns" id="merch-opts-tshirt">
-              <span class="size-label">尺码:</span>
-              <button class="size-btn" onclick="event.stopPropagation(); selectSize('tshirt','S')">S</button>
-              <button class="size-btn selected" onclick="event.stopPropagation(); selectSize('tshirt','M')">M</button>
-              <button class="size-btn" onclick="event.stopPropagation(); selectSize('tshirt','L')">L</button>
-              <button class="size-btn" onclick="event.stopPropagation(); selectSize('tshirt','XL')">XL</button>
-              <button class="size-btn" onclick="event.stopPropagation(); selectSize('tshirt','XXL')">XXL</button>
-            </div>
-            <div class="merch-qty" id="merch-qty-row-tshirt">
-              <span class="size-label">×</span>
-              <button class="qty-btn" onclick="event.stopPropagation(); changeMerchQty('tshirt',-1)">−</button>
-              <span class="qty-display" id="merch-qty-tshirt">1</span>
-              <button class="qty-btn" onclick="event.stopPropagation(); changeMerchQty('tshirt',1)">+</button>
+            <div class="merch-qty merch-qty-vertical" id="merch-qty-row-tshirt">
+              <span class="size-label">数量:</span>
+              <div class="qty-vertical">
+                <button class="qty-btn" onclick="event.stopPropagation(); changeMerchQty('tshirt',-1)">−</button>
+                <span class="qty-display" id="merch-qty-tshirt">1</span>
+                <button class="qty-btn" onclick="event.stopPropagation(); changeMerchQty('tshirt',1)">+</button>
+              </div>
             </div>
           </div>
         </div>
@@ -871,6 +865,8 @@
         </div>
       </div>
     </div>
+
+    <button class="btn-next" onclick="goToPayment()" style="width:100%;max-width:none;margin-top:1rem;">提交 Submit</button>
 
   </div><!-- /step1 -->
 
@@ -1108,6 +1104,8 @@
     .size-btn.selected { border-color: #8B1A1A; background: #8B1A1A; color: #fff; }
     .merch-qty { display: flex; align-items: center; gap: 0.3rem; }
     .merch-qty.hidden { display: none; }
+    .merch-qty-vertical { display: flex; align-items: center; gap: 0.35rem; }
+    .qty-vertical { display: flex; align-items: center; gap: 0.35rem; }
     .merch-right { text-align: right; flex-shrink: 0; }
     .merch-subtotal { font-size: 0.88rem; font-weight: 700; color: #D4A853; margin-top: 0.1rem; }
     .merch-subtotal.zero { color: #ccc; font-weight: 400; }
@@ -1422,7 +1420,7 @@
     .bank-row { display: flex; justify-content: space-between; padding: 0.35rem 0; font-size: 0.9rem; }
     .bank-row strong { color: #333; }
     .qr-wrap { text-align: center; margin: 1rem 0; }
-    .qr-wrap img { width: 200px; border-radius: 12px; border: 3px solid #f0f0f0; }
+    .qr-wrap img { width: 400px; border-radius: 12px; border: 3px solid #f0f0f0; }
     .receipt-area {
       border: 2px dashed #ccc; border-radius: 12px;
       padding: 1.25rem; text-align: center;
@@ -1746,6 +1744,8 @@
     document.getElementById('cartOverlay').classList.remove('open');
     document.getElementById('cartPanel').classList.remove('open');
     document.body.classList.remove('cart-open');
+    // Scroll to top of booking form
+    document.querySelector('.book-page')?.scrollIntoView({ behavior: 'smooth' });
     if (n === 2) {
       const grand = updateTotal();
       document.getElementById('payAmount').textContent = `RM ${grand.toLocaleString()}`;
@@ -1761,12 +1761,23 @@
   function goToPayment() {
     const name   = document.getElementById('buyerName').value.trim();
     const mobile = document.getElementById('buyerMobile').value.trim();
-    if (!name) { document.getElementById('buyerName').classList.add('error'); return; }
-    if (!mobile) { document.getElementById('step1Error').textContent = '请输入手机号'; document.getElementById('step1Error').classList.add('visible'); return; }
+    if (!name) { 
+      document.getElementById('buyerName').classList.add('error');
+      document.querySelector('.book-page')?.scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('buyerName').focus();
+      return; 
+    }
+    document.getElementById('buyerName').classList.remove('error');
+    if (!mobile) { 
+      document.getElementById('step1Error').textContent = '请输入手机号'; 
+      document.getElementById('step1Error').classList.add('visible');
+      document.querySelector('.book-page')?.scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('buyerMobile').focus();
+      return; 
+    }
     document.getElementById('step1Error').classList.remove('visible');
     const grand = updateTotal();
     if (grand <= 0) { alert('请至少选择一项'); return; }
-    closeCart();
     showStep(2);
   }
 
@@ -1847,6 +1858,8 @@
       document.getElementById('step2Normal').style.display = 'none';
       document.getElementById('step2Title').style.display = 'none';
       document.getElementById('step2Error').style.display = 'none';
+      // Scroll to top of booking form
+      document.getElementById('step2')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       const successDiv = document.getElementById('step2Success');
       successDiv.style.display = '';
       successDiv.innerHTML = `
@@ -1917,10 +1930,10 @@
             <th style="padding:1rem 1.5rem;text-align:left;font-weight:600;">负责人 PIC</th>
           </tr></thead>
           <tbody style="font-size:0.95rem;">
-            <tr><td style="padding:0.875rem 1.5rem;font-weight:600;color:#8B1A1A;white-space:nowrap;">主席</td><td style="padding:0.875rem 1.5rem;">Mar Win, Yizao</td></tr>
-            <tr style="background:#f9f9f9;"><td style="padding:0.875rem 1.5rem;font-weight:600;color:#8B1A1A;white-space:nowrap;">秘书</td><td style="padding:0.875rem 1.5rem;">Yizao, Mun Beng</td></tr>
-            <tr><td style="padding:0.875rem 1.5rem;font-weight:600;color:#8B1A1A;white-space:nowrap;">财政</td><td style="padding:0.875rem 1.5rem;">Lek Kee, Shi Ling</td></tr>
-            <tr style="background:#f9f9f9;"><td style="padding:0.875rem 1.5rem;font-weight:600;color:#8B1A1A;white-space:nowrap;">票务组</td><td style="padding:0.875rem 1.5rem;">Kenny, Yizao</td></tr>
+            <tr><td style="padding:0.875rem 1.5rem;font-weight:600;color:#8B1A1A;white-space:nowrap;">主席</td><td style="padding:0.875rem 1.5rem;">陈马荣 <a href="https://wa.me/60123454977" target="_blank"><img src="/images/whatsapp-icon.png" alt="WA" style="width:24px;height:24px;vertical-align:middle;"></a><br>唐以钊 <a href="https://wa.me/60166900728" target="_blank"><img src="/images/whatsapp-icon.png" alt="WA" style="width:24px;height:24px;vertical-align:middle;"></a></td></tr>
+            <tr style="background:#f9f9f9;"><td style="padding:0.875rem 1.5rem;font-weight:600;color:#8B1A1A;white-space:nowrap;">秘书</td><td style="padding:0.875rem 1.5rem;">唐以钊 <a href="https://wa.me/60166900728" target="_blank"><img src="/images/whatsapp-icon.png" alt="WA" style="width:24px;height:24px;vertical-align:middle;"></a><br>张文滨 <a href="https://wa.me/60163681723" target="_blank"><img src="/images/whatsapp-icon.png" alt="WA" style="width:24px;height:24px;vertical-align:middle;"></a></td></tr>
+            <tr><td style="padding:0.875rem 1.5rem;font-weight:600;color:#8B1A1A;white-space:nowrap;">财政</td><td style="padding:0.875rem 1.5rem;">钟立旗 <a href="https://wa.me/60163326665" target="_blank"><img src="/images/whatsapp-icon.png" alt="WA" style="width:24px;height:24px;vertical-align:middle;"></a><br>陈诗灵 <a href="https://wa.me/60172243583" target="_blank"><img src="/images/whatsapp-icon.png" alt="WA" style="width:24px;height:24px;vertical-align:middle;"></a></td></tr>
+            <tr style="background:#f9f9f9;"><td style="padding:0.875rem 1.5rem;font-weight:600;color:#8B1A1A;white-space:nowrap;">票务组</td><td style="padding:0.875rem 1.5rem;">张劲年 <a href="https://wa.me/60197783278" target="_blank"><img src="/images/whatsapp-icon.png" alt="WA" style="width:24px;height:24px;vertical-align:middle;"></a><br>唐以钊 <a href="https://wa.me/60166900728" target="_blank"><img src="/images/whatsapp-icon.png" alt="WA" style="width:24px;height:24px;vertical-align:middle;"></a></td></tr>
             <tr><td style="padding:0.875rem 1.5rem;font-weight:600;color:#8B1A1A;white-space:nowrap;">宣传 / 设计 / 周边</td><td style="padding:0.875rem 1.5rem;">Kang Yao, Hui Shien, Mun Beng, Aifen, Shze Been</td></tr>
             <tr style="background:#f9f9f9;"><td style="padding:0.875rem 1.5rem;font-weight:600;color:#8B1A1A;white-space:nowrap;">筹款组</td><td style="padding:0.875rem 1.5rem;">Ah Kok, Lek Kee, Yizao, Mar Win, Kang Yao</td></tr>
             <tr><td style="padding:0.875rem 1.5rem;font-weight:600;color:#8B1A1A;white-space:nowrap;">活动节目组</td><td style="padding:0.875rem 1.5rem;">Ah Kok, Mar Win</td></tr>
