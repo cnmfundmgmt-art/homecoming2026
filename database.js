@@ -268,7 +268,7 @@ function buildLocalQueries(db) {
     getTicketsByReg:   db.prepare(`SELECT * FROM tickets WHERE registration_id = ?`),
     insertMerch:       db.prepare(`INSERT INTO merchandise (registration_id, item_type, size, quantity, unit_price, created_at) VALUES (?, ?, ?, ?, ?, ?)`),
     getMerchByReg:     db.prepare(`SELECT * FROM merchandise WHERE registration_id = ?`),
-    insertReceipt:     db.prepare(`INSERT INTO receipts (registration_id, file_path, file_name, file_size, uploaded_at) VALUES (?, ?, ?, ?, ?)`),
+    insertReceipt:     db.prepare(`INSERT OR REPLACE INTO receipts (registration_id, file_path, file_name, file_size, uploaded_at) VALUES (?, ?, ?, ?, ?)`),
     getReceiptByReg:   db.prepare(`SELECT * FROM receipts WHERE registration_id = ?`),
     insertAuditLog:    db.prepare(`INSERT INTO audit_logs (action, target_type, target_id, actor, details, created_at) VALUES (?, ?, ?, ?, ?, ?)`),
     getAuditLogs:      db.prepare(`SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT ? OFFSET ?`),
@@ -435,7 +435,7 @@ function buildTursoQueries(url, token) {
     checkin:              async (id) => tRun(`UPDATE registrations SET checked_in_at = ? WHERE id = ?`, [new Date().toISOString(), id]),
     uploadReceipt:        async (id, fp, fn, fs) => Promise.all([
       tRun(`UPDATE registrations SET receipt_path = ?, receipt_uploaded_at = ?, updated_at = ? WHERE id = ?`, [fp, new Date().toISOString(), new Date().toISOString(), id]),
-      tRun(`INSERT INTO receipts (registration_id, file_path, file_name, file_size, uploaded_at) VALUES (?, ?, ?, ?, ?)`, [id, fp, fn, fs, new Date().toISOString()])
+      tRun(`INSERT OR REPLACE INTO receipts (registration_id, file_path, file_name, file_size, uploaded_at) VALUES (?, ?, ?, ?, ?)`, [id, fp, fn, fs, new Date().toISOString()])
     ]).then(() => ({ lastInsertRowid: id })),
 
     logAudit:             async (action, targetType, targetId, actor, details) => {
