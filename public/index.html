@@ -772,7 +772,7 @@
     <div class="book-card">
       <div class="section-title">
         <span class="section-badge">B</span>
-        周边选择 Merchandise <span style="font-weight:400;font-size:0.8rem;color:#999">（可选 Optional）</span>
+        周边产品选项 Merchandise <span style="font-weight:400;font-size:0.8rem;color:#999">（可选 Optional）</span>
         <span id="merchSubtotal" class="section-subtotal">—</span>
       </div>
 
@@ -781,7 +781,7 @@
         <div class="merch-checkbox" id="merch-check-tshirt" onclick="toggleMerch('tshirt')"></div>
         <img class="merch-img" src="/images/chkl_bank_qr.png" alt="T-shirt" onclick="toggleMerch('tshirt')" onerror="this.style.display='none'">
         <div class="merch-info">
-          <div class="merch-name">T-shirt <span class="merch-price-inline">RM 60/件</span></div>
+          <div class="merch-name">活动限定T恤 (T-Shirt) <span class="merch-price-inline">RM 60/件</span></div>
           <div class="merch-ctrl hidden" id="merch-ctrl-tshirt">
             <div class="merch-qty">
               <span class="size-label">数量:</span>
@@ -801,7 +801,7 @@
         <div class="merch-checkbox" id="merch-check-badge" onclick="toggleMerch('badge')"></div>
         <img class="merch-img" src="/images/chkl_bank_qr.png" alt="School Badge" onclick="toggleMerch('badge')" onerror="this.style.display='none'">
         <div class="merch-info">
-          <div class="merch-name">School Badge 校徽 <span class="merch-price-inline">RM 30/个</span></div>
+          <div class="merch-name">精美校徽 (School Badge) <span class="merch-price-inline">RM 30/个</span></div>
           <div class="merch-ctrl hidden" id="merch-ctrl-badge">
             <div class="merch-qty">
               <span class="size-label">数量:</span>
@@ -821,7 +821,7 @@
         <div class="merch-checkbox" id="merch-check-bag" onclick="toggleMerch('bag')"></div>
         <img class="merch-img" src="/images/chkl_bank_qr.png" alt="Recycle Bag" onclick="toggleMerch('bag')" onerror="this.style.display='none'">
         <div class="merch-info">
-          <div class="merch-name">Recycle Bag 环保袋 <span class="merch-price-inline">RM 15/个</span></div>
+          <div class="merch-name">纪念帆布袋 (Canvas Tote Bag) <span class="merch-price-inline">RM 15/个</span></div>
           <div class="merch-ctrl hidden" id="merch-ctrl-bag">
             <div class="merch-qty">
               <span class="size-label">数量:</span>
@@ -1473,7 +1473,7 @@
   const TICKET_PRICES  = { single: 200, table: 1800 };
   const TICKET_LABELS  = { single: 'Single Ticket 单人票', table: 'Table 桌席' };
   const MERCH_PRICES   = { tshirt: 60, badge: 30, bag: 15 };
-  const MERCH_LABELS   = { tshirt: 'T-shirt', badge: 'School Badge 校徽', bag: 'Recycle Bag 环保袋' };
+  const MERCH_LABELS   = { tshirt: '活动限定T恤 (T-Shirt)', badge: '精美校徽 (School Badge)', bag: '纪念帆布袋 (Canvas Tote Bag)' };
   const API = ''; // relative URLs — same origin in production
 
   // ── State ───────────────────────────────────────────────────────
@@ -1796,10 +1796,8 @@
       const data = await res.json();
       if (data.success && data.student) {
         result.className = 'lookup-result ok';
-        result.textContent = `✓ 找到: ${data.student.chinese_name} (${data.student.class || 'N/A'})`;
-        if (!document.getElementById('buyerName').value.trim()) {
-          document.getElementById('buyerName').value = data.student.chinese_name;
-        }
+        result.textContent = `✓ 欢迎回来: ${data.student.chinese_name} (${data.student.class || 'N/A'})`;
+        document.getElementById('buyerName').value = data.student.chinese_name;
       } else {
         result.className = 'lookup-result fail';
         result.textContent = '学号未找到 Student ID not found';

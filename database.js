@@ -107,7 +107,7 @@ function loadStudentsFromExcel() {
     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 }).slice(1); // skip header
     return rows.map(row => {
       const [cls, id, chineseName, englishName] = row;
-      return { student_id: String(id), chinese_name: chineseName, english_name: englishName || null, class: cls || null };
+      return { student_id: String(id), chinese_name: chineseName, english_name: englishName || null, class: cls ? String(cls) : null };
     }).filter(r => r.student_id && r.chinese_name);
   } catch (e) {
     return null;
