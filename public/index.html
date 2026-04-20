@@ -107,7 +107,10 @@
       .book-card { padding: 1.25rem; }
       .payment-ref-box { padding: 1rem; }
       .qr-wrap img { width: 320px; }
-      .ticket-card { padding: 0.75rem 1rem; }
+      .ticket-card { padding: 0.75rem 1rem; flex-direction: column; align-items: flex-start; }
+      .ticket-right { margin-top: 0.5rem; width: 100%; flex-direction: row; justify-content: space-between; align-items: center; }
+      .ticket-price { font-size: 1.1rem; }
+      .ticket-subtotal { font-size: 1rem; }
       .receipt-area { padding: 1rem; }
       .section-container { padding-left: 1rem; padding-right: 1rem; }
     }
@@ -506,7 +509,10 @@
   .programme-time { position: static; text-align: left; margin-bottom: 0.25rem; width: auto; }
   .programme-dot { display: none; }
   .programme-item { flex-direction: column; margin-bottom: 1rem; }
-  .programme-content { width: 100%; }
+  .programme-content { width: 100%; padding: 0.75rem; }
+  .programme-icon { font-size: 1.25rem; }
+  .programme-title { font-size: 0.95rem; }
+  .programme-desc { font-size: 0.8rem; }
 }
 
   </style>
@@ -1132,6 +1138,9 @@
     }
     .donation-input:focus { outline: none; border-color: #8B1A1A; }
 
+    /* ── Hide cart panel (disabled) ── */
+    #cartPanel, #cartOverlay, .floating-order-btn { display: none !important; }
+
     /* ── Floating "View Order" button ── */
     .floating-order-btn {
       z-index: 9998;
@@ -1408,7 +1417,7 @@
     .bank-row { display: flex; justify-content: space-between; padding: 0.35rem 0; font-size: 0.9rem; }
     .bank-row strong { color: #333; }
     .qr-wrap { text-align: center; margin: 1rem 0; }
-    .qr-wrap img { width: 400px; border-radius: 12px; border: 3px solid #f0f0f0; }
+    .qr-wrap img { width: 400px; max-width: 100%; height: auto; border-radius: 12px; border: 3px solid #f0f0f0; }
     .receipt-area {
       border: 2px dashed #ccc; border-radius: 12px;
       padding: 1.25rem; text-align: center;
@@ -1482,8 +1491,8 @@
   updateTotal();
 
   // ── Cart open/close ─────────────────────────────────────────────
-  function openCart()  { }
-  function closeCart() { }
+  function openCart()  { document.body.classList.add('cart-open'); document.getElementById('cartPanel').classList.add('open'); document.getElementById('cartOverlay').classList.add('open'); renderCart(); }
+  function closeCart() { document.body.classList.remove('cart-open'); document.getElementById('cartPanel').classList.remove('open'); document.getElementById('cartOverlay').classList.remove('open'); }
 
   // ── Ticket ─────────────────────────────────────────────────────
   function selectTicket(type) {
@@ -1589,7 +1598,8 @@
     return grand;
   }
 
-  function renderCart() { }
+  // ── Render Cart ─────────────────────────────────────────────────
+  function renderCart() {
     const selectedQty = state.ticketType === 'single' ? state.singleQty : state.tableQty;
     const ticketTotal = TICKET_PRICES[state.ticketType] * selectedQty;
     let merchTotal = 0;
@@ -1728,6 +1738,9 @@
     document.getElementById('step1').style.display        = n === 1 ? 'block' : 'none';
     document.getElementById('step2').style.display        = n === 2 ? 'block' : 'none';
     document.getElementById('successScreen').style.display = n === 'success' ? 'block' : 'none';
+        document.getElementById('cartOverlay').classList.remove('open');
+    document.getElementById('cartPanel').classList.remove('open');
+    document.body.classList.remove('cart-open');
     // Scroll to top of booking form
     document.querySelector('.book-page')?.scrollIntoView({ behavior: 'smooth' });
     if (n === 2) {
