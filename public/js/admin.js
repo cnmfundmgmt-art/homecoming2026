@@ -268,7 +268,9 @@ function renderTable(regs) {
           <div class="detail-section">
             <h4>付款凭证</h4>
             ${r.receipt
-              ? `<img class="detail-receipt-img" src="${r.receipt.file_path}" alt="Receipt" onclick="viewReceipt('${r.receipt.file_path}')">`
+              ? (r.receipt.file_path.toLowerCase().endsWith('.pdf')
+                ? `<a class="detail-receipt-link" href="${r.receipt.file_path}" target="_blank">📄 查看 PDF</a>`
+                : `<img class="detail-receipt-img" src="${r.receipt.file_path}" alt="Receipt" onclick="viewReceipt('${r.receipt.file_path}')">`)
               : '<p class="detail-empty">暂无凭证</p>'}
           </div>
           <div class="detail-section">
@@ -520,5 +522,3 @@ function sortAuditBy(col) {
 function loadMoreAuditLogs() {
   loadAuditLogs(false);
 }
-/ /   f o r c e   r e b u i l d   0 4 / 2 1 / 2 0 2 6   0 0 : 0 5 : 4 6  
- 

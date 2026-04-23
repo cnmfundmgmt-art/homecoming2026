@@ -139,12 +139,13 @@ app.post('/api/register', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Name and at least one ticket required' });
     }
 
-    // Validate student ID if provided
+    // Log student ID if provided (name validation skipped — accept any name typed)
     if (studentId) {
       const student = await q().getStudent(studentId);
-      if (!student) return res.status(404).json({ success: false, message: 'Student ID not found in database' });
-      if (student.chinese_name !== name) {
-        return res.status(400).json({ success: false, message: 'Name does not match student ID' });
+      if (student) {
+        console.log('[Register] Student ID found:', studentId, '| Name typed:', name, '| DB name:', student.chinese_name);
+      } else {
+        console.log('[Register] Student ID not found:', studentId, '| Allowing open registration');
       }
     }
 

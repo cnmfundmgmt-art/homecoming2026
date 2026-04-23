@@ -87,6 +87,7 @@
     .receipt-upload-label { display: block; font-weight: 600; font-size: 0.92rem; margin-bottom: 0.65rem; cursor: pointer; }
     .receipt-input { width: 100%; padding: 0.45rem; border-radius: 8px; font-size: 0.82rem; cursor: pointer; box-sizing: border-box; }
     .receipt-preview { margin-top: 0.65rem; }
+    .receipt-preview:empty, .receipt-preview:not(:has(img)) { display: none; }
     .receipt-preview img { max-width: 190px; border-radius: 8px; border: 2px solid #ddd; }
     .success-screen { text-align: center; padding: 2.5rem 2rem; }
     .success-icon { font-size: 3.5rem; margin-bottom: 0.9rem; }
@@ -1427,6 +1428,7 @@
     }
     .receipt-input { width: 100%; padding: 0.5rem; border-radius: 8px; font-size: 0.85rem; }
     .receipt-preview { margin-top: 0.6rem; }
+    .receipt-preview:empty, .receipt-preview:not(:has(img)) { display: none; }
     .receipt-preview img { max-width: 180px; border-radius: 8px; }
     .btn-confirm {
       width: 100%; padding: 0.9rem; border-radius: 10px;
@@ -1781,9 +1783,23 @@
   function previewReceipt(input) {
     const preview = document.getElementById('receiptPreview');
     if (!input.files[0] || !preview) return;
+    const file = input.files[0];
+    const fileName = (file.name || '').toLowerCase();
+    
+    // Check if PDF - disable preview
+    if (file.type === 'application/pdf' || fileName.indexOf('.pdf') !== -1) {
+      preview.innerHTML = '';
+      preview.style.display = 'none';
+      return;
+    }
+    
+    // Show image preview
     const reader = new FileReader();
-    reader.onload = e => { preview.innerHTML = `<img src="${e.target.result}" alt="Receipt">`; };
-    reader.readAsDataURL(input.files[0]);
+    reader.onload = function(e) { 
+      preview.innerHTML = '<img src="' + e.target.result + '" alt="Receipt">'; 
+      preview.style.display = 'block'; 
+    };
+    reader.readAsDataURL(file);
   }
 
   async function lookupStudent() {
