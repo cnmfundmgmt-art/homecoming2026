@@ -98,6 +98,8 @@ async function loadStats() {
       document.getElementById('statPending').textContent = s.pending || 0;
       document.getElementById('statApproved').textContent = s.approved || 0;
       document.getElementById('statRevenue').textContent = 'RM ' + (s.revenue || 0).toLocaleString('en-MY');
+      document.getElementById('statMerch').textContent = s.merch_sold || 0;
+      document.getElementById('statDonation').textContent = 'RM ' + (s.sponsorship_raised || 0).toLocaleString('en-MY');
       document.getElementById('countAll').textContent = s.total || 0;
       document.getElementById('countPending').textContent = s.pending || 0;
       document.getElementById('countApproved').textContent = s.approved || 0;

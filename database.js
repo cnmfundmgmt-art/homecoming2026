@@ -13,6 +13,7 @@ const TICKET_CONFIG = {
   table:  { price: 1800, seats: 10, label: '桌席 Table' }
 };
 const MERCH_CONFIG = {
+  bundle:   { price: 68,  label: '周边产品 Bundle (T-Shirt + Badge + Bag)', sizes: null },
   tshirt:   { price: 60,  label: 'T-shirt',              sizes: ['S','M','L','XL','XXL'] },
   tumbler:  { price: 50,  label: '保温瓶 Tumbler',          sizes: null },
   badge:    { price: 30,  label: 'School Badge 校徽',       sizes: null },
@@ -264,6 +265,7 @@ function buildLocalQueries(db) {
     getApprovedRegs:   db.prepare(`SELECT r.*, s.class FROM registrations r LEFT JOIN students s ON r.student_id = s.student_id WHERE r.status = 'approved' ORDER BY r.updated_at DESC`),
     getRegsByStatus:   db.prepare(`SELECT r.*, s.class FROM registrations r LEFT JOIN students s ON r.student_id = s.student_id WHERE r.status = ? ORDER BY r.created_at DESC`),
     getStats:          db.prepare(`SELECT COUNT(*) as total, COUNT(*) FILTER(WHERE status='pending') as pending, COUNT(*) FILTER(WHERE status='approved') as approved, COUNT(*) FILTER(WHERE status='cancelled') as cancelled, COALESCE(SUM(total_amount) FILTER(WHERE status='approved'),0) as revenue, COALESCE(SUM(donation) FILTER(WHERE status='approved'),0) as sponsorship_raised FROM registrations`),
+    getMerchSold:      db.prepare(`SELECT COALESCE(SUM(m.quantity),0) as merch_sold FROM merchandise m JOIN registrations r ON m.registration_id = r.id WHERE r.status = 'approved'`),
     insertTicket:      db.prepare(`INSERT INTO tickets (registration_id, ticket_type, quantity, unit_price, seats, created_at) VALUES (?, ?, ?, ?, ?, ?)`),
     getTicketsByReg:   db.prepare(`SELECT * FROM tickets WHERE registration_id = ?`),
     insertMerch:       db.prepare(`INSERT INTO merchandise (registration_id, item_type, size, quantity, unit_price, created_at) VALUES (?, ?, ?, ?, ?, ?)`),
@@ -340,12 +342,13 @@ function buildLocalQueries(db) {
 
     getStats: () => {
       const s = stmts.getStats.get();
+      const merch = stmts.getMerchSold.get();
       const approved = stmts.getApprovedRegs.all().map(r => {
         const tickets = stmts.getTicketsByReg.all(r.id);
         return { ...r, tickets };
       });
       const approvedSeats = approved.reduce((sum, r) => sum + r.tickets.reduce((s, t) => s + t.seats, 0), 0);
-      return { ...s, approved_seats: approvedSeats };
+      return { ...s, approved_seats: approvedSeats, merch_sold: merch.merch_sold };
     }
   };
 }
@@ -462,7 +465,7 @@ function buildTursoQueries(url, token) {
     },
 
     async getStats() {
-      const s = await tGetOne(`SELECT COUNT(*) as total, COUNT(*) FILTER(WHERE status='pending') as pending, COUNT(*) FILTER(WHERE status='approved') as approved, COUNT(*) FILTER(WHERE status='cancelled') as cancelled, COALESCE(SUM(total_amount) FILTER(WHERE status='approved'),0) as revenue, COALESCE(SUM(donation) FILTER(WHERE status='approved'),0) as sponsorship_raised FROM registrations`);
+      const s = await tGetOne(`SELECT COUNT(*) as total, COUNT(*) FILTER(WHERE status='pending') as pending, COUNT(*) FILTER(WHERE status='approved') as approved, COUNT(*) FILTER(WHERE status='cancelled') as cancelled, COALESCE(SUM(total_amount) FILTER(WHERE status='approved'),0) as revenue, COALESCE(SUM(donation) FILTER(WHERE status='approved'),0) as sponsorship_raised, (SELECT COALESCE(SUM(quantity),0) FROM merchandise m JOIN registrations r ON m.registration_id = r.id WHERE r.status = 'approved') as merch_sold FROM registrations`);
       const approvedRegs = await tGetAll(`SELECT * FROM registrations WHERE status = 'approved'`);
       const approvedSeats = approvedRegs.reduce((sum, r) => sum + (r.total_seats || 0), 0);
       return { ...s, approved_seats: approvedSeats };
