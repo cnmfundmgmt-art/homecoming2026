@@ -78,13 +78,6 @@ app.use(express.static(path.join(__dirname, 'public'), {
   }
 }));
 
-// Block /book.html when not in production (localhost dev uses local SQLite — disable to prevent confusion)
-if (process.env.NODE_ENV !== 'production') {
-  app.get('/book.html', (req, res) => {
-    res.status(503).send('<h1>Registration temporarily unavailable</h1><p>Please use the homepage form at <a href="/">Home</a>.</p>');
-  });
-}
-
 // ─── API: Student lookup ──────────────────────────────────────────────────────
 app.get('/api/student/:id', async (req, res) => {
   try {
@@ -116,7 +109,7 @@ app.get('/api/sponsorship', async (req, res) => {
 });
 
 // ─── API: Create registration ─────────────────────────────────────────────────
-// Supports both JSON (original) and multipart/form-data (new book.html)
+// Registration via index.html inline form
 app.post('/api/register', async (req, res) => {
   try {
     let { studentId, name, mobile, email, tickets, merchandise, donation } = req.body;
@@ -370,11 +363,6 @@ app.post('/api/checkin', async (req, res) => {
 // ─── Root → landing page ──────────────────────────────────────────
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// ─── /book → new registration page ──────────────────────────────────
-app.get('/book', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'book.html'));
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────
