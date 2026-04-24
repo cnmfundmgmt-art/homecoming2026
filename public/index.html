@@ -98,7 +98,18 @@
     .error-msg.visible { display: block; }
     .spinner { display: inline-block; width: 18px; height: 18px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 0.7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .booking-form-mark { position: fixed; bottom: 10px; right: 10px; background: #8B1A1A; color: white; padding: 3px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; z-index: 9999; pointer-events: none; }
+@keyframes fadeInPage { from { opacity: 0; } to { opacity: 1; } }
+@keyframes floatPoster { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-12px); } }
+@keyframes cloudDrift {
+  0% { transform: translateX(-200px) translateY(0); opacity: 0; }
+  5% { opacity: 0.6; }
+  95% { opacity: 0.6; }
+  100% { transform: translateX(calc(100vw + 200px)) translateY(-30px); opacity: 0; }
+}
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+body { animation: fadeInPage 1s ease; }
     @media (max-width: 600px) {
       .form-row { grid-template-columns: 1fr; }
       .steps-bar { overflow-x: auto; gap: 0; padding-bottom: 0.5rem; justify-content: flex-start; }
@@ -215,6 +226,27 @@
   .countdown-label { font-size: 0.55rem; }
 }
 /* ========== Hero Section ========== */
+/* Hero clouds */
+.hero-clouds { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+.cloud {
+  position: absolute; bottom: 20%;
+  background: radial-gradient(ellipse at center, rgba(255,255,255,0.16) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: cloudDrift linear infinite;
+}
+.cloud-1 { width: 320px; height: 80px; animation-duration: 18s; animation-delay: 0s; }
+.cloud-2 { width: 220px; height: 55px; animation-duration: 24s; animation-delay: 6s; bottom: 40%; }
+.cloud-3 { width: 260px; height: 65px; animation-duration: 20s; animation-delay: 12s; bottom: 55%; }
+
+/* Hero poster */
+.hero-poster-wrap { display: flex; justify-content: center; margin: 1.5rem 0; animation: fadeInUp 0.8s ease 0.5s both; }
+.hero-poster {
+  max-width: 260px; width: 100%; border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35), 0 0 0 3px rgba(212,168,83,0.4);
+  animation: floatPoster 4s ease-in-out infinite;
+  border: 3px solid rgba(212,168,83,0.6);
+}
+
 .hero {
   min-height: 100vh;
   display: flex;
@@ -244,6 +276,7 @@
   z-index: 1;
   max-width: 900px;
   width: 100%;
+  animation: fadeInPage 1.2s ease 0.2s both;
 }
 
 .hero-badge {
@@ -541,6 +574,11 @@
 
   <!-- Hero -->
   <section id="home" class="hero">
+    <div class="hero-clouds">
+      <div class="cloud cloud-1"></div>
+      <div class="cloud cloud-2"></div>
+      <div class="cloud cloud-3"></div>
+    </div>
     <div class="hero-content">
       <div class="hero-badge">🎉 20周年校友回校日 20th Alumni Homecoming</div>
       <h1 class="hero-title">Homecoming 2026</h1>
@@ -572,6 +610,9 @@
         <div class="countdown-item"><span class="countdown-number" id="hours">00</span><span class="countdown-label">时 Hours</span></div>
         <div class="countdown-item"><span class="countdown-number" id="minutes">00</span><span class="countdown-label">分 Minutes</span></div>
         <div class="countdown-item"><span class="countdown-number" id="seconds">00</span><span class="countdown-label">秒 Seconds</span></div>
+      </div>
+      <div class="hero-poster-wrap">
+        <img class="hero-poster" src="/images/hero-poster.jpg" alt="Homecoming 2026 Poster" onerror="this.style.display='none'">
       </div>
       <div class="hero-cta"><a href="#register" class="btn btn-primary">立即报名 Register Now</a></div>
     </div>
@@ -778,12 +819,37 @@
         <span id="merchSubtotal" class="section-subtotal">—</span>
       </div>
 
-      <!-- Bundle: T-shirt + Badge + Bag -->
+      <!-- Product showcase -->
+      <div class="merch-showcase">
+        <div class="merch-product-card">
+          <img class="merch-product-img" src="/images/merch/t-shirt-600.jpg" alt="T-Shirt" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23eee%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2210%22>👕</text></svg>'">
+          <div class="merch-product-name">T-Shirt</div>
+          <div class="merch-product-tag">T-恤</div>
+        </div>
+        <div class="merch-product-card">
+          <img class="merch-product-img" src="/images/merch/school-badge-600.jpg" alt="School Badge" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23eee%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2210%22>🎖️</text></svg>'">
+          <div class="merch-product-name">School Badge</div>
+          <div class="merch-product-tag">校徽</div>
+        </div>
+        <div class="merch-product-card">
+          <img class="merch-product-img" src="/images/merch/canvas-tote-bag-600.jpg" alt="Canvas Tote Bag" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23eee%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2210%22>👜</text></svg>'">
+          <div class="merch-product-name">Canvas Tote Bag</div>
+          <div class="merch-product-tag">帆布袋</div>
+        </div>
+      </div>
+
+      <!-- Bundle: T-shirt + Badge + Bag (RM 68) -->
       <div class="merch-item checked" id="merch-bundle">
-        <div class="merch-checkbox checked" id="merch-check-bundle" onclick="toggleMerch('bundle')"></div>
-        <img class="merch-img" src="/images/chkl_bank_qr.png" alt="Bundle" onclick="toggleMerch('bundle')" onerror="this.style.display='none'">
-        <div class="merch-info">
-          <div class="merch-name">周边产品 Bundle (T-Shirt + School Badge + Tote Bag) <span class="merch-price-inline">RM 68/套</span></div>
+        <div class="merch-row1">
+          <div class="merch-checkbox checked" id="merch-check-bundle" onclick="toggleMerch('bundle')"></div>
+          <div class="merch-info">
+            <div class="merch-name">周边产品 Bundle (T-Shirt + School Badge + Tote Bag) <span class="merch-price-inline">RM 68/套</span></div>
+          </div>
+          <div class="merch-right" id="merch-right-bundle">
+            <div class="merch-subtotal zero" id="merch-sub-bundle">—</div>
+          </div>
+        </div>
+        <div class="merch-row2">
           <div class="merch-ctrl hidden" id="merch-ctrl-bundle">
             <div class="merch-qty">
               <span class="size-label">数量:</span>
@@ -792,9 +858,6 @@
               <button class="qty-btn" onclick="event.stopPropagation(); changeMerchQty('bundle',1)">+</button>
             </div>
           </div>
-        </div>
-        <div class="merch-right" id="merch-right-bundle">
-          <div class="merch-subtotal zero" id="merch-sub-bundle">—</div>
         </div>
       </div>
     </div>
@@ -1028,12 +1091,29 @@
     .ticket-subtotal { font-size: 0.8rem; color: #555; margin-top: 0.1rem; }
 
     /* ── Merchandise ── */
+    /* Product showcase grid */
+    .merch-showcase {
+      display: flex; gap: 0.75rem; margin-bottom: 1rem;
+      justify-content: center;
+    }
+    .merch-product-card {
+      flex: 1; text-align: center; max-width: 120px;
+    }
+    .merch-product-img {
+      width: 100%; aspect-ratio: 1/1; object-fit: cover;
+      border-radius: 12px; border: 2px solid #e0e0e0;
+      background: #f5f5f5; margin-bottom: 0.35rem;
+    }
+    .merch-product-name { font-size: 0.75rem; font-weight: 700; color: #333; }
+    .merch-product-tag { font-size: 0.7rem; color: #8B1A1A; font-weight: 600; }
     .merch-item {
       border: 2px solid #e0e0e0; border-radius: 12px;
       padding: 0.75rem 1rem; transition: all 0.2s;
-      display: flex; align-items: center; gap: 0.75rem;
+      display: flex; flex-direction: column; gap: 0.5rem;
     }
     .merch-item.checked { border-color: #D4A853; background: rgba(212,168,83,0.04); }
+    .merch-row1 { display: flex; align-items: center; gap: 0.75rem; }
+    .merch-row2 { display: flex; align-items: center; gap: 0.75rem; padding-left: 2rem; }
     .merch-checkbox {
       width: 22px; height: 22px; border-radius: 6px;
       border: 2px solid #ccc; flex-shrink: 0;
