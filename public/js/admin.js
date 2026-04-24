@@ -183,7 +183,7 @@ function applyFilters() {
 function renderTable(regs) {
   const tbody = document.getElementById('regTableBody');
   if (!regs.length) {
-    tbody.innerHTML = '<tr class="loading-row"><td colspan="13">📋 暂无记录</td></tr>';
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="14">📋 暂无记录</td></tr>';
     return;
   }
   let html = '';
@@ -232,6 +232,7 @@ function renderTable(regs) {
       <td data-label="班别">${r.class || '—'}</td>
       <td data-label="票务">${ticketChips || '<span style="color:#ccc">—</span>'}</td>
       <td data-label="周边">${merchChips || '<span style="color:#ccc">—</span>'}</td>
+      <td data-label="捐款"><strong style="color:#8B1A1A;">${r.donation ? 'RM ' + Number(r.donation).toLocaleString('en-MY') : '<span style="color:#ccc">—</span>'}</strong></td>
       <td data-label="席位数"><strong style="color:#28a745;font-size:0.9rem;">${r.total_seats} 席</strong></td>
       <td data-label="总额"><span class="amount">RM ${(r.total_amount || 0).toLocaleString('en-MY')}</span></td>
       <td data-label="状态"><span class="status-badge ${r.status}">${STATUS_LABELS[r.status] || r.status}</span></td>
@@ -242,7 +243,7 @@ function renderTable(regs) {
     // Detail row — NO inline style, rely entirely on CSS classes
     html += `
     <tr id="detail-${r.id}" class="detail-row" style="display:none;">
-      <td colspan="13">
+      <td colspan="14">
         <div class="detail-inner">
           <div class="detail-section">
             <h4>个人信息</h4>
@@ -252,6 +253,7 @@ function renderTable(regs) {
             <p><strong>邮箱:</strong> ${r.email || '—'}</p>
             <p><strong>班别:</strong> ${r.class || '—'}</p>
             <p><strong>总席位数:</strong> <span style="color:#28a745;font-weight:700;">${totalSeats} 席</span></p>
+            <p><strong>捐款:</strong> <span style="color:#8B1A1A;font-weight:700;">${r.donation ? 'RM ' + Number(r.donation).toLocaleString('en-MY') : '—'}</span></p>
           </div>
           <div class="detail-section">
             <h4>票务详情</h4>
@@ -376,7 +378,7 @@ function viewReceipt(src) {
 // ─── CSV Export ───────────────────────────────────────────────────────────────
 function exportCSV() {
   const rows = [
-    ['Ref', '姓名', '学号', '手机', '邮箱', '班别', '票务', '周边', '席位数', '总额(RM)', '状态', '登记日期']
+    ['Ref', '姓名', '学号', '手机', '邮箱', '班别', '票务', '周边', '捐款(RM)', '席位数', '总额(RM)', '状态', '登记日期']
   ];
   const filtered = getFilteredRegs();
   filtered.forEach(r => {
@@ -397,6 +399,7 @@ function exportCSV() {
       r.class || '',
       tickets,
       merch,
+      r.donation || 0,
       r.total_seats || 0,
       r.total_amount || 0,
       STATUS_LABELS[r.status] || r.status,
