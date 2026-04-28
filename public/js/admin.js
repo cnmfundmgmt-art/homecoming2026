@@ -212,9 +212,10 @@ function renderTable(regs) {
     if (r.status === 'pending') {
       actionHtml = `
         <button class="btn-sm btn-approve-sm" onclick="approveReg(${r.id}, event)">✅ 批准</button>
-        <button class="btn-sm btn-cancel-sm" onclick="cancelReg(${r.id}, event)">❌ 取消</button>`;
+        <button class="btn-sm btn-cancel-sm" onclick="cancelReg(${r.id}, event)">❌ 取消</button>
+        <button class="btn-sm" onclick="editAmount(${r.id}, ${r.total_amount || 0}, ${r.donation || 0}, event)">💰 Edit</button>`;
     } else if (r.status === 'approved') {
-      actionHtml = `<div class="action-done approved">✅ 已批准</div>`;
+      actionHtml = `<div class="action-done approved">✅ 已批准</div><button class="btn-sm" onclick="editAmount(${r.id}, ${r.total_amount || 0}, ${r.donation || 0}, event)">💰 Edit</button>`;
     } else {
       actionHtml = `<div class="action-done cancelled">❌ 已取消</div>`;
     }
@@ -338,6 +339,37 @@ async function cancelReg(id, e) {
       updateRegInList(id, 'cancelled');
     }
   } catch (e) { setActionState(id, 'cancelled', '操作失败'); }
+}
+
+async function editAmount(id, currentAmount, currentDonation, e) {
+  e?.stopPropagation();
+  const amount = prompt('输入金额 Amount (RM):', currentAmount);
+  if (amount === null) return;
+  const donation = prompt('输入捐款 Donation (RM):', currentDonation);
+  if (donation === null) return;
+  const reason = prompt('原因 Reason:');
+  if (reason === null) return;
+  
+  setActionState(id, 'pending', '处理中...');
+  try {
+    const res = await fetch(`${API}/admin/registration/${id}/update-amount`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ amount: parseFloat(amount), donation: parseFloat(donation || 0), reason })
+    });
+    const data = await res.json();
+    if (data.success) {
+      loadRegistrations();
+      alert(`已更新！旧金额: RM${data.old_amount} → 新金额: RM${data.new_amount}`);
+    } else {
+      alert('失败: ' + data.message);
+      setActionState(id, 'approved', '失败');
+    }
+  } catch (e) { 
+    alert('错误: ' + e.message);
+    setActionState(id, 'approved', '失败'); 
+  }
 }
 
 function setActionState(id, status, msg) {
