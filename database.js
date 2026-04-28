@@ -435,6 +435,7 @@ function buildTursoQueries(url, token) {
     },
 
     updateStatus:         async (id, status) => tRun(`UPDATE registrations SET status = ?, updated_at = ? WHERE id = ?`, [status, new Date().toISOString(), id]),
+    updateAmount:        async (id, amount, donation) => tRun(`UPDATE registrations SET total_amount = ?, donation = ?, updated_at = ? WHERE id = ?`, [amount, donation, new Date().toISOString(), id]),
     checkin:              async (id) => tRun(`UPDATE registrations SET checked_in_at = ? WHERE id = ?`, [new Date().toISOString(), id]),
     uploadReceipt:        async (id, fp, fn, fs) => Promise.all([
       tRun(`UPDATE registrations SET receipt_path = ?, receipt_uploaded_at = ?, updated_at = ? WHERE id = ?`, [fp, new Date().toISOString(), new Date().toISOString(), id]),

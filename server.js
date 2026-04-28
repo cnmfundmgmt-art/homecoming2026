@@ -317,6 +317,40 @@ app.post('/api/admin/registration/:id/cancel', requireAdmin, async (req, res) =>
   } catch (err) { console.error('[Cancel] ERROR:', err); res.status(500).json({ success: false, message: err.message }); }
 });
 
+// Admin: Update registration amount
+app.post('/api/admin/registration/:id/update-amount', requireAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ success: false, message: 'Invalid ID' });
+    const { amount, donation, reason } = req.body;
+    if (!amount && !donation) return res.status(400).json({ success: false, message: 'amount or donation required' });
+    
+    const reg = await q().getRegistration(id);
+    if (!reg) return res.status(404).json({ success: false, message: 'Not found' });
+    
+    const oldAmount = reg.total_amount || 0;
+    const oldDonation = reg.donation || 0;
+    const newAmount = amount !== undefined ? parseFloat(amount) : oldAmount;
+    const newDonation = donation !== undefined ? parseFloat(donation) : oldDonation;
+    
+    if (isNaN(newAmount) || isNaN(newDonation)) return res.status(400).json({ success: false, message: 'Invalid amount' });
+    
+    const result = await q().updateAmount(id, newAmount, newDonation);
+    await q().logAudit('registration_amount_updated', 'registration', id, 'admin', { 
+      ref_code: reg.ref_code, 
+      name: reg.name,
+      old_amount: oldAmount,
+      new_amount: newAmount,
+      old_donation: oldDonation,
+      new_donation: newDonation,
+      reason: reason || 'Manual adjustment'
+    });
+    console.log(`[UpdateAmount] id=${id}, old=${oldAmount}, new=${newAmount}, donation old=${oldDonation}, new=${newDonation}`);
+    
+    res.json({ success: true, old_amount: oldAmount, new_amount: newAmount, old_donation: oldDonation, new_donation: newDonation });
+  } catch (err) { console.error('[UpdateAmount] ERROR:', err); res.status(500).json({ success: false, message: err.message }); }
+});
+
 // TEMP: diagnostic endpoint — remove after debugging
 app.get('/api/admin/test-db', requireAdmin, async (req, res) => {
   try {
