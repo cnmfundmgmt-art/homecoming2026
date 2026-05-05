@@ -824,7 +824,7 @@ h3 { font-size: clamp(1.2rem, 3vw, 1.5rem); }
   gap: 1.5rem;
 }
 
-.committee-table-wrap {
+.committee-table-wrap { overflow-x: auto; 
   overflow-x: auto;
   border-radius: 12px;
   box-shadow: var(--shadow);
@@ -852,9 +852,10 @@ h3 { font-size: clamp(1.2rem, 3vw, 1.5rem); }
 }
 
 .committee-table td {
-  padding: 0.875rem 1.5rem;
+  padding: 0.875rem 1rem;
   border-bottom: 1px solid var(--light-gray);
   color: var(--dark-text);
+  word-break: break-word;
 }
 
 .committee-table tr:last-child td {
