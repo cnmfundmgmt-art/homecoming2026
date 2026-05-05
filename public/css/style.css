@@ -1011,6 +1011,14 @@ h3 { font-size: clamp(1.2rem, 3vw, 1.5rem); }
   background: var(--warm-white);
 }
 
+/* FAQ */
+.faq-list { max-width: 800px; margin: 0 auto; }
+.faq-item { margin-bottom: 0.5rem; border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden; }
+.faq-item summary { padding: 1rem; cursor: pointer; background: #f9f9f9; font-weight: 600; font-size: 0.95rem; color: #333; }
+.faq-item summary:hover { background: #f0f0f0; }
+.faq-item[open] summary { background: #ed177a; color: white; }
+.faq-answer { padding: 1rem; font-size: 0.9rem; line-height: 1.6; color: #555; background: white; }
+
 .gallery-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
