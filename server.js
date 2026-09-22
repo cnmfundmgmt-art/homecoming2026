@@ -128,9 +128,11 @@ app.post('/api/register', async (req, res) => {
       donation = parseInt(req.body.donation) || 0;
     }
 
-    if (!name || !tickets || !tickets.length) {
-      return res.status(400).json({ success: false, message: 'Name and at least one ticket required' });
+    if (!name) {
+      return res.status(400).json({ success: false, message: 'Name is required' });
     }
+    // Donation-only mode: tickets/merchandise arrays may be empty. Backwards-compatible
+    // with older clients that still send ticket selections.
 
     // Log student ID if provided (name validation skipped — accept any name typed)
     if (studentId) {

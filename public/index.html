@@ -702,7 +702,7 @@ body { animation: fadeInPage 1s ease; }
   <div class="section-container" style="max-width:720px;margin:0 auto;">
     <div class="section-header">
       <h2 class="section-title">📝 报名参加 Register</h2>
-      <p class="section-subtitle">名额有限，请尽早报名 Limited Slots — Register Early!</p>
+      <p class="section-subtitle">赞助清寒学生 · 每 RM 7,000 助一年学费 Sponsor a Student — RM 7,000 per year of schooling</p>
     </div>
 
 <div class="book-page">
@@ -759,8 +759,8 @@ body { animation: fadeInPage 1s ease; }
       </div>
     </div>
 
-    <!-- SECTION A: Tickets -->
-    <div class="book-card">
+    <!-- SECTION A: Tickets (HIDDEN — donation-only mode. Remove the wrapper below to re-enable.) -->
+    <div class="book-card" data-disabled-section="tickets" style="display:none">
       <div class="section-title">
         <span class="section-badge">A</span>
         票务选择 Ticket Selection
@@ -814,8 +814,8 @@ body { animation: fadeInPage 1s ease; }
       </div>
     </div>
 
-    <!-- SECTION B: Merchandise Bundle -->
-    <div class="book-card">
+    <!-- SECTION B: Merchandise Bundle (HIDDEN — donation-only mode. Remove the wrapper below to re-enable.) -->
+    <div class="book-card" data-disabled-section="merch" style="display:none">
       <div class="section-title">
         <span class="section-badge">B</span>
         周边产品 Bundle <span style="font-weight:400;font-size:0.8rem;color:#999">（可选 Optional）</span>
@@ -865,11 +865,11 @@ body { animation: fadeInPage 1s ease; }
       </div>
     </div>
 
-    <!-- SECTION C: Donation -->
-    <div class="book-card">
+    <!-- SECTION C: Donation (only active section — donation-only mode) -->
+    <div class="book-card" data-active-section="donation">
       <div class="section-title">
-        <span class="section-badge">C</span>
-        捐款 Donation <span style="font-weight:400;font-size:0.8rem;color:#999">（可选 Optional）</span>
+        <span class="section-badge">★</span>
+        捐款 Donation
         <span id="donationSubtotal" class="section-subtotal">—</span>
       </div>
       <div class="donation-box">
@@ -1830,7 +1830,7 @@ body { animation: fadeInPage 1s ease; }
     }
     document.getElementById('step1Error').classList.remove('visible');
     const grand = updateTotal();
-    if (grand <= 0) { alert('请至少选择一项'); return; }
+    if (grand <= 0) { alert('请输入捐款金额 Please enter a donation amount'); return; }
     showStep(2);
   }
 
@@ -1886,11 +1886,10 @@ body { animation: fadeInPage 1s ease; }
     btn.disabled = true; btn.textContent = '提交中...';
 
     try {
-      // Build merch array (bundle = all 3 items in one)
-      const merchArr = [];
-      if (state.merch.bundle) {
-        merchArr.push({ item: 'bundle', quantity: state.merchQty.bundle || 1, size: null });
-      }
+      // Donation-only mode: always send empty tickets/merchandise arrays.
+      // Read donation from the input directly (not state.donation) so that
+      // values typed manually without clicking a quick-btn are persisted.
+      const donationAmt = parseInt(document.getElementById('donationInput')?.value) || 0;
 
       // Step 1: Create registration
       const regRes = await fetch(`${API}/api/register`, {
@@ -1901,9 +1900,9 @@ body { animation: fadeInPage 1s ease; }
           mobile:     document.getElementById('buyerMobile').value.trim(),
           email:      document.getElementById('buyerEmail').value.trim(),
           studentId:  document.getElementById('studentId').value.trim(),
-          tickets:    [{ type: state.ticketType, quantity: state.ticketType === 'single' ? state.singleQty : state.tableQty }],
-          merchandise: merchArr,
-          donation:   state.donation || 0,
+          tickets:    [],
+          merchandise: [],
+          donation:   donationAmt,
         })
       });
       const regData = await regRes.json();
@@ -2024,16 +2023,16 @@ body { animation: fadeInPage 1s ease; }
         <details class="faq-item"><summary><strong>2. 我可以带家人和孩子吗？</strong></summary><div class="faq-answer">欢迎校友携带家庭一同出席，让他们藉着这个难得的机会参观您的母校，并一起参与这场有意义的聚会。</div></details>
         <details class="faq-item"><summary><strong>3. 我的孩子年龄还小，也需要占一个名额吗？</strong></summary><div class="faq-answer">年龄三岁以下的儿童无需占用座位名额；三岁及以上的儿童将按一人一座位计算。主办方会在现场核对年龄。</div></details>
         <details class="faq-item"><summary><strong>4. 现场会有儿童游乐区吗？</strong></summary><div class="faq-answer">场内未设儿童游乐区。不过我们鼓励校友让孩子们彼此互动交流，结识更多小小"校友二代"。</div></details>
-        <details class="faq-item"><summary><strong>5. 想了解晚宴座位是如何安排的？我看到有单人票和10人桌席。</strong></summary><div class="faq-answer">单人票持有者将由主办方统一安排座位，并尽量优先与同班同学同桌。如已预订整桌（10人桌席），可由订购者自行安排座位。</div></details>
-        <details class="faq-item"><summary><strong>6. 纪念周边是否必须购买？可以只购买周边，不参加活动吗？</strong></summary><div class="faq-answer">纪念周边为自愿购买，非强制项目。周边主要供出席活动的校友现场领取，如需仅购买周边，可请参加活动的校友协助代购并代为领取。</div></details>
-        <details class="faq-item"><summary><strong>7. 我想支持你们，但活动当天无法出席，可以仅购票不出席吗？</strong></summary><div class="faq-answer">我们很期待与您见面！由于活动已安排餐饮及座位，如无法出席，请尽早联系筹委办理票务乐捐安排。</div></details>
-        <details class="faq-item"><summary><strong>8. 我买了票，但临时无法出席，可以要求退款吗？</strong></summary><div class="faq-answer">非常抱歉，票券一经确认后不设退款，将默认为乐捐予学校。</div></details>
-        <details class="faq-item"><summary><strong>9. 我想大力捐款给母校，可以在哪里捐？</strong></summary><div class="faq-answer">您可通过网站下方的捐款专区进行捐助。</div></details>
-        <details class="faq-item"><summary><strong>10. 票价是否已涵盖捐款？为什么购票后还需要另外捐款？</strong></summary><div class="faq-answer">票价已包含部分捐款用途，但筹委会仍需承担晚宴等活动成本。额外捐款将有助于更快达成本次活动的乐捐目标，即资助10位成绩优异且家境清寒的学生在中华完成6年学业的学费支持。</div></details>
-        <details class="faq-item"><summary><strong>11. 纪念周边一定要三件全买吗？可以只买单件吗？</strong></summary><div class="faq-answer">纪念周边目前以三件组合形式发售，不设单��购买。希望大家支持母校，将这份回忆一并带回家。</div></details>
+        <details class="faq-item" style="display:none"><summary><strong>5. 想了解晚宴座位是如何安排的？我看到有单人票和10人桌席。</strong></summary><div class="faq-answer">单人票持有者将由主办方统一安排座位，并尽量优先与同班同学同桌。如已预订整桌（10人桌席），可由订购者自行安排座位。</div></details>
+        <details class="faq-item" style="display:none"><summary><strong>6. 纪念周边是否必须购买？可以只购买周边，不参加活动吗？</strong></summary><div class="faq-answer">纪念周边为自愿购买，非强制项目。周边主要供出席活动的校友现场领取，如需仅购买周边，可请参加活动的校友协助代购并代为领取。</div></details>
+        <details class="faq-item" style="display:none"><summary><strong>7. 我想支持你们，但活动当天无法出席，可以仅购票不出席吗？</strong></summary><div class="faq-answer">我们很期待与您见面！由于活动已安排餐饮及座位，如无法出席，请尽早联系筹委办理票务乐捐安排。</div></details>
+        <details class="faq-item" style="display:none"><summary><strong>8. 我买了票，但临时无法出席，可以要求退款吗？</strong></summary><div class="faq-answer">非常抱歉，票券一经确认后不设退款，将默认为乐捐予学校。</div></details>
+        <details class="faq-item"><summary><strong>9. 我想大力捐款给母校，可以在哪里捐？</strong></summary><div class="faq-answer">您可直接通过本页报名表单填写捐款金额；或扫描表单中的银行 QR，或通过网站下方的捐款专区进行捐助。</div></details>
+        <details class="faq-item"><summary><strong>10. 这次活动只接受捐款吗？</strong></summary><div class="faq-answer">本届 Homecoming 2026 的报名方式以捐款为主，所有款项将纳入「清寒学生助学基金」，帮助 10 位家境清寒但成绩优异的学生完成 6 年学业（每学年 RM 7,000，6 年共 RM 42,000）。我们不再发售票务或纪念周边，但仍欢迎您参与当天的校园活动。</div></details>
+        <details class="faq-item" style="display:none"><summary><strong>11. 纪念周边一定要三件全买吗？可以只买单件吗？</strong></summary><div class="faq-answer">纪念周边目前以三件组合形式发售，不设单件购买。希望大家支持母校，将这份回忆一并带回家。</div></details>
         <details class="faq-item"><summary><strong>12. 我不是学号01校友，可以出席吗？</strong></summary><div class="faq-answer">当然可以，欢迎各位一同参与，共享回忆与相聚时光。</div></details>
-        <details class="faq-item"><summary><strong>13. 我购买了10人桌席及10份纪念周边，客制化校徽学号需要如何安排？</strong></summary><div class="faq-answer">请于截止日期8月31日前联系筹委：票务组张劲年同学、宣传／设计／周边组吴康耀同学。联系方式可于网站下方的筹委名单中查阅。</div></details>
-        <details class="faq-item"><summary><strong>14. 纪念周边是当天领取吗？</strong></summary><div class="faq-answer">是的，纪念周边将于活动当天领取。如无法亲自出席，可委托有出席的校友代为领取。</div></details>
+        <details class="faq-item" style="display:none"><summary><strong>13. 我购买了10人桌席及10份纪念周边，客制化校徽学号需要如何安排？</strong></summary><div class="faq-answer">请于截止日期8月31日前联系筹委：票务组张劲年同学、宣传／设计／周边组吴康耀同学。联系方式可于网站下方的筹委名单中查阅。</div></details>
+        <details class="faq-item" style="display:none"><summary><strong>14. 纪念周边是当天领取吗？</strong></summary><div class="faq-answer">是的，纪念周边将于活动当天领取。如无法亲自出席，可委托有出席的校友代为领取。</div></details>
         <details class="faq-item"><summary><strong>15. 我可以在当天晚宴自愿上台表演吗？</strong></summary><div class="faq-answer">非常欢迎！有意参与表演者请联系陈马荣同学。最终演出安排将由筹委会统筹决定。联系方式可于网站下方的筹委名单中查阅。</div></details>
       </div>
     </div>
