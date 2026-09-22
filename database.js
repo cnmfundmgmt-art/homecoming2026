@@ -146,18 +146,57 @@ async function seedStudentsFromExcelTurso(url, token) {
   const turso = createClient({ url, authToken: token });
   // Ensure table exists
   await turso.execute(`CREATE TABLE IF NOT EXISTS students (student_id TEXT PRIMARY KEY, chinese_name TEXT NOT NULL, english_name TEXT, class TEXT)`);
-  // Insert in batches — prefer class starting with "6" (senior) over lower years
-  let count = 0;
-  for (const r of students) {
-    const existingRows = await turso.execute({ sql: `SELECT class FROM students WHERE student_id = ?`, args: [r.student_id] });
-    const existing = existingRows.rows?.[0];
-    const finalClass = (existing?.class?.startsWith('6') && !r.class?.startsWith('6'))
-      ? existing.class
-      : r.class;
-    await turso.execute({ sql: `INSERT OR REPLACE INTO students (student_id, chinese_name, english_name, class) VALUES (?, ?, ?, ?)`, args: [r.student_id, r.chinese_name, r.english_name, finalClass] });
-    count++;
+
+  // Fast path: if Turso already has all (or more) students seeded from a
+  // previous boot, skip the re-seed entirely. Previously every Render boot
+  // re-inserted all 2261 rows with 2 round-trips each (~4500 calls), which
+  // pushed boot time past Render's readiness window and left the service
+  // returning 503 to every request.
+  const countRes = await turso.execute(`SELECT COUNT(*) AS n FROM students`);
+  const existingCount = Number(countRes.rows?.[0]?.n ?? 0);
+  if (existingCount >= students.length) {
+    console.log(`[seedStudents] Skipped: ${existingCount} rows already in Turso (Excel has ${students.length})`);
+    return;
   }
-  console.log(`[seedStudents] Loaded ${count} students to Turso`);
+
+  // Batched seed with "prefer senior class" merge logic. Each batch does:
+  //   1) one SELECT … WHERE student_id IN (?, ?, …) to read existing classes
+  //   2) one INSERT OR REPLACE VALUES (?,?,?,?), (?,?,?,?), … for the merged rows
+  // With BATCH=200 and 2261 students → ~12 batches × 2 round-trips ≈ 24 calls
+  // (was ~4500).
+  const BATCH = 200;
+  let batches = 0;
+  for (let i = 0; i < students.length; i += BATCH) {
+    const batch = students.slice(i, i + BATCH);
+    const ids = batch.map(r => String(r.student_id));
+    const inPlaceholders = ids.map(() => '?').join(', ');
+    const selRes = await turso.execute({
+      sql: `SELECT student_id, class FROM students WHERE student_id IN (${inPlaceholders})`,
+      args: ids
+    });
+    const existingMap = new Map();
+    for (const row of selRes.rows || []) {
+      existingMap.set(String(row.student_id), row.class);
+    }
+    const insertPlaceholders = [];
+    const insertArgs = [];
+    for (const r of batch) {
+      const existingClass = existingMap.get(String(r.student_id));
+      // Same merge rule as before: keep the existing senior-year class
+      // (starts with "6") if the new row would clobber it with a junior year.
+      const finalClass = (existingClass != null && String(existingClass).startsWith('6') && !(r.class && String(r.class).startsWith('6')))
+        ? existingClass
+        : r.class;
+      insertPlaceholders.push('(?, ?, ?, ?)');
+      insertArgs.push(String(r.student_id), r.chinese_name, r.english_name || null, finalClass || null);
+    }
+    await turso.execute({
+      sql: `INSERT OR REPLACE INTO students (student_id, chinese_name, english_name, class) VALUES ${insertPlaceholders.join(', ')}`,
+      args: insertArgs
+    });
+    batches++;
+  }
+  console.log(`[seedStudents] Loaded ${students.length} students to Turso in ${batches} batches`);
 }
 
 // ─── Local SQLite setup ───────────────────────────────────────────────────────
